@@ -8,7 +8,8 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors()); // Enable CORS for mobile and web apps
-app.use(express.json()); // Parse JSON request bodies
+app.use(express.json({ limit: '50mb' })); // Parse JSON request bodies
+app.use(express.text({ limit: '50mb' })); // Parse text request bodies
 
 // PostgreSQL connection pool - use production database
 const pool = new Pool({
@@ -78,12 +79,25 @@ app.get('/debug', async (req, res) => {
 app.post('/migrate-data', authenticate, async (req, res) => {
   try {
     console.log('Starting data migration...');
+    console.log('Request body:', req.body);
+    console.log('Content-Type:', req.headers['content-type']);
     
-    // Get SQL from request body
-    const { sql } = req.body;
-    
-    if (!sql) {
-      return res.status(400).json({ error: 'SQL statements required in request body' });
+    // Get SQL from request body - handle both JSON and text
+    let sql;
+    if (typeof req.body === 'string') {
+      sql = req.body;
+    } else if (req.body && req.body.sql) {
+      sql = req.body.sql;
+    } else {
+      console.log('Body type:', typeof req.body);
+      return res.status(400).json({ 
+        error: 'SQL statements required in request body',
+        debug: { 
+          bodyType: typeof req.body, 
+          hasBody: !!req.body,
+          contentType: req.headers['content-type']
+        }
+      });
     }
     
     // Execute migration in transaction
