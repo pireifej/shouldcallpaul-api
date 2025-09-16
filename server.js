@@ -10,13 +10,13 @@ const PORT = process.env.PORT || 5000;
 app.use(cors()); // Enable CORS for mobile and web apps
 app.use(express.json()); // Parse JSON request bodies
 
-// PostgreSQL connection pool - connect to database
+// PostgreSQL connection pool - connect to 'god' database
 const pool = new Pool({
   host: process.env.PGHOST,
   port: process.env.PGPORT,
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD,
-  database: process.env.PGDATABASE,
+  database: 'god', // Force connection to 'god' database
   ssl: { rejectUnauthorized: false }
 });
 
