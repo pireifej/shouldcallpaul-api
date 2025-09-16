@@ -1,0 +1,170 @@
+DROP SCHEMA IF EXISTS staging CASCADE;
+CREATE SCHEMA staging;
+
+CREATE TABLE staging.blessings (
+  blessings_id INTEGER NOT NULL,
+  blessings_text VARCHAR(200) NOT NULL,
+  TIMESTAMP TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  blessings_color VARCHAR(40) DEFAULT NULL,
+  fk_user_id INTEGER DEFAULT NULL,
+  PRIMARY KEY (blessings_id)
+);
+
+CREATE TABLE staging.blog_article (
+  id INTEGER NOT NULL,
+  created_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  title VARCHAR(100) DEFAULT NULL,
+  blog_article_file VARCHAR(20) DEFAULT NULL,
+  preview VARCHAR(500) DEFAULT NULL,
+  image VARCHAR(100) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE staging.category (
+  category_id INTEGER NOT NULL,
+  category_name VARCHAR(50) NOT NULL,
+  active SMALLINT DEFAULT NULL,
+  PRIMARY KEY (category_id)
+);
+
+CREATE TABLE staging.comments (
+  comments_id INTEGER NOT NULL,
+  user_id INTEGER DEFAULT NULL,
+  request_id INTEGER DEFAULT NULL,
+  comment VARCHAR(400) DEFAULT NULL,
+  TIMESTAMP TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  PRIMARY KEY (comments_id)
+);
+
+CREATE TABLE staging.family (
+  family_name VARCHAR(100) DEFAULT NULL,
+  family_desc VARCHAR(255) DEFAULT NULL,
+  TIMESTAMP TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  family_id INTEGER NOT NULL,
+  PRIMARY KEY (family_id)
+);
+
+CREATE TABLE staging.meal (
+  meal_id INTEGER NOT NULL,
+  meal_name VARCHAR(255) NOT NULL,
+  calories INTEGER DEFAULT NULL,
+  meal_date_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  description VARCHAR(255) DEFAULT NULL,
+  breakdown VARCHAR(400) DEFAULT NULL,
+  user_id INTEGER DEFAULT NULL,
+  PRIMARY KEY (meal_id)
+);
+
+CREATE TABLE staging.prayers (
+  prayer_id INTEGER NOT NULL,
+  prayer_title VARCHAR(100) NOT NULL,
+  prayer_file_name VARCHAR(100) NOT NULL,
+  fk_category_id INTEGER DEFAULT NULL,
+  tags VARCHAR(255) DEFAULT NULL,
+  prayer_text TEXT DEFAULT NULL,
+  active SMALLINT DEFAULT 1,
+  prayer_text_me TEXT DEFAULT NULL,
+  prayer_pic VARCHAR(25) DEFAULT NULL,
+  PRIMARY KEY (prayer_id)
+);
+
+CREATE TABLE staging.request (
+  request_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  active SMALLINT DEFAULT NULL,
+  request_date_time TIMESTAMP DEFAULT NULL,
+  request_title VARCHAR(50) DEFAULT NULL,
+  TIMESTAMP TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  fk_category_id INTEGER DEFAULT NULL,
+  request_text VARCHAR(900) DEFAULT NULL,
+  other_person VARCHAR(50) DEFAULT NULL,
+  picture VARCHAR(255) DEFAULT NULL,
+  fk_prayer_id INTEGER DEFAULT NULL,
+  fk_user_id INTEGER DEFAULT NULL,
+  other_person_gender VARCHAR(20) DEFAULT NULL,
+  other_person_email VARCHAR(50) DEFAULT NULL,
+  for_me SMALLINT NOT NULL DEFAULT 0,
+  for_all SMALLINT DEFAULT NULL,
+  updated_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  relationship VARCHAR(30) DEFAULT NULL,
+  PRIMARY KEY (request_id)
+);
+
+CREATE TABLE staging.rosary (
+  rosary_id INTEGER  NOT NULL,
+  session_id VARCHAR(50) DEFAULT NULL,
+  fk_user_id INTEGER DEFAULT NULL,
+  TIMESTAMP TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  user_order INTEGER DEFAULT NULL,
+  my_turn SMALLINT DEFAULT NULL,
+  PRIMARY KEY (rosary_id)
+);
+
+CREATE TABLE staging.settings (
+  user_id INTEGER NOT NULL,
+  use_alias SMALLINT DEFAULT NULL,
+  request_emails SMALLINT DEFAULT NULL,
+  prayer_emails SMALLINT DEFAULT NULL,
+  allow_comments SMALLINT DEFAULT NULL,
+  general_emails SMALLINT DEFAULT NULL,
+  summary_emails SMALLINT DEFAULT NULL,
+  PRIMARY KEY (user_id)
+);
+
+CREATE TABLE staging.sponge (
+  sponge_id INTEGER NOT NULL,
+  owner VARCHAR(255) DEFAULT NULL,
+  about VARCHAR(255) DEFAULT NULL,
+  lifespan VARCHAR(255) DEFAULT NULL,
+  nbr_likes INTEGER  DEFAULT 0,
+  TIMESTAMP TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  picture VARCHAR(255) DEFAULT NULL,
+  name VARCHAR(255) DEFAULT NULL,
+  email VARCHAR(255) DEFAULT NULL,
+  PRIMARY KEY (sponge_id)
+);
+
+CREATE TABLE staging."user" (
+  user_name VARCHAR(50) DEFAULT NULL,
+  password VARCHAR(200) DEFAULT NULL,
+  email VARCHAR(50) DEFAULT NULL,
+  real_name VARCHAR(50) DEFAULT NULL,
+  location VARCHAR(50) DEFAULT NULL,
+  active SMALLINT DEFAULT NULL,
+  user_id INTEGER NOT NULL,
+  user_title VARCHAR(25) DEFAULT NULL,
+  user_about VARCHAR(50) DEFAULT NULL,
+  TIMESTAMP TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  gender VARCHAR(20) DEFAULT NULL,
+  picture VARCHAR(255) DEFAULT NULL,
+  phone VARCHAR(20) DEFAULT NULL,
+  type VARCHAR(50) DEFAULT NULL,
+  last_name VARCHAR(50) DEFAULT NULL,
+  settings TEXT DEFAULT NULL,
+  cover VARCHAR(20) DEFAULT NULL,
+  updated_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  contacted_timestamp TIMESTAMP NOT NULL,
+  PRIMARY KEY (user_id)
+);
+
+CREATE TABLE staging.user_family (
+  user_id INTEGER DEFAULT NULL,
+  family_id INTEGER DEFAULT NULL,
+  TIMESTAMP TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  place_id VARCHAR(30) DEFAULT NULL
+);
+
+CREATE TABLE staging.user_request (
+  request_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  TIMESTAMP TIMESTAMP /* mariadb-5.3 */ NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  PRIMARY KEY (request_id,user_id)
+);
+
+CREATE TABLE staging.visitors (
+  visitor_id INTEGER NOT NULL,
+  visitor_details TEXT DEFAULT NULL,
+  visitor_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+  page VARCHAR(25) DEFAULT NULL,
+  PRIMARY KEY (visitor_id)
+);
