@@ -75,65 +75,7 @@ app.get('/debug', async (req, res) => {
   }
 });
 
-// Migration endpoint to import development data (requires authentication)
-app.post('/migrate-data', authenticate, async (req, res) => {
-  try {
-    console.log('Starting data migration...');
-    console.log('Request body:', req.body);
-    console.log('Content-Type:', req.headers['content-type']);
-    
-    // Get SQL from request body - handle both JSON and text
-    let sql;
-    if (typeof req.body === 'string') {
-      sql = req.body;
-    } else if (req.body && req.body.sql) {
-      sql = req.body.sql;
-    } else {
-      console.log('Body type:', typeof req.body);
-      return res.status(400).json({ 
-        error: 'SQL statements required in request body',
-        debug: { 
-          bodyType: typeof req.body, 
-          hasBody: !!req.body,
-          contentType: req.headers['content-type']
-        }
-      });
-    }
-    
-    // Execute migration in transaction
-    await pool.query('BEGIN');
-    await pool.query(sql);
-    await pool.query('COMMIT');
-    
-    // Check results
-    const counts = await pool.query(`
-      SELECT 
-        (SELECT COUNT(*) FROM public.blessings) as blessings,
-        (SELECT COUNT(*) FROM public.request) as requests,
-        (SELECT COUNT(*) FROM public."user") as users,
-        (SELECT COUNT(*) FROM public.comments) as comments,
-        (SELECT COUNT(*) FROM public.prayers) as prayers,
-        (SELECT COUNT(*) FROM public.user_request) as user_requests,
-        (SELECT COUNT(*) FROM public.blog_article) as blog_articles,
-        (SELECT COUNT(*) FROM public.settings) as settings,
-        (SELECT COUNT(*) FROM public.sponge) as sponge
-    `);
-    
-    console.log('Migration completed successfully');
-    res.json({
-      status: 'Migration completed successfully',
-      imported_counts: counts.rows[0]
-    });
-    
-  } catch (error) {
-    await pool.query('ROLLBACK');
-    console.error('Migration failed:', error);
-    res.status(500).json({
-      status: 'Migration failed',
-      error: error.message
-    });
-  }
-});
+// Migration endpoint removed for security after successful data import
 
 // Start server on 0.0.0.0 for public accessibility
 app.listen(PORT, '0.0.0.0', () => {
