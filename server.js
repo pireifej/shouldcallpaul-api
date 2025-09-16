@@ -74,6 +74,53 @@ app.get('/debug', async (req, res) => {
   }
 });
 
+// Migration endpoint to import development data (requires authentication)
+app.post('/migrate-data', authenticate, async (req, res) => {
+  try {
+    console.log('Starting data migration...');
+    
+    // Get SQL from request body
+    const { sql } = req.body;
+    
+    if (!sql) {
+      return res.status(400).json({ error: 'SQL statements required in request body' });
+    }
+    
+    // Execute migration in transaction
+    await pool.query('BEGIN');
+    await pool.query(sql);
+    await pool.query('COMMIT');
+    
+    // Check results
+    const counts = await pool.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM public.blessings) as blessings,
+        (SELECT COUNT(*) FROM public.request) as requests,
+        (SELECT COUNT(*) FROM public."user") as users,
+        (SELECT COUNT(*) FROM public.comments) as comments,
+        (SELECT COUNT(*) FROM public.prayers) as prayers,
+        (SELECT COUNT(*) FROM public.user_request) as user_requests,
+        (SELECT COUNT(*) FROM public.blog_article) as blog_articles,
+        (SELECT COUNT(*) FROM public.settings) as settings,
+        (SELECT COUNT(*) FROM public.sponge) as sponge
+    `);
+    
+    console.log('Migration completed successfully');
+    res.json({
+      status: 'Migration completed successfully',
+      imported_counts: counts.rows[0]
+    });
+    
+  } catch (error) {
+    await pool.query('ROLLBACK');
+    console.error('Migration failed:', error);
+    res.status(500).json({
+      status: 'Migration failed',
+      error: error.message
+    });
+  }
+});
+
 // Start server on 0.0.0.0 for public accessibility
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
