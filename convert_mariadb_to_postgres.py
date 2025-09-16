@@ -34,8 +34,8 @@ def convert_mariadb_to_postgres(input_file, output_file):
     # Convert data types
     content = re.sub(r'int\(\d+\)', 'INTEGER', content, flags=re.IGNORECASE)
     content = re.sub(r'tinyint\(1\)', 'BOOLEAN', content, flags=re.IGNORECASE)
-    content = re.sub(r'datetime', 'TIMESTAMP', content, flags=re.IGNORECASE)
-    content = re.sub(r'timestamp', 'TIMESTAMP', content, flags=re.IGNORECASE)
+    content = re.sub(r'\btimestamp\b', 'TIMESTAMP', content, flags=re.IGNORECASE)
+    content = re.sub(r'\bdatetime\b', 'TIMESTAMP', content, flags=re.IGNORECASE)
     
     # Convert current_timestamp() to CURRENT_TIMESTAMP
     content = re.sub(r'current_timestamp\(\)', 'CURRENT_TIMESTAMP', content, flags=re.IGNORECASE)
