@@ -60,6 +60,24 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Debug endpoint to check database connection (no authentication)
+app.get('/debug', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT NOW() as current_time, current_database() as db_name');
+    res.json({ 
+      status: 'Database connected', 
+      database: result.rows[0].db_name,
+      time: result.rows[0].current_time 
+    });
+  } catch (error) {
+    res.json({ 
+      status: 'Database error', 
+      error: error.message,
+      code: error.code 
+    });
+  }
+});
+
 // Start server on 0.0.0.0 for public accessibility
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
