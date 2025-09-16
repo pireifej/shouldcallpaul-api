@@ -78,7 +78,7 @@ DROP TABLE IF EXISTS blog_article;
 ;
 CREATE TABLE blog_article (
   id SERIAL,
-  created_TIMESTAMP TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   title varchar(100) DEFAULT NULL,
   blog_article_file varchar(20) DEFAULT NULL,
   preview varchar(500) DEFAULT NULL,
@@ -892,7 +892,7 @@ CREATE TABLE request (
   other_person_email varchar(50) DEFAULT NULL,
   for_me tinyINTEGER NOT NULL DEFAULT 0,
   for_all tinyINTEGER DEFAULT NULL,
-  updated_TIMESTAMP TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   relationship varchar(30) DEFAULT NULL,
   PRIMARY KEY (request_id),
   CONSTRAINT fk_prayer_id FOREIGN KEY (fk_prayer_id) REFERENCES prayers (prayer_id),
@@ -1681,8 +1681,8 @@ CREATE TABLE user (
   last_name varchar(50) DEFAULT NULL,
   settings longtext DEFAULT NULL,
   cover varchar(20) DEFAULT NULL,
-  updated_TIMESTAMP TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  contacted_TIMESTAMP TIMESTAMP NOT NULL,
+  updated_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  contacted_timestamp TIMESTAMP NOT NULL,
   PRIMARY KEY (user_id),
   UNIQUE KEY user_name_unique (user_name),
   UNIQUE KEY email_unique (email)
@@ -4859,7 +4859,7 @@ DROP TABLE IF EXISTS visitors;
 CREATE TABLE visitors (
   visitor_id SERIAL,
   visitor_details longtext DEFAULT NULL,
-  visitor_TIMESTAMP TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  visitor_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   page varchar(25) DEFAULT NULL,
   PRIMARY KEY (visitor_id)
 );
