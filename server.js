@@ -87,6 +87,71 @@ app.post('/getAllBlogArticles', async (req, res) => {
   }
 });
 
+// POST /getBlogArticle - Get single blog article with content from flat file
+app.post('/getBlogArticle', async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    const requiredParams = ["id", "tz"];
+    for (let i = 0; i < requiredParams.length; i++) {
+      const requiredParam = requiredParams[i];
+      if (!params[requiredParam]) {
+        return res.json({error: "Required params '" + requiredParam + "' missing"});
+      }
+    }
+    
+    // PostgreSQL query to get blog article metadata
+    const query = `
+      SELECT 
+        title, 
+        preview, 
+        image, 
+        slug as blog_article_file,
+        (created_datetime AT TIME ZONE 'UTC' AT TIME ZONE $2) as timestamp 
+      FROM public.blog_article 
+      WHERE id = $1
+    `;
+    
+    const result = await pool.query(query, [params.id, params.tz]);
+    
+    if (result.rows.length === 0) {
+      return res.json({error: 1, result: "Blog article not found"});
+    }
+    
+    const articleData = result.rows[0];
+    const blogArticleFile = articleData.blog_article_file;
+    
+    // Read the flat file content
+    const fs = require('fs');
+    const path = require('path');
+    
+    const filePath = path.join(__dirname, 'blog_articles', blogArticleFile + '.txt');
+    
+    fs.readFile(filePath, 'utf8', function (err, data) {
+      if (err) {
+        console.log(err);
+        return res.json({error: 1, result: err.message || err});
+      }
+      
+      console.log('Successfully read blog article:', blogArticleFile);
+      
+      const article = {
+        title: articleData.title,
+        content: data,
+        date: articleData.timestamp,
+        image: articleData.image
+      };
+      
+      res.json({error: 0, result: article});
+    });
+    
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({error: 1, result: 'Internal server error'});
+  }
+});
+
 // Health check endpoint (no authentication required)
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
