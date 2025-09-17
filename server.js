@@ -11,6 +11,10 @@ app.use(cors()); // Enable CORS for mobile and web apps
 app.use(express.json({ limit: '50mb' })); // Parse JSON request bodies
 app.use(express.text({ limit: '50mb' })); // Parse text request bodies
 
+// Serve static files for profile images and blog images
+app.use('/profile_images', express.static('profile_images'));
+app.use('/img', express.static('blog_articles/img'));
+
 // PostgreSQL connection pool - use production database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -79,6 +83,47 @@ app.post('/getAllBlogArticles', async (req, res) => {
     `;
     
     const result = await pool.query(query, [params.tz]);
+    res.json(result.rows);
+    
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /getUserByEmail - Get user by email address
+app.post('/getUserByEmail', async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    const requiredParams = ["email"];
+    for (let i = 0; i < requiredParams.length; i++) {
+      const requiredParam = requiredParams[i];
+      if (!params[requiredParam]) {
+        return res.json({error: "Required params '" + requiredParam + "' missing"});
+      }
+    }
+    
+    // PostgreSQL query with proper SQL injection protection
+    const query = `
+      SELECT 
+        user_name,
+        email,
+        real_name,
+        user_title,
+        user_about,
+        location,
+        active,
+        timestamp,
+        user_id,
+        picture
+      FROM public."user" 
+      WHERE LOWER(email) LIKE LOWER($1)
+      LIMIT 1
+    `;
+    
+    const result = await pool.query(query, [params.email]);
     res.json(result.rows);
     
   } catch (error) {
