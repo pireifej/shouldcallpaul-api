@@ -3,6 +3,8 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 const OpenAI = require('openai');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -566,6 +568,181 @@ app.post('/prayFor', async (req, res) => {
     } else {
       res.status(500).json({ error: 'Internal server error' });
     }
+  }
+});
+
+// POST /createRequestAndPrayer - Create a prayer request and generate AI prayer
+app.post('/createRequestAndPrayer', async (req, res) => {
+  try {
+    const params = req.body;
+    
+    const idempotencyKey = params["idempotencyKey"];
+    
+    // Now you have the key and can use it for your checks
+    console.log(`Received idempotency key: ${idempotencyKey}`);
+
+    const newRequestCheck = path.join(__dirname, idempotencyKey + ".txt");
+
+    // Check if the file already exists
+    if (fs.existsSync(newRequestCheck)) {
+        res.json({ error: `File for key ID ${idempotencyKey} already exists.` });
+        return; // Quit and do not continue
+    }
+
+    console.log(newRequestCheck);
+
+    // Write the new file
+    try {
+        const fileContent = JSON.stringify(params, null, 2);
+        fs.writeFileSync(newRequestCheck, idempotencyKey);
+        console.log(`Successfully created file for key ${idempotencyKey}.`);
+    } catch (err) {
+        console.error(`Error writing file for key ${idempotencyKey}:`, err);
+        res.status(500).json({ error: "Could not create request file." });
+        return;
+    }
+
+    // Validate required parameters
+    const requiredParams = ["userId", "requestText", "requestTitle", "sendEmail"];
+    for (let i = 0; i < requiredParams.length; i++) {
+        const requiredParam = requiredParams[i];
+        if (!params[requiredParam]) {
+            res.json({ error: "Required param '" + requiredParam + "' missing" });
+            return;
+        }
+    }
+
+    // Step 1: Insert the request into the database (simplified approach)
+    const insertQuery = `
+      INSERT INTO public.request (
+        user_id, request_text, request_title, fk_category_id, other_person, picture, fk_prayer_id,
+        fk_user_id, other_person_gender, other_person_email, relationship,
+        for_me, for_all, active
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      RETURNING request_id
+    `;
+
+    const forMe = (params.forMe === "false") ? 0 : 1;
+    const forAll = (params.forAll === "false") ? 0 : 1;
+
+    // Build parameters array with all values (null for optional ones)
+    const queryParams = [
+      params.userId,                          // $1
+      params.requestText,                     // $2
+      params.requestTitle,                    // $3
+      8,                                      // $4 - fk_category_id
+      params.otherPerson || null,             // $5
+      params.picture || null,                 // $6
+      params.prayerId || null,                // $7
+      params.otherPersonUserId || null,       // $8
+      params.otherPersonGender || null,       // $9
+      params.otherPersonEmail || null,        // $10
+      params.relationship || null,            // $11
+      forMe,                                  // $12
+      forAll,                                 // $13
+      1                                       // $14 - active (1 for true in smallint)
+    ];
+
+    const insertResult = await pool.query(insertQuery, queryParams);
+    const requestId = insertResult.rows[0].request_id;
+
+    // Step 2: Get user details for prayer generation
+    const userQuery = `
+      SELECT "user".real_name, "user".picture 
+      FROM public."user" 
+      WHERE "user".user_id = $1
+    `;
+    const userResult = await pool.query(userQuery, [params.userId]);
+    
+    if (userResult.rows.length === 0) {
+      res.json({ error: "User not found" });
+      return;
+    }
+
+    const realName = userResult.rows[0].real_name;
+    const userPicture = userResult.rows[0].picture;
+
+    // Step 3: Generate prayer using our getChatCompletion endpoint
+    const promptToGeneratePrayer = `I want a Catholic prayer to pray for someone named ${realName}, who has the following prayer request: ${params.requestText}.`;
+    
+    try {
+      // Make internal call to our getChatCompletion endpoint
+      const chatResponse = await fetch(`http://localhost:${PORT}/getChatCompletion`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: promptToGeneratePrayer })
+      });
+
+      const chatResult = await chatResponse.json();
+
+      if (!chatResult.choices || chatResult.choices.length === 0) {
+        res.json({ error: "Failed to get a prayer from OpenAI" });
+        return;
+      }
+
+      const newPrayer = chatResult.choices[0].message.content.replace(/'/g, "");
+
+      // Step 4: Insert the generated prayer
+      const prayerInsertQuery = `
+        INSERT INTO public.prayers (prayer_title, prayer_text, prayer_text_me, tags, active, prayer_file_name) 
+        VALUES ($1, $2, $3, $4, $5, $6) 
+        RETURNING prayer_id
+      `;
+
+      const prayerResult = await pool.query(prayerInsertQuery, [
+        'openAI-generated',
+        newPrayer,
+        newPrayer,
+        'openAI',
+        1,          // active field is smallint, use 1 instead of true
+        'openAI'
+      ]);
+
+      const prayerId = prayerResult.rows[0].prayer_id;
+
+      // Step 5: Update the request with the prayer ID
+      const updateQuery = `
+        UPDATE public.request 
+        SET fk_prayer_id = $1, active = 1 
+        WHERE request_id = $2
+      `;
+
+      await pool.query(updateQuery, [prayerId, requestId]);
+
+      // Step 6: Return success response
+      res.json({
+        success: true,
+        requestId: requestId,
+        prayerId: prayerId,
+        realName: realName,
+        prayer: newPrayer,
+        message: "Request and prayer created successfully"
+      });
+
+      // Clean up idempotency file
+      if (fs.existsSync(newRequestCheck)) {
+        fs.unlink(newRequestCheck, (err) => {
+          if (err) {
+            console.error(`Error deleting file for key ${idempotencyKey}:`, err);
+            return;
+          }
+          console.log(`Successfully deleted file for key ${idempotencyKey}.`);
+        });
+      } else {
+        console.log(`File for key ${idempotencyKey} does not exist, no action needed.`);
+      }
+
+    } catch (chatError) {
+      console.error('OpenAI chat completion error:', chatError);
+      res.json({ error: "Failed to generate prayer" });
+      return;
+    }
+
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
