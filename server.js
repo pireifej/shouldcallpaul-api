@@ -142,6 +142,64 @@ app.post('/getUserByEmail', async (req, res) => {
   }
 });
 
+// Simple logging function to match original functionality
+const log = (req) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Body:`, req.body);
+};
+
+// POST /getAllUsers - Get all users with prayer and request counts
+app.post('/getAllUsers', async (req, res) => {
+  try {
+    log(req);
+    const params = req.body;
+    const userId = params["userId"];
+    
+    // Validate required parameters
+    const requiredParams = ["tz"];
+    for (let i = 0; i < requiredParams.length; i++) {
+      const requiredParam = requiredParams[i];
+      if (!params[requiredParam]) {
+        return res.json({error: "Required params '" + requiredParam + "' missing"});
+      }
+    }
+    
+    // Build PostgreSQL query with timezone conversion and subqueries
+    let query = `
+      SELECT 
+        "user".user_id,
+        "user".user_name,
+        "user".cover,
+        "user".email,
+        "user".real_name,
+        "user".location,
+        "user".user_title,
+        "user".user_about,
+        "user".picture,
+        ("user".timestamp AT TIME ZONE 'UTC' AT TIME ZONE $1) as timestamp,
+        (SELECT COUNT(*) FROM public.user_request WHERE user_request.user_id = "user".user_id) as prayer_count,
+        (SELECT COUNT(*) FROM public.request WHERE request.user_id = "user".user_id) as request_count
+      FROM public."user"
+    `;
+    
+    let queryParams = [params.tz];
+    
+    // Add WHERE clause if userId is provided
+    if (userId) {
+      query += ` WHERE "user".user_id = $2`;
+      queryParams.push(userId);
+    }
+    
+    query += `;`;
+    
+    const result = await pool.query(query, queryParams);
+    res.json(result.rows);
+    
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // POST /getBlogArticle - Get single blog article with content from flat file
 app.post('/getBlogArticle', async (req, res) => {
   try {
