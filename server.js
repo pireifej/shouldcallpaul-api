@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 const app = express();
@@ -194,6 +195,76 @@ app.post('/getBlogArticle', async (req, res) => {
   } catch (error) {
     console.error('Database query error:', error);
     res.status(500).json({error: 1, result: 'Internal server error'});
+  }
+});
+
+// POST /login - User authentication endpoint
+app.post('/login', authenticate, async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    const requiredParams = ["password", "email"];
+    for (let i = 0; i < requiredParams.length; i++) {
+      const requiredParam = requiredParams[i];
+      if (!params[requiredParam]) {
+        return res.json({error: "Required params '" + requiredParam + "' missing"});
+      }
+    }
+    
+    // PostgreSQL query with proper SQL injection protection
+    const query = `
+      SELECT 
+        password,
+        user_name,
+        email,
+        real_name,
+        user_title,
+        user_about,
+        location,
+        active,
+        timestamp,
+        user_id,
+        picture
+      FROM public."user" 
+      WHERE LOWER(email) LIKE LOWER($1)
+      LIMIT 1
+    `;
+    
+    const result = await pool.query(query, ['%' + params.email + '%']);
+    
+    // Did not find email address in user list
+    if (result.rows.length === 0) {
+      return res.json({error: 1, result: "Email address not found."});
+    }
+    
+    const user = result.rows[0];
+    
+    // Check if account is active
+    if (!user.active) {
+      return res.json({error: 1, result: "Account has been deactivated."});
+    }
+    
+    const hash = user.password;
+    delete user.password; // Remove password from response
+    
+    // Compare password with bcrypt
+    bcrypt.compare(params.password, hash, function(err, passwordMatch) {
+      if (err) {
+        return res.json({error: 1, result: "Authentication error occurred."});
+      }
+      
+      if (!passwordMatch) {
+        return res.json({error: 1, result: "We have your email address! Maybe you forgot your password?"});
+      }
+      
+      // Successful login - return user data
+      res.json({error: 0, result: [user]});
+    });
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    res.json({error: 1, result: error.message});
   }
 });
 
