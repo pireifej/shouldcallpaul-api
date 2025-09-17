@@ -52,6 +52,41 @@ app.get('/api/requests', authenticate, async (req, res) => {
   }
 });
 
+// POST /getAllBlogArticles - Get all blog articles with timezone conversion
+app.post('/getAllBlogArticles', async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    const requiredParams = ["tz"];
+    for (let i = 0; i < requiredParams.length; i++) {
+      const requiredParam = requiredParams[i];
+      if (!params[requiredParam]) {
+        return res.json({error: "Required params '" + requiredParam + "' missing"});
+      }
+    }
+    
+    // PostgreSQL timezone conversion query (converting from UTC to specified timezone)
+    const query = `
+      SELECT 
+        id, 
+        preview, 
+        title, 
+        image, 
+        (created_datetime AT TIME ZONE 'UTC' AT TIME ZONE $1) as timestamp 
+      FROM public.blog_article 
+      ORDER BY created_datetime DESC
+    `;
+    
+    const result = await pool.query(query, [params.tz]);
+    res.json(result.rows);
+    
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Health check endpoint (no authentication required)
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
