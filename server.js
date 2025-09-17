@@ -224,8 +224,8 @@ app.post('/getAllRequests', async (req, res) => {
     log(req);
     const params = req.body;
     
-    // Select all requests
-    const query = `SELECT * FROM public.request`;
+    // Select all requests, sorted by most recent first
+    const query = `SELECT * FROM public.request ORDER BY timestamp DESC`;
     
     const result = await pool.query(query);
     res.json(result.rows);
