@@ -67,7 +67,7 @@ app.get('/api/requests', authenticate, async (req, res) => {
 });
 
 // POST /getAllBlogArticles - Get all blog articles with timezone conversion
-app.post('/getAllBlogArticles', async (req, res) => {
+app.post('/getAllBlogArticles', authenticate, async (req, res) => {
   try {
     const params = req.body;
     
@@ -102,7 +102,7 @@ app.post('/getAllBlogArticles', async (req, res) => {
 });
 
 // POST /getUserByEmail - Get user by email address
-app.post('/getUserByEmail', async (req, res) => {
+app.post('/getUserByEmail', authenticate, async (req, res) => {
   try {
     const params = req.body;
     
@@ -148,7 +148,7 @@ const log = (req) => {
 };
 
 // POST /getAllUsers - Get all users with prayer and request counts
-app.post('/getAllUsers', async (req, res) => {
+app.post('/getAllUsers', authenticate, async (req, res) => {
   try {
     log(req);
     const params = req.body;
@@ -201,7 +201,7 @@ app.post('/getAllUsers', async (req, res) => {
 });
 
 // POST /getRequestCount - Get total count of all requests
-app.post('/getRequestCount', async (req, res) => {
+app.post('/getRequestCount', authenticate, async (req, res) => {
   try {
     log(req);
     const params = req.body;
@@ -219,7 +219,7 @@ app.post('/getRequestCount', async (req, res) => {
 });
 
 // POST /getAllRequests - Get all requests
-app.post('/getAllRequests', async (req, res) => {
+app.post('/getAllRequests', authenticate, async (req, res) => {
   try {
     log(req);
     const params = req.body;
@@ -237,7 +237,7 @@ app.post('/getAllRequests', async (req, res) => {
 });
 
 // POST /getAllPrayers - Get all prayers sorted by most recent first
-app.post('/getAllPrayers', async (req, res) => {
+app.post('/getAllPrayers', authenticate, async (req, res) => {
   try {
     log(req);
     const params = req.body;
@@ -255,7 +255,7 @@ app.post('/getAllPrayers', async (req, res) => {
 });
 
 // POST /getBlogArticle - Get single blog article with content from flat file
-app.post('/getBlogArticle', async (req, res) => {
+app.post('/getBlogArticle', authenticate, async (req, res) => {
   try {
     const params = req.body;
     
@@ -390,7 +390,7 @@ app.post('/login', authenticate, async (req, res) => {
 });
 
 // POST /getRequestFeed - Get prayer request feed
-app.post('/getRequestFeed', async (req, res) => {
+app.post('/getRequestFeed', authenticate, async (req, res) => {
   try {
     const params = req.body;
     
@@ -470,7 +470,7 @@ app.post('/getRequestFeed', async (req, res) => {
 });
 
 // POST /getUser - Get user profile with stats
-app.post('/getUser', async (req, res) => {
+app.post('/getUser', authenticate, async (req, res) => {
   try {
     const params = req.body;
     
@@ -566,7 +566,7 @@ app.post('/getUser', async (req, res) => {
 });
 
 // POST /getChatCompletion - OpenAI chat completion endpoint  
-app.post('/getChatCompletion', async (req, res) => {
+app.post('/getChatCompletion', authenticate, async (req, res) => {
   try {
     const params = req.body;
     
@@ -597,7 +597,7 @@ app.post('/getChatCompletion', async (req, res) => {
 });
 
 // POST /prayFor - Record when someone prays for a request
-app.post('/prayFor', async (req, res) => {
+app.post('/prayFor', authenticate, async (req, res) => {
   try {
     const params = req.body;
     
@@ -684,7 +684,7 @@ app.post('/prayFor', async (req, res) => {
 });
 
 // POST /createRequestAndPrayer - Create a prayer request and generate AI prayer
-app.post('/createRequestAndPrayer', async (req, res) => {
+app.post('/createRequestAndPrayer', authenticate, async (req, res) => {
   try {
     const params = req.body;
     
@@ -864,7 +864,7 @@ app.get('/health', (req, res) => {
 });
 
 // POST /getPrayerByRequestId - Get prayer text for a specific request
-app.post('/getPrayerByRequestId', async (req, res) => {
+app.post('/getPrayerByRequestId', authenticate, async (req, res) => {
   log(req);
   const params = req.body;
 
