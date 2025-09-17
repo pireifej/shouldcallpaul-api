@@ -218,6 +218,24 @@ app.post('/getRequestCount', async (req, res) => {
   }
 });
 
+// POST /getAllRequests - Get all requests
+app.post('/getAllRequests', async (req, res) => {
+  try {
+    log(req);
+    const params = req.body;
+    
+    // Select all requests
+    const query = `SELECT * FROM public.request`;
+    
+    const result = await pool.query(query);
+    res.json(result.rows);
+    
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // POST /getBlogArticle - Get single blog article with content from flat file
 app.post('/getBlogArticle', async (req, res) => {
   try {
