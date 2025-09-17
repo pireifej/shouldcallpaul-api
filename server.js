@@ -107,7 +107,7 @@ app.post('/getBlogArticle', async (req, res) => {
         title, 
         preview, 
         image, 
-        slug as blog_article_file,
+        blog_article_file,
         (created_datetime AT TIME ZONE 'UTC' AT TIME ZONE $2) as timestamp 
       FROM public.blog_article 
       WHERE id = $1
