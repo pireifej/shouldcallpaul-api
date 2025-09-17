@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
+const OpenAI = require('openai');
 require('dotenv').config();
 
 const app = express();
@@ -20,6 +21,12 @@ app.use('/img', express.static('blog_articles/img'));
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
+});
+
+// Initialize OpenAI client
+// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+const openai = new OpenAI({ 
+  apiKey: process.env.OPENAI_API_KEY 
 });
 
 // Basic authentication middleware
@@ -440,6 +447,37 @@ app.post('/getUser', async (req, res) => {
     
   } catch (error) {
     console.error('Database query error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /getChatCompletion - OpenAI chat completion endpoint  
+app.post('/getChatCompletion', async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    if (!params.content) {
+      return res.json({ error: "Required param 'content' missing" });
+    }
+    
+    // Call OpenAI API with the content as user message
+    // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo", // Using same model as original function
+      messages: [
+        {
+          role: "user",
+          content: params.content
+        }
+      ]
+    });
+    
+    // Return the full OpenAI response (matches original curl output format)
+    res.json(response);
+    
+  } catch (error) {
+    console.error('OpenAI API error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
