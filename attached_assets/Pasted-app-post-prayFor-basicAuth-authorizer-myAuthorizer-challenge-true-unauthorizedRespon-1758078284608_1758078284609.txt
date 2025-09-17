@@ -1,0 +1,70 @@
+app.post('/prayFor', basicAuth({
+  authorizer: myAuthorizer,
+  challenge: true,
+  unauthorizedResponse: 'Unauthorized'
+}), (req, res) => {
+    log(req);
+    var params = req.body;
+    const requiredParams = ["requestId","userId"];
+    for (var i = 0; i < requiredParams.length; i++) {
+	var requiredParam = requiredParams[i];
+	if (!params[requiredParam]) {
+	    res.json({error: "Required params '" + requiredParam + "' missing"});
+	    return;
+	}
+    }
+    
+    var query = "INSERT INTO user_request (request_id, user_id) VALUES (";
+    query += "'" + params.requestId + "',";
+    query += "'" + params.userId + "'); ";
+
+    query += "SELECT user.real_name, user.email, user.picture, request.request_text, settings.prayer_emails ";
+    query += "FROM request ";
+    query += "INNER JOIN user ON user.user_id = request.user_id ";
+    query += "INNER JOIN settings ON settings.user_id = request.user_id ";
+    query += "WHERE request.request_id = '" + params.requestId + "'; ";
+
+    query += "SELECT user.real_name, user.email ";
+    query += "FROM user ";
+    query += "WHERE user.user_id = '" + params.userId + "';";
+
+    pool.getConnection()
+    	.then(conn => {
+	    conn.query(query)
+	    	.then((rows) => {
+		    var status = rows[0];
+		    var requestOwner = rows[1][0];
+		    var userWhoPrayed = rows[2][0];
+		    console.log(status);
+		    if (status.affectedRows == 1) {
+			var fs = require('fs');
+			var template = "/home/pireifej/prayer-api/emailTemplates/emailTemplate.html";
+
+			fs.readFile(template, 'utf8', function (err, data) {
+			    if (err) {
+				res.json({error: 0, msg: 'Error reading template file ' + template + ': ' + err});
+				return;
+			    }
+
+			    var sendToEmail = (requestOwner.prayer_emails) ? {name: "Friend", email: requestOwner.email} : common.getProgrammerPaulyEmail();
+
+			    data = data.replace("{{heading}}", userWhoPrayed.real_name  + " prayed for you!");
+			    data = data.replace("{{msg1}}", userWhoPrayed.real_name + " prayed for your request:");
+			    data = data.replace("{{msg2}}", "'" + requestOwner.request_text + "'");
+			    data = data.replace("{{msg3}}", "");
+			    data = data.replace("{{msg4}}", "");
+			    data = data.replace("{{buttonText}}", "View your request");
+			    data = data.replace("{{buttonLink}}", "https://prayoverus.com/index.html?requestId=" + params.requestId);
+  
+			    mailerSendSingle(data, common.getPrayOverUsEmail(), sendToEmail, "You got a prayer!", "", res);
+			})
+		    }
+		})
+    		.catch(err => {
+		    res.json({error: 0, result: err});
+		    conn.release();
+		    conn.end();
+		    return;
+		})
+	})
+})
