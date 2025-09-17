@@ -482,6 +482,93 @@ app.post('/getChatCompletion', async (req, res) => {
   }
 });
 
+// POST /prayFor - Record when someone prays for a request
+app.post('/prayFor', async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    const requiredParams = ["requestId", "userId"];
+    for (let i = 0; i < requiredParams.length; i++) {
+      const requiredParam = requiredParams[i];
+      if (!params[requiredParam]) {
+        return res.json({ error: "Required params '" + requiredParam + "' missing" });
+      }
+    }
+    
+    // Step 1: Insert prayer record into user_request table
+    const insertQuery = `
+      INSERT INTO public.user_request (request_id, user_id) 
+      VALUES ($1, $2)
+    `;
+    
+    const insertResult = await pool.query(insertQuery, [params.requestId, params.userId]);
+    
+    if (insertResult.rowCount === 1) {
+      // Step 2: Get request owner information
+      const requestOwnerQuery = `
+        SELECT 
+          "user".real_name, 
+          "user".email, 
+          "user".picture, 
+          request.request_text, 
+          settings.prayer_emails 
+        FROM public.request 
+        INNER JOIN public."user" ON "user".user_id = request.user_id 
+        INNER JOIN public.settings ON settings.user_id = request.user_id 
+        WHERE request.request_id = $1
+      `;
+      
+      // Step 3: Get user who prayed information
+      const userWhoPrayedQuery = `
+        SELECT "user".real_name, "user".email 
+        FROM public."user" 
+        WHERE "user".user_id = $1
+      `;
+      
+      // Execute both queries
+      const [requestOwnerResult, userWhoPrayedResult] = await Promise.all([
+        pool.query(requestOwnerQuery, [params.requestId]),
+        pool.query(userWhoPrayedQuery, [params.userId])
+      ]);
+      
+      const requestOwner = requestOwnerResult.rows[0];
+      const userWhoPrayed = userWhoPrayedResult.rows[0];
+      
+      // Return success response with the prayer data
+      res.json({
+        success: true,
+        message: "Prayer recorded successfully",
+        data: {
+          requestOwner: {
+            name: requestOwner?.real_name,
+            email: requestOwner?.email,
+            requestText: requestOwner?.request_text,
+            wantsEmails: requestOwner?.prayer_emails
+          },
+          userWhoPrayed: {
+            name: userWhoPrayed?.real_name,
+            email: userWhoPrayed?.email
+          }
+        }
+      });
+      
+    } else {
+      res.json({ error: "Failed to record prayer" });
+    }
+    
+  } catch (error) {
+    console.error('Database query error:', error);
+    
+    // Handle duplicate prayer attempts
+    if (error.code === '23505') { // PostgreSQL unique violation
+      res.json({ error: "You have already prayed for this request" });
+    } else {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+});
+
 // Health check endpoint (no authentication required)
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
