@@ -236,6 +236,24 @@ app.post('/getAllRequests', async (req, res) => {
   }
 });
 
+// POST /getAllPrayers - Get all prayers sorted by most recent first
+app.post('/getAllPrayers', async (req, res) => {
+  try {
+    log(req);
+    const params = req.body;
+    
+    // Select all prayers, sorted by most recent first (by prayer_id since no timestamp column)
+    const query = `SELECT * FROM public.prayers ORDER BY prayer_id DESC`;
+    
+    const result = await pool.query(query);
+    res.json(result.rows);
+    
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // POST /getBlogArticle - Get single blog article with content from flat file
 app.post('/getBlogArticle', async (req, res) => {
   try {
