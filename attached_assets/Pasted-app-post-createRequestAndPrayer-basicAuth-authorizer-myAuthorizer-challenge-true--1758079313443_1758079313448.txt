@@ -1,0 +1,180 @@
+app.post('/createRequestAndPrayer', basicAuth({
+    authorizer: myAuthorizer,
+    challenge: true,
+    unauthorizedResponse: 'Unauthorized'
+}), async (req, res) => {
+
+    var params = req.body;
+
+    const idempotencyKey = params["idempotencyKey"];
+    
+    // Now you have the key and can use it for your checks
+    console.log(`Received idempotency key: ${idempotencyKey}`);
+
+    const newRequestCheck = "/home/pireifej/prayer-api/" + idempotencyKey + ".txt";
+
+     // Check if the file already exists
+    if (fs.existsSync(newRequestCheck)) {
+        res.json({ error: `File for key ID ${idempotencyKey} already exists.` });
+        return; // Quit and do not continue
+    }
+
+    console.log(newRequestCheck);
+
+    // Write the new file
+    try {
+        const fileContent = JSON.stringify(params, null, 2);
+        fs.writeFileSync(newRequestCheck, idempotencyKey);
+        console.log(`Successfully created file for key ${idempotencyKey}.`);
+    } catch (err) {
+        console.error(`Error writing file for key ${idempotencyKey}:`, err);
+        res.status(500).json({ error: "Could not create request file." });
+        return;
+    }
+
+    const requiredParams = ["userId", "requestText", "requestTitle", "sendEmail"];
+    for (var i = 0; i < requiredParams.length; i++) {
+        var requiredParam = requiredParams[i];
+        if (!params[requiredParam]) {
+            res.json({ error: "Required param '" + requiredParam + "' missing" });
+            return;
+        }
+    }
+
+    let conn;
+    try {
+        conn = await pool.getConnection();
+
+        // Use a placeholder variable for fk_prayer_id and other optional fields
+        const prayerId = params.prayerId ? `'${params.prayerId}'` : 'NULL';
+        const otherPerson = params.otherPerson ? `'${params.otherPerson}'` : 'NULL';
+        const payloadPicture = params.picture ? `'${params.picture}'` : 'NULL'; // Renamed to avoid conflict
+        const otherPersonUserId = params.otherPersonUserId ? `'${params.otherPersonUserId}'` : 'NULL';
+        const otherPersonGender = params.otherPersonGender ? `'${params.otherPersonGender}'` : 'NULL';
+        const otherPersonEmail = params.otherPersonEmail ? `'${params.otherPersonEmail}'` : 'NULL';
+        const relationship = params.relationship ? `'${params.relationship}'` : 'NULL';
+
+        // 1. Construct and execute the first database query (INSERT request)
+        let query = "INSERT INTO request (user_id, request_text, request_title, fk_category_id, other_person, picture, fk_prayer_id, ";
+        
+        if (params.otherPersonUserId) query += "fk_user_id, ";
+        if (params.otherPersonGender) query += "other_person_gender, ";
+        if (params.otherPersonEmail) query += "other_person_email, ";
+        if (params.relationship) query += "relationship, ";
+
+        query += "for_me, for_all, active) VALUES (";
+        query += `'${params.userId}',`;
+        query += `'${params.requestText}',`;
+        query += `'${params.requestTitle}',`;
+        query += `'8',`;
+        query += `${otherPerson},`;
+        query += `${payloadPicture},`; // Use the renamed variable here
+        query += `${prayerId},`;
+
+        if (params.otherPersonUserId) query += `${otherPersonUserId},`;
+        if (params.otherPersonGender) query += `${otherPersonGender},`;
+        if (params.otherPersonEmail) query += `${otherPersonEmail},`;
+        if (params.relationship) query += `${relationship},`;
+
+        var forMe = (params.forMe === "false") ? 0 : 1;
+        query += `'${forMe}',`;
+        var forAll = (params.forAll === "false") ? 0 : 1;
+        query += `'${forAll}',`;
+        query += "TRUE);";
+
+        // Add additional SELECT queries to the same statement
+        query += "SELECT user.real_name, user.email FROM user LEFT JOIN settings ON settings.user_id = user.user_id WHERE user.user_id <> '" + params.userId + "' AND settings.request_emails = true;";
+        query += "SELECT user.real_name, user.picture FROM user WHERE user.user_id = '" + params.userId + "';";
+
+	const [insertResult, users, userDetails] = await conn.query(query);
+
+        const requestId = insertResult.insertId;
+        const realName = userDetails[0].real_name;
+        const userPicture = userDetails[0].picture;
+	
+        // 2. Call the child process to get a prayer from OpenAI
+        const { exec } = require("child_process");
+	var promptToGeneratePrayer = "I want a Catholic prayer to pray for someone named " + realName + ", who has the following prayer request: " + params.requestText + ".";
+        const command = common.getChatCompletionsCommand(promptToGeneratePrayer);
+
+        const { stdout } = await new Promise((resolve, reject) => {
+            exec(command, (error, stdout, stderr) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                resolve({ stdout });
+            });
+        });
+
+        const jsonResult = JSON.parse(stdout);
+        const choices = jsonResult.choices;
+
+        if (!choices) {
+            res.json({ error: "Failed to get a prayer from OpenAI" });
+            return;
+        }
+
+        const newPrayer = choices[0].message.content.replace(/'/g, "");
+        const unassignedPrayerId = 37;
+
+        // 3. Construct and execute the second database query (INSERT and UPDATE)
+        let updateQuery = "INSERT INTO prayers (prayer_title, prayer_text, prayer_text_me, tags, active, prayer_file_name) VALUES (";
+        updateQuery += "'openAI-generated',"; // Used a placeholder title
+        updateQuery += "'" + newPrayer + "',";
+        updateQuery += "'" + newPrayer + "',";
+        updateQuery += "'" + "openAI" + "',";
+        updateQuery += "1,";
+        updateQuery += "'openAI');";
+        updateQuery += "SET @last_id_in_table1 = LAST_INSERT_ID();";
+        updateQuery += "UPDATE request SET fk_prayer_id = @last_id_in_table1, active = 1 WHERE request_id = '" + requestId + "'";
+        
+        await conn.query(updateQuery);
+
+        // 4. Send the email with the details from both steps
+        const extra = `request published|${requestId}`;
+        const mySubject = "Please pray for me!";
+        const url = "https://prayoverus.com/index.html?requestId=" + requestId;
+        const linkText = "Pray for " + realName;
+
+        const fs = require('fs');
+        const template = "/home/pireifej/prayer-api/emailTemplates/emailTemplate.html";
+        
+        fs.readFile(template, 'utf8', (err, data) => {
+            if (err) {
+                res.json({ error: 0, msg: 'Error reading template file ' + template + ': ' + err });
+                return;
+            }
+
+            data = data.replace("{{heading}}", `${realName} needs your prayer:`);
+            data = data.replace("{{msg1}}", `"${params.requestText}"`);
+            data = data.replace("{{msg2}}", newPrayer);
+            data = data.replace("{{msg3}}", "");
+            data = data.replace("{{msg4}}", "");
+            data = data.replace("{{buttonText}}", linkText);
+            data = data.replace("{{buttonLink}}", url);
+
+            mailerSendSingle(data, common.getPrayOverUsEmail(), common.getProgrammerPaulyEmail(), mySubject, extra, res);
+
+	    // Check if the file exists before attempting to delete
+	    if (fs.existsSync(newRequestCheck)) {
+		// Delete the file asynchronously
+		fs.unlink(newRequestCheck, (err) => {
+		    if (err) {
+			console.error(`Error deleting file for key ${idempotencyKey}:`, err);
+			return;
+		    }
+		    console.log(`Successfully deleted file for key ${idempotencyKey}.`);
+		});
+	    } else {
+		console.log(`File for key ${idempotencyKey} does not exist, no action needed.`);
+	    }
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.json({ error: 1, msg: err.code || err.message });
+    } finally {
+        if (conn) conn.release();
+    }
+});
