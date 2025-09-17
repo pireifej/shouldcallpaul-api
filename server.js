@@ -348,6 +348,62 @@ app.post('/getRequestFeed', async (req, res) => {
   }
 });
 
+// POST /getUser - Get user profile with stats
+app.post('/getUser', async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    const requiredParams = ["userId"];
+    for (let i = 0; i < requiredParams.length; i++) {
+      const requiredParam = requiredParams[i];
+      if (!params[requiredParam]) {
+        return res.json({error: "Required params '" + requiredParam + "' missing"});
+      }
+    }
+    
+    const userId = params.userId;
+    const timezone = params.tz || 'UTC';
+    
+    // PostgreSQL query with proper SQL injection protection
+    const query = `
+      SELECT 
+        "user".user_id,
+        "user".user_name,
+        "user".email,
+        "user".cover,
+        "user".real_name,
+        "user".last_name,
+        "user".location,
+        "user".user_title,
+        "user".user_about,
+        "user".gender,
+        "user".picture,
+        settings.use_alias,
+        settings.request_emails,
+        settings.prayer_emails,
+        settings.allow_comments,
+        settings.general_emails,
+        settings.summary_emails,
+        user_family.place_id,
+        ("user".timestamp AT TIME ZONE 'UTC' AT TIME ZONE $2) as timestamp,
+        (SELECT COUNT(*) FROM public.user_request WHERE user_request.user_id = "user".user_id) as prayer_count,
+        (SELECT COUNT(*) FROM public.request WHERE request.user_id = "user".user_id) as request_count
+      FROM public."user"
+      LEFT JOIN public.settings ON settings.user_id = $1
+      LEFT JOIN public.user_family ON user_family.user_id = $1
+      WHERE "user".user_id = $1 OR "user".user_name = $1
+    `;
+    
+    const result = await pool.query(query, [userId, timezone]);
+    res.json(result.rows);
+    
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Health check endpoint (no authentication required)
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
