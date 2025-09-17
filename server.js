@@ -863,6 +863,47 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// POST /getPrayerByRequestId - Get prayer text for a specific request
+app.post('/getPrayerByRequestId', async (req, res) => {
+  log(req);
+  const params = req.body;
+
+  const requiredParam = "requestId";
+  if (!params[requiredParam]) {
+    res.json({ error: "Required param '" + requiredParam + "' missing" });
+    return;
+  }
+
+  try {
+    // Use a parameterized query to prevent SQL injection (PostgreSQL syntax)
+    const query = `
+      SELECT p.prayer_text 
+      FROM public.request r
+      INNER JOIN public.prayers p ON r.fk_prayer_id = p.prayer_id
+      WHERE r.request_id = $1
+    `;
+
+    const result = await pool.query(query, [params.requestId]);
+
+    console.log(result.rows);
+
+    if (result.rows.length > 0 && result.rows[0].prayer_text) {
+      res.json({
+        error: 0,
+        prayerText: result.rows[0].prayer_text
+      });
+    } else {
+      res.json({
+        error: "Prayer not found for the given requestId",
+        prayerText: null
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    res.json({ error: "Database error: " + err.message });
+  }
+});
+
 // Debug endpoint to check database connection (no authentication)
 app.get('/debug', async (req, res) => {
   try {
