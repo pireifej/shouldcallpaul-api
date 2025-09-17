@@ -311,7 +311,7 @@ app.post('/getRequestFeed', async (req, res) => {
       INNER JOIN public.settings ON settings.user_id = "user".user_id
       INNER JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
       INNER JOIN public.user_family ON user_family.user_id = request.user_id
-      WHERE request.active = true
+      WHERE request.active = 1
     `;
     
     const queryParams = [timezone];
@@ -337,7 +337,7 @@ app.post('/getRequestFeed', async (req, res) => {
       queryParams.push(userId);
     }
     
-    query += ` ORDER BY request.timestamp DESC`;
+    query += ` ORDER BY timestamp DESC`;
     
     const result = await pool.query(query, queryParams);
     res.json(result.rows);
