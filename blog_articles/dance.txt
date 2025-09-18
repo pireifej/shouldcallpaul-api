@@ -1,5 +1,61 @@
-"Can't Run Can't Dance" World Premiere at NJ Rep by Sherri Rase
-When we first meet Sarah, mostly known as Squeak (Juliet Bratt), she is in a drunk tank lockup in a casino town on the Olympic Peninsula.  Ingrid, mostly know as 'Grid (Tracie Lockwood), is an Amazon who stores like a buzz saw.  Squeak speaks nearly auctioneer-quickly and she breaks the fourth wall as interlocutor to bring us in to a story that inspires a tinge of atavistic angst that lasts nearly two hours.  This edgy inoculation is key to the storytelling and we realize we are ...[Truncated]
-Gregg Henry's "Can't Run Can't Dance" with Lisa James' expert, direction is a tale of two buddies.  Spoiler alert – unlike most XX chromosome buddy stories, this one doesn't end in death.  Now that that's out of the way, this story is action-packed with a section or two that looks amazingly real (shout out to Brad Lemons' fight choreography). Hopes and dreams don't know gender and people all have them.
-Ronnie (John Stout Adams) is the Guy.  He's got a connection with 'Grid that goes way back.  Even though 'Grid's primary partner is Squeak, Ronnie is somehow the guy to whom she can't say "no".  He's got a knack for picking the wrong horse, whether it's cards, scams or actual sport of kings and Squeak gets drawn into the scheme.  If Steinbeck's "Of Mice and Men" was about a variation on the pursuit of the American Dream, so it Is here.  'Grid has Lennie ...[Truncated]
-New Jersey Repertory Company is famous for its World Premieres – and in many ways it is small wonder.  This small wonder of a theater is like finding a piece of beautifully nuanced beach glass amongst a host of bits of shells and sand at the nearby Jersey Shore.  Specializing in works that become treasures when they move to Broadway and Off-Broadway.  Just look at their production list and you'll want to subscribe as well. Buy tickets NOW at https://njrep.org/show/cant-run-can ...
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Can't Run Can't Dance - World Premiere at NJ Rep</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>"Can't Run Can't Dance" World Premiere at NJ Rep</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <p>When we first meet Sarah, mostly known as Squeak (Juliet Bratt), she is in a drunk tank lockup in a casino town on the Olympic Peninsula. Ingrid, mostly know as 'Grid (Tracie Lockwood), is an Amazon who stores like a buzz saw. Squeak speaks nearly auctioneer-quickly and she breaks the fourth wall as interlocutor to bring us in to a story that inspires a tinge of atavistic angst that lasts nearly two hours. This edgy inoculation is key to the storytelling and we realize we are on a different side of the law than where most of us reside.</p>
+
+    <p>Gregg Henry's "Can't Run Can't Dance" with Lisa James' expert, direction is a tale of two buddies. Spoiler alert – unlike most XX chromosome buddy stories, this one doesn't end in death. Now that that's out of the way, this story is action-packed with a section or two that looks amazingly real (shout out to Brad Lemons' fight choreography). Hopes and dreams don't know gender and people all have them.</p>
+
+    <p>Ronnie (John Stout Adams) is the Guy. He's got a connection with 'Grid that goes way back. Even though 'Grid's primary partner is Squeak, Ronnie is somehow the guy to whom she can't say "no". He's got a knack for picking the wrong horse, whether it's cards, scams or actual sport of kings and Squeak gets drawn into the scheme. If Steinbeck's "Of Mice and Men" was about a variation on the pursuit of the American Dream, so it Is here. 'Grid has Lennie's power and she and Squeak share George's brain. Ronnie's brother Ray (Zachary Grant) has got a project and he's not expecting some, or all, of what's in store for him. Act 2 is entirely in a cabin-in-the-woods – what could possibly go wrong?! Brazen, real and full of life – you must see this darkest of human comedies.</p>
+
+    <div class="highlight">
+        <p>New Jersey Repertory Company is famous for its World Premieres – and in many ways it is small wonder. This small wonder of a theater is like finding a piece of beautifully nuanced beach glass amongst a host of bits of shells and sand at the nearby Jersey Shore. Specializing in works that become treasures when they move to Broadway and Off-Broadway. Just look at their production list and you'll want to subscribe as well.</p>
+    </div>
+
+    <p><strong>Buy tickets NOW at <a href="https://njrep.org/show/cant-run-cant-dance/" target="_blank">https://njrep.org/show/cant-run-cant-dance/</a> as the final performance is October 5 and time keeps on ticking.</strong></p>
+</body>
+</html>
