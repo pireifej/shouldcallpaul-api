@@ -90,7 +90,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY 
 });
 
-// Basic authentication middleware
+// Basic authentication middleware - supports dual passwords
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
   
@@ -103,8 +103,12 @@ const authenticate = (req, res, next) => {
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [username, password] = credentials.split(':');
   
-  // Check credentials against environment variables
-  if (username === process.env.API_USERNAME && password === process.env.API_PASSWORD) {
+  // Check credentials against environment variables - accept either password
+  const validUsername = username === process.env.API_USERNAME;
+  const validPassword1 = password === process.env.API_PASSWORD;
+  const validPassword2 = password === process.env.API_PASSWORD2;
+  
+  if (validUsername && (validPassword1 || validPassword2)) {
     next(); // Authentication successful
   } else {
     res.status(401).json({ error: 'Invalid credentials' });
