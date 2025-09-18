@@ -1,1 +1,72 @@
-<p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">After a bit of a hiatus, I’m baaaack! &nbsp;Check it out!</p><p data-block="true" data-offset-key="8b7oe-0-0" style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Sherr’s Going-to-the-Theatre tips: Do you want to feel tall and young? Go to the Theatre! Whether you’re into Classical (or contemporary Classical) music, live theatre like plays or musicals, you’ll find that it’s the opposite ends of the spectrum of experience who attend. That said, there are many who feel that the lines to get into the audience area do not apply to them. News bulletin: those lines DO apply to you!</p><p data-block="true" data-offset-key="dqvsn-0-0" style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">-If an elder person in front of you drops a scarf, offer to help them retrieve it.</p><p data-block="true" data-offset-key="8g7b7-0-0" style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">-Be aware of your surroundings – when you back up quickly, you could knock someone over</p><p data-block="true" data-offset-key="26t0k-0-0" style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">-When in queue for the rest room, be mindful and aware</p><p data-block="true" data-offset-key="8lngs-0-0" style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">-When washing up afterward, get your paper towels first – that’s usually the bottleneck in the queue to leave</p><p data-block="true" data-offset-key="d49jn-0-0" style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">-Wipe around the sink before you discard the paper towel – not everyone was raised as you (to clean up after themselves)</p><p data-block="true" data-offset-key="aoiff-0-0" style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">-Remember to hold the door (if needed) so others with clean hands don’t need to touch that (surely contaminated) handle</p><p data-block="true" data-offset-key="b549t-0-0" style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Most of all, unwrap the candies first, turn off your (bleepin’!) phone and enjoy the show!</p><p data-block="true" data-offset-key="b549t-0-0" style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);"><br></p><p data-block="true" data-offset-key="b549t-0-0" style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);"><br></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sherr's Going-to-the-Theatre Tips</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .tip {
+            background-color: #e8f5e8;
+            padding: 10px 15px;
+            border-left: 4px solid #27ae60;
+            margin: 15px 0;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sherr's Going-to-the-Theatre Tips</h1>
+    
+    <p>After a bit of a hiatus, I'm baaaack! Check it out!</p>
+
+    <div class="highlight">
+        <p><strong>Sherr's Going-to-the-Theatre tips:</strong> Do you want to feel tall and young? Go to the Theatre! Whether you're into Classical (or contemporary Classical) music, live theatre like plays or musicals, you'll find that it's the opposite ends of the spectrum of experience who attend. That said, there are many who feel that the lines to get into the audience area do not apply to them. News bulletin: those lines DO apply to you!</p>
+    </div>
+
+    <div class="tip">
+        <p>If an elder person in front of you drops a scarf, offer to help them retrieve it.</p>
+    </div>
+
+    <div class="tip">
+        <p>Be aware of your surroundings – when you back up quickly, you could knock someone over</p>
+    </div>
+
+    <div class="tip">
+        <p>When in queue for the rest room, be mindful and aware</p>
+    </div>
+</body>
+</html>
