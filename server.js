@@ -19,6 +19,65 @@ app.use(express.text({ limit: '50mb' })); // Parse text request bodies
 app.use('/profile_images', express.static('profile_images'));
 app.use('/img', express.static('blog_articles/img'));
 
+// Comprehensive request/response logging middleware
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+  
+  // Log incoming request
+  console.log(`\n🔵 INCOMING REQUEST ${timestamp}`);
+  console.log(`   Method: ${req.method}`);
+  console.log(`   Path: ${req.path}`);
+  console.log(`   IP: ${req.ip || req.connection.remoteAddress || 'unknown'}`);
+  console.log(`   User-Agent: ${req.get('User-Agent') || 'none'}`);
+  console.log(`   Content-Type: ${req.get('Content-Type') || 'none'}`);
+  
+  // Log request body for POST/PUT requests
+  if (req.method === 'POST' || req.method === 'PUT') {
+    console.log(`   Payload:`, req.body);
+  }
+  
+  // Intercept response
+  const originalSend = res.send;
+  res.send = function(data) {
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    
+    // Determine if response is error or success
+    let responseStatus = 'SUCCESS';
+    let errorInfo = null;
+    
+    if (res.statusCode >= 400) {
+      responseStatus = 'ERROR';
+    }
+    
+    // Try to parse response data to check for error property
+    try {
+      const parsedData = JSON.parse(data);
+      if (parsedData && parsedData.error) {
+        responseStatus = 'ERROR';
+        errorInfo = parsedData.error;
+      }
+    } catch (e) {
+      // Response is not JSON, keep current status
+    }
+    
+    // Log response status
+    console.log(`🔴 RESPONSE ${timestamp}`);
+    console.log(`   Status: ${res.statusCode} (${responseStatus})`);
+    console.log(`   Duration: ${duration}ms`);
+    if (errorInfo) {
+      console.log(`   Error: ${errorInfo}`);
+    }
+    console.log(`───────────────────────────────────────`);
+    
+    // Call original send
+    originalSend.call(this, data);
+  };
+  
+  next();
+});
+
 // PostgreSQL connection pool - use production database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
