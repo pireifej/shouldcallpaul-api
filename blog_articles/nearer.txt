@@ -1,1 +1,69 @@
-<br><p><span style="background-color: rgb(238, 238, 238); color: rgb(102, 102, 102); font-family: Georgia, serif; font-size: 12px;"><br></span></p><p></p><h2 style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 0.8125em; outline: 0px; padding: 0px; vertical-align: baseline; clear: both; color: rgb(0, 0, 0);"><b style="border: 0px; font-family: inherit; font-size: 15px; font-style: inherit; margin: 0px; outline: 0px; padding: 0px; vertical-align: baseline;">STNJ Opens with Coward’s End Game “A Song at Twlight” by Sherri Rase</b></h2><p style="display: inline-block;margin: 20px;text-align: center;"><img src="img/nearer.jpg" alt="Description of image"><span style="font-style: italic;"><br></span></p><p></p><p style="display: inline-block;margin: 20px;text-align: center;"><span style="font-style: italic;"> l to r Alison Weller, Laila Robins, Edmond Genest photo by Jerry Dalia</span></p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Shakespeare Theatre of New Jersey opens a bright new season with Noël Coward’s penultimate play, “A Song at Twilight”.&nbsp; It is thought to be evocative of W. Somerset Maugham and presents a scenario that could only have played out in a time when closets held more than clothes.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Part of a trio of plays, “Suite in Three Keys”, all three set in the same luxurious Swiss hotel, was written in 1966.&nbsp; When Neil Simon’s “Plaza Suite” came out two years later, Coward quipped&nbsp;“Such a good idea having different plays all played in a hotel suite! I wonder where Neil Simon got it from?” This stylish play is in the hands of favorite players at STNJ and it sings in a way that many may have thought forgotten, like the ghost of a song that is mostly elusive but was much beloved in our earlier days.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">The cast is intimate, in a number of ways.&nbsp; First off, there are only four characters – Dour duenna and worker of magic Hilde Latymer (Alison Weller) whose unconventional love for her unconventional husband makes her the most grounded character in the piece, the staunch and faithful Felix (Ben Houghton), Swiss-Italian gentleman’s gentleman who assures everything runs like clockwork even when it’s a cuckoo clock, Hugo Latymer (Edmond Genest) self-styled genius and wit whose chequered Past is catching up with him and Carlotta Gray (Laila Robins) who is the personification of that Past in a number of ways.&nbsp; Each of these characters is fully four dimensional – they have a past as well as a presence – and the verbal sparring between Carlotta and Hugo is sometimes a scintillating frisson and at others a shower of sparks, as in Flint, meet Steel.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Felix’ dulcet tones and deft touch on the piano paint a period picture, sepia-toned and lush.&nbsp; Director Paul Mullins has assembled a brilliant cast and technical team.&nbsp; Michael Giannitti’s lighting is beautifully subtle as day moves gently into night, complementing Brittany Vasta’s gorgeous set.&nbsp; Nikki Delhomme’s costumes are particularly evocative with Hilde seeming a dowdy sparrow to Carlotta’s exotic goldfinch.&nbsp; But looks can be deceiving, and I’ll leave it at that.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">This play was quite daring in 1966 and it gives one a great deal to consider even now when, to quote Poe, “all that we are and all that we seem, are but a dream within a dream”.&nbsp; Coward knew that well and while some dreams are gossamer, others are far more dark and when we have most of our life behind us, the subterfuge of our youth often returns home to roost.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">This play is a must-see for people who love wit and thought provoking work.&nbsp; Each of the actors is an all-star and you’ll be buzzing with thoughts about this play long after you’ve left the F.M. Kirby Theater.&nbsp; Genest and Robins’ clash of the Titans, Houghton’s humility, patience and open love and Weller as clear-eyed all-knowing Demeter show that gods still walk among us.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">What are you waiting for?&nbsp; If you don’t mind spoilers, head over to the Know the Show section at&nbsp;<a href="http://www.shakespearenj.org/" style="border: 0px; font-family: inherit; font-size: 15px; font-style: inherit; font-weight: inherit; margin: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(25, 130, 209); text-decoration-line: none;">www.shakespearenj.org</a>.&nbsp; Or get your tickets first, then look it over after the show.&nbsp; Either way, get your tickets now or you’ll be left out in the Spring wishing you were on the inside.&nbsp; Best choice of seats is right NOW!</p><p></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STNJ Opens with Coward's "A Song at Twilight"</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>STNJ Opens with Coward's End Game "A Song at Twilight"</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    
+    <p>Shakespeare Theatre of New Jersey opens a bright new season with Noël Coward's penultimate play, "A Song at Twilight". It is thought to be evocative of W. Somerset Maugham and presents a scenario that could only have played out in a time when closets held more than clothes.</p>
+
+    <p>Part of a trio of plays, "Suite in Three Keys", all three set in the same luxurious Swiss hotel, was written in 1966. When Neil Simon's "Plaza Suite" came out two years later, Coward quipped "Such a good idea having different plays all played in a hotel suite! I wonder where Neil Simon got it from?" This stylish...</p>
+</body>
+</html>

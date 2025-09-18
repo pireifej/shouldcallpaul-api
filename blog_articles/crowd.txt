@@ -1,1 +1,56 @@
-<p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Remember the James-Lange theory in Psychology 101? &nbsp;Encourage your body to “feel” something on the outside and ultimately it will penetrate within.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">What is challenging you right now? &nbsp;Are you overwhelmed with work? &nbsp;Are you snowed in by family or volunteer obligations? &nbsp;First things first – step back and give yourself a little room to breathe. &nbsp;What would make you happy in terms of this challenge – what would be an appropriate resolution? &nbsp;You solve problems this way for others, don’t you deserve the same care?</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">John Stuart Mill was a philosopher whose theory was the best course of action is that which provides the greatest good for all, rather than the individual. &nbsp;Sometimes though, you need to take care of yourself first so that you can take care of others. &nbsp;Remember to do the things that make you feel most like yourself – eat well, shower regularly, get enough sleep – as a post-Modern adult, I fall down on some of these (I DO love my hot showers…) but when I’m on top of them, my best foot is firmly forward.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Keep up appearances – not for others, but for yourself. &nbsp;When you feel like YOU, you’re able to achieve more and be the best part of yourself.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The James-Lange Theory and Self-Care</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>The James-Lange Theory and Self-Care</h1>
+    
+    <p>Remember the James-Lange theory in Psychology 101? Encourage your body to "feel" something on the outside and ultimately it will penetrate within.</p>
+
+    <p>What is challenging you right now? Are you overwhelmed with work? Are you snowed in by family or volunteer obligations? First things first – step back and give yourself a little room to breathe. What would make you happy in terms of this challenge – what would be an appropriate resolution? You solve problems this way for others, don't you deserve the same care?</p>
+
+    <p>John Stuart Mill was a philosopher whose theory was the best course of action is that which provides the greatest good for all, rather than the individual. Sometimes though, you need to take care of yourself first so that you can take care of others. Remember to do the things that make you feel most like yourself – eat well, shower regularly, get enough sleep – as a post-Modern adult, I fall down on some of these (I DO love my hot showers…) but when I'm on top of them, my best foot is firmly forward.</p>
+
+    <p>Keep up appearances – not for others, but for yourself. When you...</p>
+</body>
+</html>

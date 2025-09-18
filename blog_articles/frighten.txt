@@ -1,1 +1,62 @@
-<p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">“I met a traveller from an antique land” Shelley’s “Ozymandias” begins and I often wonder where that antique land exists were people delighted in one another’s contributions to the world.&nbsp; Since the location eluded my best efforts, I determined to create that modern land and broadcast the best in the lively arts, print and recorded media and more.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Join me in the post-Modern urban landscape where we are all citizens of the world.&nbsp; Take my hand, I have so much to share with you.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating the Modern Antique Land</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .quote {
+            font-style: italic;
+            border-left: 4px solid #e74c3c;
+            padding-left: 20px;
+            margin: 20px 0;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Creating the Modern Antique Land</h1>
+    
+    <div class="quote">
+        <p>"I met a traveller from an antique land"</p>
+    </div>
+    
+    <p>Shelley's "Ozymandias" begins and I often wonder where that antique land exists were people delighted in one another's contributions to the world. Since the location eluded my best efforts, I determined to create that modern land and broadcast the best in the lively arts, print and recorded media and more.</p>
+
+    <p>Join me in the post-Modern urban landscape where we are all citizens of the world. Take my hand, I have so much to share with you.</p>
+</body>
+</html>

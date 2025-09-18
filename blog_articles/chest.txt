@@ -1,1 +1,72 @@
-<p style="display: inline-block;margin: 20px;text-align: center;"><img src="img/chest.jpg" alt="Description of image"><span style="font-style: italic;"><br></span></p><p></p><p style="display: inline-block;margin: 20px;text-align: center;"></p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">The wires are on FIRE. &nbsp;Newswires, that is.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">The past several days, I follow this travelogue of hatred – spiraling nonsensical violence that spreads like a disease vector. Except that the virus of violence has always been like a recessive gene awaiting something to activate it.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Black Lives Matter exists because it’s open season on people of color, especially men, ever since Othello and might will never make right. “With great power comes great responsibility” is often attributed to Spiderman, though Voltaire may be the first person who uttered those words (but they were in French, so the Americans would rather go with Stan Lee).</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">When we treat *everyone* with respect, everyone gets along. When we neglect to remember our manners and that other people are human is where the trouble begins. We are one people. We ALL are Orlando. We ALL are Baton Rouge. We ALL are Minnesota. And now we are ALL Dallas. It’s time to lead by example and stop looking outside for guidance when the answer is within.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">YOU have the power to make a difference. YOU have the power to make positive change. YOU have the power to reach out a hand to help someone who doesn’t look like you – who’s not your race, who’s not your age, who’s not your gender expression or identity, who’s not your spirituality and learn more about the world.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Namaste.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Wires Are On Fire</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>The Wires Are On Fire</h1>
+    
+    
+    <p>The wires are on FIRE. Newswires, that is.</p>
+
+    <p>The past several days, I follow this travelogue of hatred – spiraling nonsensical violence that spreads like a disease vector. Except that the virus of violence has always been like a recessive gene awaiting something to activate it.</p>
+
+    <p>Black Lives Matter exists because it's open season on people of color, especially men, ever since Othello and might will never make right. "With great power comes great responsibility" is often attributed to Spiderman, though Voltaire may be the first person who uttered those words (but they were in French, so the Americans would rather go with Stan Lee).</p>
+
+    <p>When we treat <em>everyone</em> with respect, everyone gets along. When we neglect to remember our manners and that other people are human is where the trouble begins. We are one people. We ALL are Orlando. We ALL are Baton Rouge. We ALL are Minnesota. And...</p>
+</body>
+</html>

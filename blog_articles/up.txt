@@ -1,1 +1,53 @@
-<p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">“The Last Romance” at Morris Museum’s Bickford Theatre</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">by Sherri Rase</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Joe DiPietro is a Jersey boy.&nbsp; He “writes” Jersey, and is most known for writing his characters in such a natural style that the dialogue comes sui generis from their lips rather than from a writer’s pen.&nbsp; An East Coast premiere, “The Last Romance” is a play written originally for Marion Ross and her husband Paul Michael, who became friends with DiPietro and, while they are not mirrors of Carol and Ralph, there are elements of each actor in each of these characters and is part of what makes them SO real.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">J.C. Hoyt is Ralph, the octogenarian, whom we first meet sitting in a dog park, clearly waiting for someone.&nbsp; Hoyt’s Ralph is a sparky, sparkly gentleman of mature years, who comes from that Greatest Generation of Depression-era young adults, who did things because they were the right things to do.&nbsp; This will be an important point during the reveal of the plot twist in Act Two.&nbsp; It is highly likely that his antic good humor will remind you of an elder male relative of your own, born in a time when men and women had their sense of humor to get them through the toughest of times.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Rose is Ralph’s sister and she looks out for him.&nbsp; Noreen Farley’s Rose is brassy, street-wise and as plain-spoken and Hoboken as they come.&nbsp; She’s Archie Bunker in a frock and she’s got a—ahem—way with animals.&nbsp; She takes nothin’ from no one.&nbsp; Farley has an astonishing range in the characters she performs and it’s always a treat to see where she goes with the personalities she creates.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Ralph is waiting for Carol, played by Thea Ruth White with an elegance and reserve that many women lack today.&nbsp; She treats Ralph with a distant grace, slightly cool until she’s got enough information to get a read on him and that’s long enough for her to succumb to his charm.&nbsp; She’s a bit mysterious, and from the other side of the dog park – the more expensive side.&nbsp; Will they take a chance on meaning something to one another?</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">Cory Singer is the character who gives us a glimpse, as the Young Man, into Ralph’s youthful psyche.&nbsp; This is not a spoiler: early on you learn that Ralph loves opera–the majesty and theatrical qualities of it are in his Italian blood.&nbsp; And this passion for life, not necessarily a carnal passion, illuminates his existence.&nbsp; The aptly named Singer gives us the sense of the youthful Ralph, who really has become the Ralph we know in “second youth” when Carol shines a light into the darkest recesses of his heart.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">I attended the performance at which Joe DiPietro, Director Eric Hafen, and the cast fielded questions from the audience about the show.&nbsp; Hafen discussed his choices of projected scenery and minimal sets.&nbsp; “The focus,” he said, “needs to be on the language and the characters.”&nbsp; “It’s about the families we make, whether people or animals” according to DiPietro, and the production is truly memorable.</p><p style="border: 0px; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size: 15px; margin-bottom: 1.625em; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(55, 55, 55);">“The Last Romance” closes on October 13. &nbsp;Visit the Bickford box office now at the stately Morris Musem, or go online to &nbsp;<a href="http://www.bickfordtheatre.org/" style="border: 0px; font-family: inherit; font-size: 15px; font-style: inherit; font-weight: inherit; margin: 0px; outline: 0px; padding: 0px; vertical-align: baseline; color: rgb(25, 130, 209); text-decoration-line: none;">www.bickfordtheatre.org&nbsp;</a>and get your tickets today! &nbsp;Take someone you love– romantically or family or both—and make memories you’ll cherish.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Last Romance at Morris Museum's Bickford Theatre</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>"The Last Romance" at Morris Museum's Bickford Theatre</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <p>Joe DiPietro is a Jersey boy. He "writes" Jersey, and is most known for writing his characters in such a natural style that the dialogue comes sui generis from their lips rather than from a writer's pen. An East Coast premiere, "The Last Romance" is a play written originally for Marion Ross and her husband Paul Michael, who became friends with DiPietro and, while they are not mirrors of Carol and Ralph, there are elements of each actor in each of these characters and is part of what makes them SO real.</p>
+
+    <p>J.C. Hoyt is Ralph, the octogenarian, whom we first meet sitting in a dog park, clearly waiting for someone. Hoyt's Ralph is a sparky, sparkly gentleman of mature years, who comes from that Greatest Generation of Depression-era young adults, who did things because they were the right things to do. This will be an important point during the reveal of the plot twist in Act Two. It is highly likely that his antic good humor will remind you of an elder male relative of your own, born in a time when men and women had their sen...</p>
+</body>
+</html>
