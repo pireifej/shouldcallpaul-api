@@ -846,6 +846,7 @@ app.post('/createRequestAndPrayer', authenticate, async (req, res) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': req.headers.authorization
         },
         body: JSON.stringify({ content: promptToGeneratePrayer })
       });
