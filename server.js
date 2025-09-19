@@ -1108,7 +1108,7 @@ app.post('/getMyRequestFeed', authenticate, async (req, res) => {
   }
 });
 
-// POST /getMyRequests - Get user's own inactive prayer requests (active = 0)
+// POST /getMyRequests - Get user's own active prayer requests (active = 1)
 app.post('/getMyRequests', authenticate, async (req, res) => {
   log(req);
   const params = req.body;
@@ -1151,7 +1151,7 @@ app.post('/getMyRequests', authenticate, async (req, res) => {
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
       LEFT JOIN public.user_family ON user_family.user_id = request.user_id
-      WHERE request.user_id = $1 AND request.active = 0
+      WHERE request.user_id = $1 AND request.active = 1
       ORDER BY timestamp_raw DESC
     `;
 
