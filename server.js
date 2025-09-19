@@ -792,8 +792,8 @@ app.post('/createRequestAndPrayer', authenticate, async (req, res) => {
       INSERT INTO public.request (
         user_id, request_text, request_title, fk_category_id, other_person, picture, fk_prayer_id,
         fk_user_id, other_person_gender, other_person_email, relationship,
-        for_me, for_all, active
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        for_me, for_all, active, timestamp, updated_timestamp
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
       RETURNING request_id
     `;
 
