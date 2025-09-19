@@ -716,8 +716,8 @@ app.post('/prayFor', authenticate, async (req, res) => {
     
     // Step 1: Insert prayer record into user_request table
     const insertQuery = `
-      INSERT INTO public.user_request (request_id, user_id) 
-      VALUES ($1, $2)
+      INSERT INTO public.user_request (request_id, user_id, timestamp) 
+      VALUES ($1, $2, NOW())
     `;
     
     const insertResult = await pool.query(insertQuery, [params.requestId, params.userId]);
