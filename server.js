@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const OpenAI = require('openai');
 const fs = require('fs');
 const path = require('path');
+const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
 require('dotenv').config();
 
 const app = express();
@@ -89,6 +90,51 @@ const pool = new Pool({
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY 
 });
+
+// Email sending function using MailerSend
+async function mailerSendSingle(template, fromPerson, toPerson, subject, extraResult, res) {
+    const mailerSend = new MailerSend({
+        apiKey: process.env.MAILERSEND_API_KEY
+    });
+
+    const sentFrom = new Sender(fromPerson.email, fromPerson.name);
+
+    const recipients = [
+        new Recipient(toPerson.email, toPerson.name)
+    ];
+
+    const bcc = (toPerson.email == "programmerpauly@gmail.com") ? [] : [new Recipient("programmerpauly@gmail.com", "Programmer Pauly")];
+
+    const emailParams = new EmailParams()
+        .setFrom(sentFrom)
+        .setTo(recipients)
+        .setBcc(bcc)
+        .setReplyTo(sentFrom)
+        .setSubject(subject)
+        .setHtml(template)
+        .setText("Email from PrayOverUs.com");
+
+    const extraResultMessage = (extraResult) ? "|" + extraResult : "";
+
+    try {
+        await mailerSend.email.send(emailParams);
+        if (res) {
+            res.json({error: 0, result:"email sent from " + fromPerson.email + " to " + toPerson.email + extraResultMessage});
+        }
+        return {error: 0, result:"email sent from " + fromPerson.email + " to " + toPerson.email + extraResultMessage};
+    } catch(error) {
+        console.error('Email sending error:', error);
+        if (res) {
+            res.json({error: 1, result: error.message});
+        }
+        return {error: 1, result: error.message};
+    }
+}
+
+function log(req, params) {
+    let date_ob = new Date();
+    console.log(new Date(), req.originalUrl, JSON.stringify(req.body));
+}
 
 // Basic authentication middleware - supports dual passwords
 const authenticate = (req, res, next) => {
@@ -204,11 +250,6 @@ app.post('/getUserByEmail', authenticate, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-// Simple logging function to match original functionality
-const log = (req) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Body:`, req.body);
-};
 
 // POST /getAllUsers - Get all users with prayer and request counts
 app.post('/getAllUsers', authenticate, async (req, res) => {
@@ -712,10 +753,53 @@ app.post('/prayFor', authenticate, async (req, res) => {
       const requestOwner = requestOwnerResult.rows[0];
       const userWhoPrayed = userWhoPrayedResult.rows[0];
       
+      // Step 4: Send email notification if the request owner wants emails
+      let emailResult = null;
+      if (requestOwner?.prayer_emails && requestOwner?.email) {
+        try {
+          const emailTemplate = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2c3e50;">Someone prayed for your request!</h2>
+              <p>Dear ${requestOwner.real_name},</p>
+              <p><strong>${userWhoPrayed.real_name}</strong> just prayed for your prayer request:</p>
+              <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0;">
+                <em>"${requestOwner.request_text}"</em>
+              </div>
+              <p>You are not alone in your prayers. The PrayOverUs community is standing with you.</p>
+              <p>Blessings,<br>The PrayOverUs Team</p>
+              <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+              <p style="font-size: 12px; color: #666;">
+                This email was sent because you have prayer email notifications enabled. 
+                You can manage your settings in your PrayOverUs account.
+              </p>
+            </div>
+          `;
+          
+          const fromPerson = { 
+            email: "prayers@prayoverus.com", 
+            name: "PrayOverUs" 
+          };
+          
+          const toPerson = { 
+            email: requestOwner.email, 
+            name: requestOwner.real_name 
+          };
+          
+          const subject = `${userWhoPrayed.real_name} prayed for your request`;
+          
+          emailResult = await mailerSendSingle(emailTemplate, fromPerson, toPerson, subject, null, null);
+          console.log('Prayer notification email sent:', emailResult);
+        } catch (emailError) {
+          console.error('Failed to send prayer notification email:', emailError);
+          emailResult = { error: 1, result: emailError.message };
+        }
+      }
+      
       // Return success response with the prayer data
       res.json({
         success: true,
         message: "Prayer recorded successfully",
+        emailSent: emailResult?.error === 0,
         data: {
           requestOwner: {
             name: requestOwner?.real_name,
