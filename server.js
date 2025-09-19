@@ -1108,6 +1108,62 @@ app.post('/getMyRequestFeed', authenticate, async (req, res) => {
   }
 });
 
+// POST /getMyRequests - Get user's own inactive prayer requests (active = 0)
+app.post('/getMyRequests', authenticate, async (req, res) => {
+  log(req);
+  const params = req.body;
+  
+  const requiredParams = ["userId"];
+  for (let i = 0; i < requiredParams.length; i++) {
+    const requiredParam = requiredParams[i];
+    if (!params[requiredParam]) {
+      res.json({ error: "Required params '" + requiredParam + "' missing" });
+      return;
+    }
+  }
+
+  try {
+    const timezone = params.tz || 'UTC';
+    
+    // PostgreSQL query with proper parameterization to prevent SQL injection
+    const query = `
+      SELECT DISTINCT 
+        request.request_id,
+        request.user_id,
+        request.request_text,
+        request.fk_prayer_id,
+        request.fk_user_id,
+        prayers.prayer_title,
+        request.request_title,
+        request.picture as request_picture,
+        request.other_person,
+        category.category_name,
+        settings.use_alias,
+        settings.allow_comments,
+        (request.timestamp AT TIME ZONE 'UTC' AT TIME ZONE $2) as timestamp,
+        request.timestamp as timestamp_raw,
+        "user".user_name,
+        "user".real_name,
+        "user".picture
+      FROM public.request
+      LEFT JOIN public.category ON category.category_id = request.fk_category_id
+      INNER JOIN public."user" ON "user".user_id = request.user_id
+      LEFT JOIN public.settings ON settings.user_id = "user".user_id
+      LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
+      LEFT JOIN public.user_family ON user_family.user_id = request.user_id
+      WHERE request.user_id = $1 AND request.active = 0
+      ORDER BY timestamp_raw DESC
+    `;
+
+    const result = await pool.query(query, [params.userId, timezone]);
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('Database query error:', err);
+    res.json({ error: "Database error: " + err.message });
+  }
+});
+
 // POST /deleteRequestById - Delete a request by ID
 app.post('/deleteRequestById', authenticate, async (req, res) => {
   try {
