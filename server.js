@@ -1024,6 +1024,64 @@ app.post('/getMyRequestFeed', authenticate, async (req, res) => {
   }
 });
 
+// POST /deleteRequestById - Delete a request by ID
+app.post('/deleteRequestById', authenticate, async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    const requiredParams = ["request_id"];
+    for (let i = 0; i < requiredParams.length; i++) {
+      const requiredParam = requiredParams[i];
+      if (!params[requiredParam]) {
+        return res.json({ error: "Required param '" + requiredParam + "' missing" });
+      }
+    }
+    
+    // Check if request exists first
+    const checkQuery = `
+      SELECT request_id, request_title, user_id 
+      FROM public.request 
+      WHERE request_id = $1
+    `;
+    
+    const checkResult = await pool.query(checkQuery, [params.request_id]);
+    
+    if (checkResult.rows.length === 0) {
+      return res.json({ error: "Request with ID " + params.request_id + " not found" });
+    }
+    
+    // Delete the request from the database
+    const deleteQuery = `
+      DELETE FROM public.request 
+      WHERE request_id = $1 
+      RETURNING request_id, request_title
+    `;
+    
+    const deleteResult = await pool.query(deleteQuery, [params.request_id]);
+    
+    if (deleteResult.rows.length === 0) {
+      return res.json({ error: "Failed to delete request" });
+    }
+    
+    const deletedRequest = deleteResult.rows[0];
+    
+    // Return success response
+    res.json({ 
+      error: 0, 
+      message: "Request deleted successfully",
+      deleted_request: {
+        request_id: deletedRequest.request_id,
+        request_title: deletedRequest.request_title
+      }
+    });
+    
+  } catch (error) {
+    console.error('Delete request error:', error);
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
 // Debug endpoint to check database connection (no authentication)
 app.get('/debug', async (req, res) => {
   try {
