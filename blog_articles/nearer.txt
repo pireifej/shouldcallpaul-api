@@ -61,9 +61,23 @@
     <h1>STNJ Opens with Coward's End Game "A Song at Twilight"</h1>
     <p class="byline">by Sherri Rase</p>
     
-    
+    <div class="image-container">
+        <img src="img/nearer.jpg" alt="Cast of A Song at Twilight">
+        <div class="image-caption">l to r Alison Weller, Laila Robins, Edmond Genest photo by Jerry Dalia</div>
+    </div>
+
     <p>Shakespeare Theatre of New Jersey opens a bright new season with Noël Coward's penultimate play, "A Song at Twilight". It is thought to be evocative of W. Somerset Maugham and presents a scenario that could only have played out in a time when closets held more than clothes.</p>
 
-    <p>Part of a trio of plays, "Suite in Three Keys", all three set in the same luxurious Swiss hotel, was written in 1966. When Neil Simon's "Plaza Suite" came out two years later, Coward quipped "Such a good idea having different plays all played in a hotel suite! I wonder where Neil Simon got it from?" This stylish...</p>
+    <p>Part of a trio of plays, "Suite in Three Keys", all three set in the same luxurious Swiss hotel, was written in 1966. When Neil Simon's "Plaza Suite" came out two years later, Coward quipped "Such a good idea having different plays all played in a hotel suite! I wonder where Neil Simon got it from?" This stylish play is in the hands of favorite players at STNJ and it sings in a way that many may have thought forgotten, like the ghost of a song that is mostly elusive but was much beloved in our earlier days.</p>
+
+    <p>The cast is intimate, in a number of ways. First off, there are only four characters – Dour duenna and worker of magic Hilde Latymer (Alison Weller) whose unconventional love for her unconventional husband makes her the most grounded character in the piece, the staunch and faithful Felix (Ben Houghton), Swiss-Italian gentleman's gentleman who assures everything runs like clockwork even when it's a cuckoo clock, Hugo Latymer (Edmond Genest) self-styled genius and wit whose chequered Past is catching up with him and Carlotta Gray (Laila Robins) who is the personification of that Past in a number of ways. Each of these characters is fully four dimensional – they have a past as well as a presence – and the verbal sparring between Carlotta and Hugo is sometimes a scintillating frisson and at others a shower of sparks, as in Flint, meet Steel.</p>
+
+    <p>Felix' dulcet tones and deft touch on the piano paint a period picture, sepia-toned and lush. Director Paul Mullins has assembled a brilliant cast and technical team. Michael Giannitti's lighting is beautifully subtle as day moves gently into night, complementing Brittany Vasta's gorgeous set. Nikki Delhomme's costumes are particularly evocative with Hilde seeming a dowdy sparrow to Carlotta's exotic goldfinch. But looks can be deceiving, and I'll leave it at that.</p>
+
+    <p>This play was quite daring in 1966 and it gives one a great deal to consider even now when, to quote Poe, "all that we are and all that we seem, are but a dream within a dream". Coward knew that well and while some dreams are gossamer, others are far more dark and when we have most of our life behind us, the subterfuge of our youth often returns home to roost.</p>
+
+    <p>This play is a must-see for people who love wit and thought provoking work. Each of the actors is an all-star and you'll be buzzing with thoughts about this play long after you've left the F.M. Kirby Theater. Genest and Robins' clash of the Titans, Houghton's humility, patience and open love and Weller as clear-eyed all-knowing Demeter show that gods still walk among us.</p>
+
+    <p>What are you waiting for? If you don't mind spoilers, head over to the Know the Show section at <a href="http://www.shakespearenj.org" target="_blank">www.shakespearenj.org</a>. Or get your tickets first, then look it over after the show. Either way, get your tickets now or you'll be left out in the Spring wishing you were on the inside. Best choice of seats is right NOW!</p>
 </body>
 </html>
