@@ -776,7 +776,7 @@ app.post('/prayFor', authenticate, async (req, res) => {
           `;
           
           const fromPerson = { 
-            email: "prayers@prayoverus.com", 
+            email: "paul@prayoverus.com", 
             name: "PrayOverUs" 
           };
           
@@ -842,7 +842,7 @@ app.post('/contact', async (req, res) => {
     
     // Define sender (same as prayer notifications)
     const fromPerson = { 
-      email: "prayers@prayoverus.com", 
+      email: "paul@prayoverus.com", 
       name: "PrayOverUs" 
     };
     
