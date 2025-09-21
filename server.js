@@ -830,6 +830,71 @@ app.post('/prayFor', authenticate, async (req, res) => {
   }
 });
 
+// POST /contact - Send contact email to shouldcallpaul@gmail.com
+app.post('/contact', async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    if (!params.subject) {
+      return res.json({ error: "Required parameter 'subject' missing" });
+    }
+    
+    // Define sender (same as prayer notifications)
+    const fromPerson = { 
+      email: "prayers@prayoverus.com", 
+      name: "PrayOverUs" 
+    };
+    
+    // Hardcoded recipient
+    const toPerson = {
+      email: "shouldcallpaul@gmail.com",
+      name: "Paul"
+    };
+    
+    // Create HTML template for contact message
+    const emailTemplate = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2c3e50;">Website Contact Message</h2>
+        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0;">
+          <p><strong>Subject:</strong> ${params.subject}</p>
+        </div>
+        <p>This message was sent through the PrayOverUs.com contact form.</p>
+        <hr style="border: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #7f8c8d; font-size: 12px;">
+          Sent from PrayOverUs.com contact system
+        </p>
+      </div>
+    `;
+    
+    // Send the email
+    const emailResult = await mailerSendSingle(
+      emailTemplate,
+      fromPerson,
+      toPerson,
+      `Contact: ${params.subject}`,
+      null,
+      null
+    );
+    
+    if (emailResult.error === 0) {
+      res.json({ 
+        error: 0, 
+        result: "Contact message sent successfully" 
+      });
+    } else {
+      res.json({ 
+        error: 1, 
+        result: emailResult.result 
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error in /contact endpoint:', error);
+    res.json({ error: error.message });
+  }
+});
+
 // POST /createRequestAndPrayer - Create a prayer request and generate AI prayer
 app.post('/createRequestAndPrayer', authenticate, async (req, res) => {
   try {
