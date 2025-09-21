@@ -830,14 +830,18 @@ app.post('/prayFor', authenticate, async (req, res) => {
   }
 });
 
-// POST /contact - Send contact email to shouldcallpaul@gmail.com
-app.post('/contact', async (req, res) => {
+// POST /contact - Send contact email 
+app.post('/contact', authenticate, async (req, res) => {
   try {
     const params = req.body;
     
     // Validate required parameters
-    if (!params.subject) {
-      return res.json({ error: "Required parameter 'subject' missing" });
+    const requiredParams = ["subject", "to"];
+    for (let i = 0; i < requiredParams.length; i++) {
+      const requiredParam = requiredParams[i];
+      if (!params[requiredParam]) {
+        return res.json({ error: "Required parameter '" + requiredParam + "' missing" });
+      }
     }
     
     // Define sender (same as prayer notifications)
@@ -846,10 +850,10 @@ app.post('/contact', async (req, res) => {
       name: "PrayOverUs" 
     };
     
-    // Hardcoded recipient
+    // Recipient from parameter
     const toPerson = {
-      email: "shouldcallpaul@gmail.com",
-      name: "Paul"
+      email: params.to,
+      name: "Recipient"
     };
     
     // Create HTML template for contact message
