@@ -836,7 +836,7 @@ app.post('/contact', authenticate, async (req, res) => {
     const params = req.body;
     
     // Validate required parameters
-    const requiredParams = ["subject", "to"];
+    const requiredParams = ["subject", "to", "content"];
     for (let i = 0; i < requiredParams.length; i++) {
       const requiredParam = requiredParams[i];
       if (!params[requiredParam]) {
@@ -862,6 +862,12 @@ app.post('/contact', authenticate, async (req, res) => {
         <h2 style="color: #2c3e50;">Website Contact Message</h2>
         <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0;">
           <p><strong>Subject:</strong> ${params.subject}</p>
+        </div>
+        <div style="margin: 20px 0; line-height: 1.6;">
+          <p><strong>Message:</strong></p>
+          <div style="background-color: #ffffff; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            ${params.content}
+          </div>
         </div>
         <p>This message was sent through the PrayOverUs.com contact form.</p>
         <hr style="border: 1px solid #eee; margin: 20px 0;">
