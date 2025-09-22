@@ -1,0 +1,340 @@
+{
+    "records": [
+	{
+	    "image": "",
+	    "label": "Main Street Donuts Shark Run 5K",
+	    "type": "race",
+	    "details": {
+		"date": "06/14/25",
+		"distance": "3.1 miles",
+		"time": "24 min 01 sec",
+		"location": "Matawan, NJ"
+	    },
+	    "gallery": ["img/running/PXL_20250614_130700070.jpg","img/running/PXL_20250614_122439711.jpg","img/running/mainstraceresults.png"],
+	    "link": "https://runsignup.com/Race/Results/149326/IndividualResult/hFXY?resultSetId=559135#U106038916",
+	    "desc": "<p>This run will pay tribute to the events of the Matawan shark attacks that took place in July 1916. The Matawan Shark attacks led to the novel and movie 'Jaws'. Although tragic and terrifying for those who were victims and those involved, the events of the summer of 1916 would forever change the image of the shark worldwide.</p>"
+	},
+	{
+	    "image": "",
+	    "label": "Spring Forward 5K",
+	    "type": "race",
+	    "details": {
+		"date": "04/13/25",
+		"distance": "3.1 miles",
+		"time": "34 min 26 sec",
+		"location": "Morris Plain, NJ"
+	    },
+	    "gallery": ["img/running/springrace1.jpg","img/running/springrace2.jpg","img/running/springrace3.jpg"],
+	    "link": "https://www.webscorer.com/racedetails?raceid=386422&did=511822&cid=2775789&gender=M",
+	    "desc": "<p>Celebrating my birthday by running with my son for his first ever 5K! Enjoy a mixed terrain course with dirt, grass, gravel, and some hills. Enter via the North Cottage Road entrance of MCP.</p>"
+	},
+	{
+	    "image": "",
+	    "label": "2024 PPTC Turkey Trot: Race for Reconciliation 5 Miler",
+	    "type": "race",
+	    "details": {
+		"date": "11/28/24",
+		"distance": "5 miles",
+		"time": "52 min 13 sec",
+		"location": "NYC"
+	    },
+	    "gallery": ["img/running/turkeytrotresults.png"],
+	    "link": "https://runsignup.com/Race/Results/135512/IndividualResult/BBhS?resultSetId=512067#U2638680",
+	    "desc": "<p>One of Brooklyn's most popular races, this spectacular 5-miler is the perfect way to kick off your holiday season!</p>"
+	},
+	{
+	    "image": "",
+	    "label": "TCS New York City Marathon 2024",
+	    "type": "race",
+	    "details": {
+		"date": "11/03/24",
+		"distance": "26.2 miles",
+		"time": "5 hours 1 min 12 sec",
+		"location": "NYC"
+	    },
+	    "gallery": ["img/running/858381_1041_0027.jpg", "img/running/858508_1031_0043.jpg", "img/running/IMG_3589.jpg"],
+	    "link": "https://results.nyrr.org/runner/48426/result/M2024",
+	    "desc": "<p></p>"
+	},
+	{
+	    "image": "",
+	    "label": "2023 Abbott Dash to the Finish Line 5K",
+	    "type": "race",
+	    "details": {
+		"date": "11/4/23",
+		"distance": "3.1 miles",
+		"time": "27 min 41 sec",
+		"location": "NYC"
+	    },
+	    "gallery": [],
+	    "link": "https://results.nyrr.org/runner/2666/result/23DASH?_gl=1*1o8unt9*_gcl_au*MTk4MDgzNjYxOC4xNzI1OTMzNDkx",
+	    "desc": "<p></p>"
+	},
+	{
+	    "image": "",
+	    "label": "2023 NYRR Staten Island Half",
+	    "type": "race",
+	    "details": {
+		"date": "10/08/23",
+		"distance": "13.1 miles",
+		"time": "2 hours 21 min",
+		"location": "NYC"
+	    },
+	    "gallery": ["img/running/image.jpg"],
+	    "link": "https://results.nyrr.org/runner/11005/result/23SIHALF?_gl=1*1o8unt9*_gcl_au*MTk4MDgzNjYxOC4xNzI1OTMzNDkx",
+	    "desc": "<p></p>"
+	},
+	{
+	    "image": "",
+	    "label": "2023 New Balance 5th Avenue Mile",
+	    "type": "race",
+	    "details": {
+		"date": "09/10/23",
+		"distance": "1 mile",
+		"time": "6 min 54 sec",
+		"location": "NYC"
+	    },
+	    "gallery": [],
+	    "link": "https://results.nyrr.org/runner/1954/result/23FAM?_gl=1*1o8unt9*_gcl_au*MTk4MDgzNjYxOC4xNzI1OTMzNDkx",
+	    "desc": "<p></p>"
+	},
+	{
+	    "image": "",
+	    "label": "2023 Percy Sutton Harlem 5K",
+	    "type": "race",
+	    "details": {
+		"date": "08/12/23",
+		"distance": "3.1 miles",
+		"time": "30 min 3 sec",
+		"location": "NYC"
+	    },
+	    "gallery": [],
+	    "link": "https://results.nyrr.org/runner/4858/result/23HARLEM?_gl=1*1o8unt9*_gcl_au*MTk4MDgzNjYxOC4xNzI1OTMzNDkx",
+	    "desc": "<p></p>"
+	},
+	{
+	    "image": "",
+	    "label": "2023 NYRR Retro 4-Miler",
+	    "type": "race",
+	    "details": {
+		"date": "06/15/23",
+		"distance": "4 miles",
+		"time": "37 min 28 sec",
+		"location": "NYC"
+	    },
+	    "gallery": [],
+	    "link": "https://results.nyrr.org/runner/5143/result/23RETRO?_gl=1*1o8unt9*_gcl_au*MTk4MDgzNjYxOC4xNzI1OTMzNDkx",
+	    "desc": "<p></p>"
+	},
+	{
+	    "image": "",
+	    "label": "2023 NYRR Queens 10K",
+	    "type": "race",
+	    "details": {
+		"date": "06/17/23",
+		"distance": "6.2 miles",
+		"time": "1 hour",
+		"location": "NYC"
+	    },
+	    "gallery": [],
+	    "link": "https://results.nyrr.org/runner/11945/result/23QUEENS?_gl=1*1o8unt9*_gcl_au*MTk4MDgzNjYxOC4xNzI1OTMzNDkx",
+	    "desc": "<p></p>"
+		},
+	{
+	    "image": "",
+	    "label": "2023 RBC Brooklyn Half",
+	    "type": "race",
+	    "details": {
+		"date": "05/20/23",
+		"distance": "13.1 miles",
+		"time": "2 hours 31 min",
+		"location": "NYC"
+	    },
+	    "gallery": [],
+	    "link": "https://results.nyrr.org/runner/27062/result/23BKH?_gl=1*1o8unt9*_gcl_au*MTk4MDgzNjYxOC4xNzI1OTMzNDkx",
+	    "desc": "<p></p>"
+	},
+	{
+	    "image": "",
+	    "label": "2023 RBC Race for the Kids 4M",
+	    "type": "race",
+	    "details": {
+		"date": "04/23/2023",
+		"distance": "4 miles",
+		"time": "41 min 50 min",
+		"location": "NYC"
+	    },
+	    "gallery": [],
+	    "link": "https://results.nyrr.org/runner/1692/result/23RBCkids?_gl=1*1o8unt9*_gcl_au*MTk4MDgzNjYxOC4xNzI1OTMzNDkx",
+	    "desc": "<p></p>"
+	},
+	{
+	    "image": "",
+	    "label": "2023 NYRR Al Gordon 4M",
+	    "type": "race",
+	    "details": {
+		"date": "02/25/23",
+		"distance": "4 miles",
+		"time": "39 min 53 sec",
+		"location": "NYC"
+	    },
+	    "gallery": [],
+	    "link": "https://results.nyrr.org/runner/1565/result/23ALGORDON?_gl=1*1o8unt9*_gcl_au*MTk4MDgzNjYxOC4xNzI1OTMzNDkx",
+	    "desc": "<p></p>"
+	},
+	{
+	    "image": "img/running/20221030_130032.jpg",
+	    "label": "Marine Corp Marathon",
+	    "type": "race",
+	    "details": {
+		"date": "10/30/22",
+		"distance": "26.2 miles",
+		"time": "4 hours 52 min",
+		"location": "Washington, D.C."
+	    },
+	    "gallery": ["img/running/1211885_321179061_XLarge.jpg"],
+	    "link": "https://events.hakuapp.com/?registration_number=5ABD8FF913",
+	    "desc": "<p>Recognized for impeccable organization on an iconic course managed by the US Marines in Arlington, VA and the nation's capital, the Marine Corps Marathon is one of the largest marathons in the US and the world. Known as 'the best marathon for beginners,' the MCM is the largest marathon in the world that doesn't offer prize money, earning its nickname, 'The People's Marathon.'</p>"
+	},
+	{
+	    "image": "img/running/disneySmall.jpg",
+	    "label": "2020 Walt Disney World Marathon",
+	    "type": "race",
+	    "details": {
+		"date": "01/11/20",
+		"distance": "13.1 miles",
+		"time": "2 hours 36 min",
+		"location": "Florida"
+	    },
+	    "gallery": ["img/running/disney4.jpg"],
+	    "link": "https://www.trackshackresults.com/disneysports/results/wdw/wdw20/hm_results.php?Link=98&amp;Type=3&amp;LName=ireifej&amp;FName=&amp;City=&amp;State=&amp;Country=",
+	    "desc": "<p>When you participate in the 2022 Walt Disney World Marathon Weekend, you will become part of something incredibly special, by running right in the heart of The World\" Most Magical Celebration.</p><p>Test your mettle at your chosen skill level - from the marathon to the 5K - while enjoying each step of the way through the Disney theme parks during the 50th anniversary celebration of Walt Disney World Resort.</p>"
+	},
+	{
+	    "image": "img/running/rockySmall.jpg",
+	    "label": "2019 Rocky Run",
+	    "type": "race",
+	    "details": {
+		"date": "11/09/19",
+		"distance": "3.1 miles",
+		"time": "27 min 09 sec",
+		"location": "Philadelphia"
+	    },
+	    "gallery": ["img/running/phillyCert.png"],
+	    "link": "http://live.xacte.com/templates/philadelphiamarathon.com/for-runners/?utm_source=Philadelphia-Marathon&utm_campaign=c3dcb72372-EMAIL_CAMPAIGN_2018_11_17_08_05&utm_medium=email&utm_term=0_fa2559b911-c3dcb72372-46616553",
+	    "desc": "<p>This is your shot - a chance to join thousands of runners from around the world in Philadelphia for the official Rocky Run 5K, 10 Mile & 13.1 Italian Stallion Challenge. So, channel your inner Rocky Balboa, register, and show the world you can go the distance.</p>"
+	},
+	{
+	    "image": "img/running/rhodeSmall.jpg",
+	    "label": "Independence Rhode Race Half Marathon",
+	    "type": "race",
+	    "details": {
+		"date": "06/29/19",
+		"distance": "13.1 miles",
+		"time": "2 hours 15 min",
+		"location": "Rhode Island"
+	    },
+	    "gallery": ["img/running/rhode3.jpg"],
+	    "link": "https://runscore.runsignup.com/Race/Results/34245/IndividualResult/QhLB?#U34244592",
+	    "desc": "<p>The half marathon will follow the beautiful downtown streets of America\"s quintessential community when it is decked out in its finest - during the Oldest 4th of July Celebration in America.  The course includes incredible historic homes, a town common and the America\"s Cup Museum before heading out along the scenic coastline, through Roger Williams University, following the parade route, and finishing along the water at Independence Park.</p>"
+	},
+	{
+	    "image": "img/running/rhineSmall.jpg",
+	    "label": "Rhinebeck Hudson Valley Half Marathon",
+	    "type": "race",
+	    "details": {
+		"date": "05/11/19",
+		"distance": "13.1 miles",
+		"time": "2 hours 17 min",
+		"location": "Hudson Valley, NY"
+	    },
+	    "link": "https://www.trisignup.com/Race/Results/65311/IndividualResult/QBGZ?#U36163320,U2638680",
+	    "gallery": ["img/running/rhineCert.PNG"],
+	    "desc": "<p>Rhinebeck Hudson Valley Full & Half Marathon Sports Event in Rhinebeck, New York</p>"
+	},
+	{
+	    "image": "img/running/phillySmall.jpg",
+	    "label": "Philadelphia Half Marathon",
+	    "type": "race",
+	    "gallery": [],
+	    "desc": "<p>The Dietz & Watson Philadelphia Half Marathon. In 2017, the Philadelphia Marathon Team created a new course for the half marathon with almost ten miles in the city. This new course takes runners through most of the same historic areas and iconic neighborhoods that Philadelphia has to offer. The new half marathon course is the most unique and exciting half marathon course in the city.</p>",
+	    "details": {
+		"date": "11/18/18",
+		"distance": "13.1 miles",
+		"time": "2 hours 07 min",
+		"location": "Philadelphia, PA"
+	    },
+	    "link": "http://live.xacte.com/templates/philadelphiamarathon.com/for-runners/?utm_source=Philadelphia-Marathon&utm_campaign=c3dcb72372-EMAIL_CAMPAIGN_2018_11_17_08_05&utm_medium=email&utm_term=0_fa2559b911-c3dcb72372-46616553"
+	},
+	{
+	    "image": "img/running/middleearth.PNG",
+	    "label": "Run from Winter 10K",
+	    "type": "race",
+	    "desc": "<p>11th Annual Run From Winter 10K to benefit Middle Earth. The USATF certified and sanctioned course runs along the scenic Raritan River through the flat paved, wooded trails of Duke Island Park.</p>",
+	    "gallery": [],
+	    "details": {
+		"date": "03/24/19",
+		"distance": "6.2 miles",
+		"time": "54 min 02 sec",
+		"location": "Bridgewater, NJ"
+	    },
+	    "link": "https://runsignup.com/Race/Results/54760/IndividualResult/tYqb?#U34244592"
+	},
+	{
+	    "image": "img/running/autismSmall.jpeg",
+	    "label": "Hustle for the Puzzle 5k Road Race for Autism",
+	    "type": "race",
+	    "desc": "<p></p>",
+	    "gallery": ["img/running/puzzle5k.png"],
+	    "link": "https://www.athlinks.com/event/16532/results/Event/158372/Course/218826/Bib/327",
+	    "details": {
+		"date": "04/03/2011",
+		"distance": "3.1 miles",
+		"time": "26 min 13 sec",
+		"location": "Montgomery, NY"
+	    }
+	},
+	{
+	    "image": "img/running/verizonSmall.jpg",
+	    "label": "Verizon Wireless Corporate Classic",
+	    "type": "race",
+	    "desc": "<p>The race is designed primarily as an opportunity for co-workers to get together to enjoy a morning of fun and fitness in a spirit of camaraderie with their fellow employees by participating as a member of their company\"s corporate running team.</p>",
+	    "link": "http://www.bestrace.com/verizonwirelessclassic/overall-2010.HTML",
+	    "details": {
+		"date": "07/15/2010",
+		"distance": "3.1 miles",
+		"time": "26 min 31 sec",
+		"location": "Morristown, NJ"
+	    }
+	},
+	{
+	    "image": "img/running/PXL_20211115_013037906.PORTRAIT.jpg",
+	    "label": "Rocky Run 5K",
+	    "type": "race",
+	    "desc": "<p>This is your shot - a chance to join thousands of runners from around the world in Philadelphia for the official Rocky Run 5K, 10 Mile & 13.1 Italian Stallion Challenge. So, channel your inner Rocky Balboa, register, and show the world you can go the distance. The race will start on Kelly Drive in front of the Philadelphia Museum of Art.</p>",
+	    "link": "https://results.raceroster.com/en-US/results/detail/ke4h7f5fbuztyds2",
+	    "gallery": ["img/running/PXL_20211115_013057474.PORTRAIT.jpg"],
+	    "details": {
+		"date": "11/13/2021",
+		"distance": "3.1 miles",
+		"time": "25 min 55 sec",
+		"location": "Philadelphia"
+	    }
+	},
+	{
+	    "image": "img/running/Ireifej_5K_Zinn.png",
+	    "label": "59th Annual Captain Zinn Memorial 5K Races",
+	    "type": "race",
+	    "desc": "<p>This event honors all Vietnam Veterans and is named in memory of Captain Ronald Lloyd 'Ron' Zinn, a race walker from the United States who was killed in Vietnam in 1965. He graduated from the US Military Academy in 1962 and represented the USA at both the 1960 (Rome) and 1964 (Tokyo) Summer Olympics. He placed 6th in the 20K race walk in 1964. Shore AC has held this race to remember Captain Zinn since 1966. The day features a 5k Run at 10:00am and Race Walk at 10:05am, along with a kids fun run at 9:30AM.</p>",
+	    "link": "https://runsignup.com/Race/Results/45684/IndividualResult/GBdR#U2638680",
+	    "gallery": [],
+	    "details": {
+		"date": "04/02/2023",
+		"distance": "3.1 miles",
+		"time": "25 min 50 sec",
+		"location": "Colts Neck, NJ"
+	    }
+	}
+
+    ]
+}

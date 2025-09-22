@@ -1,0 +1,151 @@
+{
+    "records": [
+	{
+	    "image": "img/gallery/avertack-dev-ops.png",
+	    "label": "Avertack Dev Ops",
+	    "type": "projects",
+	    "details": {
+		"date": "2022",
+		"company": "AT&T",
+		"technology": "Microsoft Azure, MongoDB"
+	    },
+	    "desc": "<p>Avertack (or avert attack) is a real-time large-scale fraud prevention application.</p><p><b>Led the migration</b> of 100+ on-premise servers to Microsoft Azure, optimizing performance, scalability, and cost-efficiency.</p><p><b>Served as Technical Team Lead</b>, managing a cross-functional DevOps team and driving successful project delivery.</p><p><b>Implemented CI/CD pipelines</b>, enhancing code deployment speed and reducing time to market for critical releases.</p><p><b>Acted as Scrum Manager</b>, facilitating agile ceremonies, sprint planning, and backlog prioritization for efficient team collaboration.</p><p><b>Spearheaded integration efforts</b> for automated code scans and AT&T compliance, ensuring adherence to industry standards and security protocols.</p><p><b>Developed and maintained cloud infrastructure</b> using Azure DevOps, improving overall system reliability and performance.</p><p><b>Streamlined DevOps processes</b>, resulting in a 30% reduction in deployment times and increased team productivity.</p><p><b>Collaborated with stakeholders</b> across development, QA, and operations to ensure seamless integration and delivery of services.</p><p>Was awarded an AT&T Connection Award for 'Avertack Cloud Migration and Dora Integration' on October 02, 2023'.</p><p>Was awarded an AT&T Connection Award for 'GitHub and DORA Integrations' on October 31, 2024'.</p><p>Was awarded an AT&T Connection Award for 'Avertack Disaster Recovery' on April 14, 2025'.</p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-12.jpg",
+	    "label": "aiOpX",
+	    "type": "projects",
+	    "details": {
+		"date": "2020",
+		"company": "AT&T",
+		"technology": "AngularJS,HTML,CSS,MongoDB"
+	    },
+	    "desc": "<p>aiOpX (or Artifical Intelligence Operations X - any) is a real-time fraud monitoring application. It performs a health check on internal fraud systems and tracks errors, down-time, and generates metrics based on log files.</p><p>There are dynamic rules that include a mitigation to when a rule is triggered. The mitigation includes responses such as sending an email to a preset distribution list (business hours vs. off-hours), and paging a cell phone.</p><p><b>Developed key front-end capabilities: severity cases landing page, raw JSON record view, application field 'type' with virtual field support.</b></p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-11.jpg",
+	    "label": "Crossroads",
+	    "type": "projects",
+	    "details": {
+		"date": "2019",
+		"company": "AT&T",
+		"technology": "AngularJS,HTML,CSS,MongoDB"
+	    },
+	    "desc": "<p>CrossRoads (XRDs) provides a single interface to search for customer information across multiple AT&T data sources. It has the capability to find and verify customer contact information by searching on the address, name, or telephone number of the AT&T customer. Redesigned the four main query lookup pages: Address, Telephone Number, Name, Account/SPI.</p><p><b>Redesigned the GUI using latest technology (AngularJS, JavaScript, HTML, CSS, MongoDB).</b></p><p>Merged capabilities of another application (Global Fraud Management System) into XRDs to do a customer search and finding affiliated accounts with given customer phone number, SSN, email.</p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-10.jpg",
+	    "label": "Watch Dog",
+	    "type": "projects",
+	    "details": {
+		"date": "2018",
+		"company": "AT&T",
+		"technology": "AngularJS,Tomcat,Java,Hbase,MongoDB,Hadoop"
+	    },
+	    "desc": "<p>Partner with Chief Security Office (CSO) and Global Fraud Management Organization (GFMO) to provide analytics that help identify questionable and/or malicious behavior by internal employees accessing customer data. Uses \"watermarking\" which tracks access to SPI and CPNI data that AT&T is a steward of.</p><p><b>Productionized application that was originally built on a development environment using offshore resources.</b> Brought stability, production support, alerting and well defined system flow & architecture. Automated daily data ingestion with mech IDs. <b>Work so highly regarded that is resulted in a professional talk at the 2019 Communications Fraud Control Association (CFCA).</b></p><p>UI (AngularJS, Tomcat), UI backend (Java Springboot Restful webservices), Datalake service (webservices layer for Hbase), Data ingestion & case creation (Java), Cron jobs & Scheduler (daily/weekly housekeeping), Data Stores (MongoDB for low latency access, and Hbase for long-term big data storage using Hadoop File System HDFS).</p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-09.jpg",
+	    "label": "FASTR",
+	    "type": "projects",
+	    "details": {
+		"date": "2016",
+		"company": "AT&T",
+		"technology": "AngularJS,HTML,CSS,Java,MongoDB"
+	    },
+	    "desc": "<p>Fraud Analysis and Service Order Tracking and Reporting (FASTR) tracks correlations between personnel that sell Internet service and Direct TV products and abnormalities or irregularities in the order and/or billing processes. Works by applying Potential Fraud Group (PFG) rules that describe a potential fraud pattern. It looks for PFG violations in the billing data and generates alerts.</p><p> <b>Leading the effort to redesign legacy FASTR application using JavaScript (AngularJS), HTML, CSS with Java and MongoDB for data access.</b><p>The new design is a fraud case management system that allows the users to look through transaction data to sift out the benign fraud alert from the serious ones. Implemented several query form pages to search through data, implementation a novel configuration-based page generation solution.</p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-07.PNG",
+	    "label": "Project Frugality",
+	    "type": "projects",
+	    "details": {
+		"date": "2015",
+		"company": "AT&T",
+		"technology": "Scala"
+	    },
+	    "desc": "<p>Project Frugality looks at how cell site construction is conducted in 25 initiatives and determines if the implementation is meeting the expectations of Big Data C&E leadership, who gathers requirements and assumptions surrounding cell site construction. Completed deliverables given very ambitious deadlines. Led development efforts and data ingestion work flow process. Led discussions with data ingest developers and product owners. <b> Overall savings of ~ $1B just for 2016.</b></p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-06.jpg",
+	    "label": "Electronic Law Enforcement Activity Tracker",
+	    "type": "projects",
+	    "details": {
+		"date": "2014",
+		"company": "AT&T",
+		"technology": "Perl,HTML,jQuery,jVectorMap"
+	    },
+	    "desc": "<p>Augmenting the Electronic Law Enforcement Activity Tracker (ELEAT) application with surveillance intercept automation. Developed 4 new interfaces in Perl and a web interface for direct node access. Took BVoIP development over from previous developer after his abrupt leave and was still able to deliver top quality code ahead of expected completion deadline.</p><p><b> Undergone several initiates to improve ELEAT code infrastructure:</b></p><p>Effort to re-design dated ELEAT web interface using HTML, JavaScript and jQuery for faster response time, enhanced usability and ease-of-use. jVectorMap API was used to generate an interactive SVG map based on node longitude/latitude information. Markers on map are updated in real-time using Ajax.</p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-08.PNG",
+	    "label": "Parent Locator Service (PLS)",
+	    "type": "projects",
+	    "details": {
+		"date": "2013",
+		"company": "AT&T",
+		"award": "\"Can-Do\" Excellence Award",
+		"technology": "Yoix, Unix"
+	    },
+	    "desc": "Parent Locator Service (PLS) allows state child support services to request information about \"delinquent\" parents. Led technical discussions with various state agencies to integrate their systems onto PLS. Worked against aggressive schedule and continually met milestones and deliverables. Coordinated activities among state clients, AT&T Subpoena Center, production support and firewall team to on-board several new state agencies.</p><p><b>Drastically reduced agency onboarding time from 6 months to 1 week</b> by leveraging Voltage SecureMail; this displaces the need for complex SSH/firewall rule configuration and eliminates the need for state client to set up a dedicated server.</p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-05.jpg",
+	    "label": "Consolidated Compliance System",
+	    "type": "projects",
+	    "details": {
+		"date": "2012",
+		"company": "AT&T",
+		"award": "Vice President Excellence and \"Can-Do\" Excellence Award",
+		"technology": "HTML,PHP"
+	    },
+	    "desc": "<p>Led the client-side development of a release for the Consolidated Compliance System (CCS). Worked closely with project management, technical team lead and clients to architect business requirements and engineer a process work flow. Also led the development and deployment of a subsequent CCS release.</p><p><b>This deployment included a completely new technology base (from a Java Web Start framework to a purely web-based solution using HTML and PHP)</b> and re-designed database schema. Led weekly status meetings with developers to discuss current requirement gaps and technical hurdles. Trained new developers and testers. Presented new interface and functionality to end users in the National Compliance Center (NCC) via technical demos.</p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-04.jpg",
+	    "label": "Mobility Community of Interest",
+	    "type": "projects",
+	    "details": {
+		"date": "2011",
+		"company": "AT&T",
+		"award": "Vice President Excellence",
+		"technology": "Perl CGI,jQuery"
+	    },
+	    "desc": "<p>Development of Mobility Community of Interest (MCOI) Visualization, an online application that helps fraud analysts identify telephone numbers most often called by suspected fraudsters.</p><p><b>Utilizes internal AT&T Research technology to generate an infograph representing the suspect\"s COI.</b></p><p>Uses Perl CGI and jQuery for data presentation and graphical zooming.</p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-03.jpg",
+	    "label": "Integrated Software Environment",
+	    "type": "projects",
+	    "details": {
+		"date": "2010",
+		"company": "AT&T",
+		"award": "Vice President Excellence",
+		"technology": "YUI,HTML5,WebKit,CSS,Oracle DB XML"
+	    },
+	    "desc": "<p>Collaborated on the Integrated Software Environment (ISE), an online alert management application that graphically represents remote file system architecture. Used YUI 2.0 framework for GUI development, HTML5 for drag-and-drop capabilities and WebKit CSS for graphical transformation. Incorporated Oracle\"s Berkley DB XML for alert database storage.</p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-02.jpg",
+	    "label": "Automated Characterization Environment",
+	    "type": "projects",
+	    "details": {
+		"date": "2008",
+		"company": "Advanced Micro Devices (AMD)",
+		"technology": "Visual Studio,C#,SQL"
+	    },
+	    "desc": "<p>Developed the Automated Characterization Environment (ACE), an application that automates the testing processes of hardware. Development of ACE was done using Visual Studio 2008 with C#. Designed the data access layer, including stored procedures, through SQL Enterprise Manager.</p><p><b>Facilitated joint effort between teams to develop a common API to access low-level code libraries.</b><p>Also contributed to the development of Net Tool, an application that performs user-defined rule checks on a motherboard. Significantly decreased bugs by developing auto testing functionality to aid developers.</p>"
+	},
+	{
+	    "image": "img/gallery/portfolio-01.jpg",
+	    "label": "Student Researcher",
+	    "type": "projects",
+	    "details": {
+		"date": "2006",
+		"company": "University of South Florida",
+		"technology": "C++,Unix"
+	    },
+	    "desc": "<p>Developed C++ code based on \"Zones method\" that incorporates shortest-path algorithms to determine the best route for exploration through a graphic representation of system complexity. Designed novel data structure and operations in C++ to represent the difference bound matrix.</p>"
+	}
+    ]
+}
