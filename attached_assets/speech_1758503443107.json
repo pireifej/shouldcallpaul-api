@@ -1,0 +1,242 @@
+{
+    "records": [
+	{
+	    "image": "img/trophy/trophy1Large.jpg",
+	    "label": "Internship at the White House",
+	    "type": "speech",
+	    "desc": "<p>The information in this speech is confidential! This is a story about my internship at the White House. I worked under President Obama and proudly served as a computer specialist during the intense raid of Osama Bin Laden. President Obama interrupts me during my speech to talk about pie! This performance placed first in the 2014 Area 62 Humorous Speech and was advanced to the 2014 Division F Humorous Speech.</p>",
+	    "gallery": ["img/contests/internship.JPG"],
+	    "details": {
+		"date": "2014",
+		"contest": "Humorous Speech",
+		"placement": "Area 1st place",
+		"club": "AT&T Middletown Toastmasters"
+	    },
+	    "link": "https://youtu.be/wLer565RD-o"
+	},
+	{
+	    "image": "img/trophy/trophy2Large.jpg",
+	    "label": "How I Met My Wife",
+	    "type": "speech",
+	    "desc": "<p>Did you know I can literally talk to computers? Watch me have a back & forth conversation with my very own computer about meeting my wife. From life insurance to grocery shopping, everything about marriage is presented in a very funny way. This performance placed first in the 2015 Area 62 Tall Tales Contest and second in the 2015 Divison F Tall Tales Contest.</p>",
+	    "gallery": ["img/trophy/trophy3Large.jpg"],
+	    "details": {
+		"date": "2015",
+		"contest": "Tall Tales",
+		"placement": "Division 2nd place",
+		"club": "AT&T Middletown Toastmasters"
+	    }
+	},
+	{
+	    "image": "img/trophy/trophy4Large.jpg",
+	    "label": "The Greatest Father in the World",
+	    "type": "speech",
+	    "desc": "<p>When my wife told me she was pregnant, I was in denial. This speech takes you through fatherhood from my eyes as being the greatest father in the world. From the delivery room to dealing with monsters in the closet, this story is delivered in a humorous way and ends with a powerful lesson in A-B-C's. This was my first performance done at the District level. I placed first in the 2016 Area 62 Humorous Speech, first in the 2016 Divison F Humorous Speech Contest, and competed in the 2016 District Humorous Speech on Saturday, Nov. 5, 2016. I did not place, but proudly stood among comedic giants.</p>",
+	    "link": "https://www.youtube.com/watch?v=-u9xwoalSf8&t=79s&ab_channel=PaulIreifej",
+	    "gallery": ["img/trophy/trophy5Large.jpg"],
+	    "details": {
+		"date": "2016",
+		"contest": "Humorous Speech",
+		"placement": "District finalist",
+		"club": "AT&T Middletown Toastmasters"
+	    }
+	},
+	{
+	    "image": "img/trophy/iamppaultrophy.jpg",
+	    "label": "I am P-P-Paul",
+	    "type": "speech",
+	    "desc": "<p>Growing up with a stutter was not easy. In this humor speech, I take you on a journey through my struggles dealing with a severe speech impediment from challenging phone calls to delivering my very first speech during my First Communion in church. There is also a musical twist at the end! This performance placed first at the 2018 Area 61 & 62 Humorous Speech Contest on October 15, 2018 at the Eastern Branch, Monmouth County Library in Shrewsbury, NJ. I placed first at the 2018 Division F Humorous Speech in the Bayshore Medical Center.</p>",
+	    "link": "https://www.youtube.com/watch?v=qkGwzyczOCc&ab_channel=PaulIreifej",
+	    "gallery": ["img/contests/iampaulPNG.PNG"],
+	    "details": {
+		"date": "2018",
+		"contest": "Humorous Speech",
+		"placement": "Division third place",
+		"club": "AT&T Middletown Toastmasters"
+	    }
+	},
+	{
+	    "image": "img/trophy/trophy11Large.jpg",
+	    "label": "Evaluation Contest",
+	    "type": "speech",
+	    "desc": "<p>Delivered many evaluations that eventually landed in the First place spot at the District level. My evaluations awarded me first place at the 2019 Area 62 Evaluation 1st Place at the Bayshore Medical Center on March, 2019, first place at the 2019 Division F Evaluation at the Bayshore Medical Center on March 2019 and first place at the 2019 District 83 Evaluation 1st Place at the APA Woodbridge Hotel in Iselin, NJ.</p>",
+	    "gallery": ["img/trophy/trophy7Large.jpg","img/trophy/trophy8Large.jpg"],
+	    "details": {
+		"date": "2019",
+		"contest": "Evaluation",
+		"placement": "District First",
+		"club": "AT&T Middletown Toastmasters"
+	    }
+	},
+	{
+	    "image": "img/trophy/trophy9Large.jpg",
+	    "label": "Improvise and Don't Apologize",
+	    "type": "speech",
+	    "desc": "<p>The speech contest that was tragically cut short because of COVID-19 had me jumping across the stage in an attempt to give a psuedo-effective evaluation in Europe. The late Dr. Ralph Smedley gives me advice and makes a surprise appearance. Some of my best vocal variety and body movement cultivated in a performance that placed first at the 2020 Area 62 Tall Tales and first at the 2020 2019 Division F Tall Tales. Unfortunately, the District contest was canceled.</p>",
+	    "gallery": ["img/trophy/trophy10Large.jpg"],
+	    "details": {
+		"date": "2020",
+		"contest": "Tall Tales",
+		"placement": "District finalist",
+		"club": "AT&T Middletown Toastmasters"
+	    }
+	},
+	{
+	    "image": "img/trophy/trophy14Large.jpg",
+	    "label": "Don't Stop Speaking",
+	    "type": "speech",
+	    "desc": "<p>Fueled by my disappointment in making the transition from speaking in-person to speaking online in Zoom world, this speech presents my perspective on the injustices with speaking in a virtual environment, confined within a box on your computer screen. Delivered with humor, sarcasm and a chocolate chip cookie, this performance was my first District victory. I placed first at the 2020 Area 61/62 Humor 1st Place, first at the 2020 Division F Humor 1st Place and won the 2021 District 83 Humor Speech Contest. All speeches were conducted online using Zoom.</p>",
+	    "link": "https://youtu.be/PtlKSpuYRzY",
+	    "gallery": ["img/trophy/PXL_20210814_010114454.PORTRAIT.jpg", "img/trophy/PXL_20210814_010104720.PORTRAIT.jpg"],
+	    "details": {
+		"date": "2020-2021",
+		"contest": "Humorous Speech",
+		"placmement": "District First",
+		"club": "AT&T Middletown Toastmasters"
+	    }
+	},
+	{
+	    "image": "img/trophy/trophy12Large.jpg",
+	    "label": "What's the Point?",
+	    "type": "speech",
+	    "desc": "<p>What's the point of having kids?? After having kids, I felt lost. The challenges of parenthood and the evolution of defining myself as my new role as father is my first attempt to give a compelling emotionally charged speech. This performance placed first at the 2021 Area 62 & 64 International Speech Contest, first at the 2021 Division F International Speech Contest and was a finalist at the District 83 International Speech Contest, but did not place.</p>",
+	    "link": "https://youtu.be/57r37xeTq5c",
+	    "gallery": ["img/trophy/trophy13Large.jpg"],
+	    "details": {
+		"date": "2021",
+		"contest": "International Speech",
+		"placement": "District finalist",
+		"club": "AT&T Middletown Toastmasters"
+	    }
+	},
+	{
+            "image": "img/trophy/crackingthecodearea.jpg",
+            "label": "Cracking the Code",
+            "type": "speech",
+            "desc": "<p>Did I really find the cure for covid? See for yourself in this fast-paced entertaining and animated journey quarantined in my house, attempting to get out for a walk. Starting in the basement and working my way up to the living roomm couch, I face the perils of an angry cat named 'Fear'. This fun journey placed first at the October 19, 2021 Area 21 & 22 Tall Tales Speech Contest, first at the Division F Contest and captured the third place spot at the District 83 contest. All were conducted on Zoom.</p>",
+	    "link": "https://youtu.be/NrC2TMZJV8A",
+	    "gallery": ["img/trophy/crackingthecodediv.jpg", "img/trophy/tallTalesDistrict.jpg"],
+            "details": {
+                "date": "2021 - 2022",
+                "contest": "Tall Tales",
+                "placement": "District Third",
+                "club": "AT&T Middletown Toastmasters"
+            }
+        },
+	{
+	    "image": "img/trophy/evalarea.jpg",
+	    "label": "Evaluation Speech Contest",
+	    "type": "speech",
+	    "desc": "<p>Placed first in the District Evaluation Contest with my evaluation on a speech about a woman's cat. Watch as I make an analogy to sheering a cat and relate that to trimming the unnecessary details from a speech.</p>",
+	    "link": "https://youtu.be/sq9N-hbHZX0",
+	    "gallery": ["img/trophy/evaldiv.jpg", "img/trophy/evaldistrict.jpg"],
+	    "details": {
+		"date": "2022",
+		"contest": "Evaluation Speech Contest",
+		"placement": "District First place",
+		"club": "Northern Stars Advanced"
+	    }
+	},
+	{
+            "image": "img/trophy/tabletopicsarea.jpg",
+	    "label": "Table Topics Contest",
+            "type": "speech",
+            "desc": "<p>I channeled my inner impromptu speaking abillities to power through all Table Topics Contests until finally placing Second in the District Table Topics Contest. I was able to speak energetically and enthusiastically to answer the question 'why are people afraid of failing?' I started off in my natural Paul Ireifej style which is to SCREAM! Then talked about how I was fearful to compete in this contest and how scary it is to be so vulnerable in front of the audience. I ended with a powerful statement about never giving up.</p>",
+	    "gallery": ["img/trophy/tabletopcsdiv.jpg", "img/trophy/tabletopicsdistrict.jpg"],
+            "details": {
+                "date": "2021 - 2022",
+                "contest": "Table Topics Contest",
+                "placement": "District Second place",
+                "club": "AT&T Middletown Toastmasters"
+            }
+	},
+	{
+            "image": "img/trophy/comeOnADriveWithMeArea.jpg",
+	    "label": "Come on a Drive with Me",
+            "type": "speech",
+            "desc": "<p>This year, I placed in all four District contests. 'Come on a Drive With Me' is a speech to honor my late friend, Denis Karamboulis, who passed away shortly after we met in college. It's a recounting of the times he invited me to go on a drive with him. We discussed his life & challeneges. I learned the power of being a good friend and a good listener. In addition to placing second in the District International Speech Contest I also placed second in Table Topics, third in Tall Tales and first in Evaluation.</p>",
+	    "link": "https://youtu.be/FnDVbSBvhV0",
+	    "gallery": ["img/trophy/comeOnADriveWithMeDivision.jpg", "img/trophy/comeOnADriveWithMeDistrict.jpg"],
+            "details": {
+                "date": "2022",
+                "contest": "International Speech Contest",
+                "placement": "District Second place",
+                "club": "AT&T Middletown Toastmasters and Northern Stars Advanced"
+            }
+	},
+	{
+            "image": "",
+            "label": "Paul, Why Are You So Weird?",
+            "type": "speech",
+            "desc": "<p>Placed third at the April 27, 2023 District 83 International Speech Contest on Zoom.</p>",
+	    "link": "https://youtu.be/MMGjp1wccnk",
+            "details": {
+                "date": "2023",
+                "contest": "International Speech Contest",
+                "placement": "District Third place",
+                "club": "Northern Stars Advanced"
+            }
+        },
+	{
+            "image": "img/babyshower.png",
+            "label": "My Friend's Babyshower",
+            "type": "speech",
+            "desc": "<p>I was asked to give a speech at my good friend's baby shower.</p>",
+	    "link": "https://youtu.be/2f9C3tmpHFY",
+            "details": {
+                "date": "March 4, 2023",
+		"location": "Blue in Staten Island, NY"
+            }
+        },
+	{
+            "image": "img/guest-speaker-master-the-craft.jpg",
+            "label": "Transformative Consequence",
+            "type": "speech",
+            "desc": "<p>Master of the Craft invited me to be a Special Guest Speaker at their meeting on Monday, February 6, 2023 at 7:00 pm EST. I delivered a speech on how to write and deliver a personal story that connects with the audience.</p>",
+	    "link": "https://www.youtube.com/watch?v=iYdkzCbiWSY",
+            "details": {
+                "date": "February 6, 2023",
+		"location": "Zoom",
+		"club": "Master the Craft Toastmasters"
+            }
+        },
+	{
+            "image": "img/IMG_20240309_131020.jpg",
+            "label": "Impromptu Speaking",
+            "type": "speech",
+            "desc": "<p>The Youth Leadership Program is a workshop consisting of eight one- to two-hour sessions that enable those between the ages of 14 and 18 to develop their communication and leadership skills through practical experience. I presented a module on Impromptu Speaking.</p>",
+            "details": {
+                "date": "March 9, 2024",
+		"location": "Sommerville Library ",
+		"club": "Youth Leadership Program"
+            }
+        },
+	{
+            "image": "img/contests/momsspag.jpg",
+            "label": "Mom's Spaghetti",
+            "type": "speech",
+            "desc": "<p>Inspired by the renowned poet, Eminem, I take the audience through my journey to becoming a standup comedian. This is a dream I've had ever since childhood! I started off in a church carnival, performed at a library and finally in a bar. This speech chronicles my challenges, successes and ends with an message of inspiration.</p>",
+	    "link": "https://youtu.be/66A5u7f3JCs?si=g23QhxJRM55Ipyda",
+            "details": {
+		"date": "April 13, 2024",
+                "contest": "International Speech Contest",
+                "placement": "District - Did Not Place",
+                "club": "Northern Stars Advanced",
+		"location": "Hyatt Regency Morristown"
+            }
+        },
+	{
+            "image": "img/contests/weareonlyhumandiv.jpg",
+            "label": "We Are Only Human",
+            "type": "speech",
+            "desc": "<p>What does it mean to be human? I explore this question through my experience of using ChatGPT to generate a poem to present at my son's Christmas party in school. Can I replace the mechanical heart beat of Artificial Intelligence with something human and real?</p>",
+	    "link": "https://youtu.be/5jbFtR8_8ss",
+            "details": {
+		"date": "March 8, 2025",
+                "contest": "International Speech Contest",
+                "placement": "Division Second place",
+                "club": "AT&T Middletown Toastmasters"
+            }
+        }
+    ]
+}

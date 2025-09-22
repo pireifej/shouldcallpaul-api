@@ -1,0 +1,109 @@
+{
+    "records": [
+	{
+	    "image": "img/hack/IMG_0548.PNG",
+	    "label": "Shift Happens",
+	    "type": "hackathon",
+	    "desc": "<p>The Stroke Recovery Companion is a smart tool that records, analyzes, and motivates stroke survivors to perform doctor-recommended exercises, like head rotations and arm raises, accelerating recovery and improving independence.</p><p>With strokes affecting 1 in 4 adults globally, targeted exercise can cut recovery time by up to 30% and restore motor function more effectively.</p>",
+	    "powerpointLink": "",
+	    "link": "https://docs.google.com/presentation/d/1YBJNfOBWHlS_UQx8tdPgBLXWJdVd8cLj/edit?usp=sharing&ouid=112668354220077801813&rtpof=true&sd=true",
+	    "details": {
+		"date": "May 16, 2025",
+		"location": "Middletown, NJ",
+		"track": "Life & Tech Improvement",
+		"placement": "Second"
+	    }
+	},
+	{
+	    "image": "img/hack/bread.png",
+	    "label": "Pain Busters",
+	    "type": "hackathon",
+	    "desc": "<p>Proactive pain management through daily documenting. Uses AI to find trends and give specific recommendations to alleviate pain. Uses key factors that influence pain, including physical activity, diet, sleep, stress, environmental factors, hydration, medication, medical conditions and psychological factors.</p>",
+	    "powerpointLink": "docs/rearendengineers_demo.pdf",
+	    "link": "https://www.shouldcallpaul.com/pain.html?module=rearend",
+	    "details": {
+		"date": "May 17, 2024",
+		"location": "Middletown, NJ",
+		"track": "Life & Tech Improvement",
+		"placement": "None"
+	    }
+	},
+	{
+	    "image": "img/hack/lifewithastutter.png",
+	    "label": "Fluent Force",
+	    "type": "hackathon",
+	    "desc": "<p>Bring awareness to and promote early intervention in children's stammers by profiling their speech patterns and apply metrics with thresholding to best characterize their impediment and provide the best treatment.</p>",
+	    "powerpointLink": "docs/fluentForce.pdf",
+	    "details": {
+		"date": "May 8, 2023",
+		"location": "Online",
+		"track": "Life & Tech Improvement",
+		"placement": "Second"
+	    }
+	},
+	{
+	    "image": "img/hack/hackthirdplace.png",
+	    "label": "Pencil It In",
+	    "type": "hackathon",
+	    "desc": "<p>Pencil with standard thickness lead, self revolving gear to sharpen while using. Even distribution across tip. Family friendly, child safe and features to help parents such as a built-in timer to help parents manage kids' activities.</p>",
+	    "powerpointLink": "docs/pencilItIn.pdf",
+	    "details": {
+		"date": "October 7, 2021",
+		"location": "AT&T Research in Middletown, NJ",
+		"track": "Design Thinking",
+		"placement": "Third"
+	    }
+	},
+	{
+	    "image": "img/hack/itcantwaitpng.png",
+	    "label": "It Can't Wait",
+	    "type": "hackathon",
+	    "desc": "<p>Proactive AT&T customer service: search, collate & aggregate tweets praising or complaining about AT&T price, service and overall experience. Get tweets & reply to tweets *automatically* with suggested replies based on sentiment analysis and keywords.</p>",
+	    "powerpointLink": "docs/itCantWait.pdf",
+	    "details": {
+		"date": "May 15, 2019",
+		"location": "AT&T Research in Middletown, NJ",
+		"track": "Next Generation Mobile Apps",
+		"placement": "First"
+	    }
+	},
+	{
+	    "image": "img/hack/fraud-finder-first-place.png",
+	    "label": "Fraud Finder",
+	    "type": "hackathon",
+	    "powerpointLink": "docs/fraudFinder.pdf",
+	    "desc": "<p>Fraud cost U.S. retailers approximately $32 billion in 2014, up from $23 billion just one year earlier. Fraud Finder is here to stop it: Quickly determine fraudster in the store, Real-time customer identify check & retain fraudster image and White Pages database lookup</p>",
+	    "details": {
+		"date": "May 5, 2019",
+		"location": "AT&T Research in Middletown, NJ",
+		"track": "Next Generation Data Enabler Mobile Apps",
+		"placement": "First"
+	    }
+	},
+	{
+	    "image": "img/hack/polishedSpeaker.PNG",
+	    "label": "Polished Speaker",
+	    "type": "hackathon",
+	    "powerpointLink": "docs/polishedSpeaker.pdf",
+	    "desc": "<p>Collects data on presentation style to characterize a speaker and give recommendations for improvement</p>",
+	    "details": {
+		"date": "2017",
+		"location": "AT&T Research in Middletown, NJ",
+		"track": "Data Gathering with Native Apps",
+		"placement": "First"
+	    }
+	},
+	{
+	    "image": "img/hack/smsStalker2small.jpg",
+	    "label": "SMS Stalker",
+	    "type": "hackathon",
+	    "desc": "<p>Detects if the user is texting while driving. If so, alert is sent out and phone is disabled.</p>",
+	    "details": {
+		"date": "2015",
+		"location": "AT&T Research in Middletown, NJ",
+		"track": "RCloud?",
+		"placement": "First"
+	    }
+	}
+    ]
+}
