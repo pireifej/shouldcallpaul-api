@@ -79,6 +79,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Utility function to generate random string
+function getRandomString(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
+
 // PostgreSQL connection pool - use production database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -933,6 +943,161 @@ app.get('/resume/:filename', async (req, res) => {
   } catch (error) {
     console.error('Error serving resume file:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /createUser - Create a new user account with settings and family
+app.post('/createUser', authenticate, async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    const requiredParams = ["email", "firstName", "gender", "placeId", "picture"];
+    for (let i = 0; i < requiredParams.length; i++) {
+      const requiredParam = requiredParams[i];
+      if (!params[requiredParam]) {
+        return res.json({error: 1, result: "Required params '" + requiredParam + "' missing"});
+      }
+    }
+
+    // Generate random username
+    const username = getRandomString(5);
+    
+    // Handle password - generate if not provided
+    let mypassword = params.password;
+    let weSetPassword = false;
+    
+    if (!mypassword) {
+      mypassword = getRandomString(7);
+      weSetPassword = true;
+    }
+
+    // Hash password
+    const saltRounds = 5;
+    const hashedPassword = await bcrypt.hash(mypassword, saltRounds);
+
+    // Start database transaction
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      
+      // Insert user and get the ID
+      const userInsertQuery = `
+        INSERT INTO public.user (
+          user_name, password, email, real_name, last_name, location, 
+          user_title, user_about, picture, gender, phone, type, 
+          contacted_timestamp, active
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        RETURNING user_id
+      `;
+      
+      const userValues = [
+        username,
+        hashedPassword,
+        params.email,
+        params.firstName,
+        params.lastName || '',
+        ' ',
+        ' ',
+        ' ',
+        params.picture,
+        params.gender,
+        params.phone || '',
+        'standard',
+        0,
+        true
+      ];
+      
+      const userResult = await client.query(userInsertQuery, userValues);
+      const userId = userResult.rows[0].user_id;
+      
+      // Insert user settings
+      const settingsInsertQuery = `
+        INSERT INTO public.settings (
+          user_id, use_alias, request_emails, prayer_emails, 
+          allow_comments, general_emails, summary_emails
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `;
+      
+      const settingsValues = [userId, 1, 1, 1, 1, 1, 1];
+      await client.query(settingsInsertQuery, settingsValues);
+      
+      // Insert user family (using family_id instead of place_id based on schema)
+      const familyInsertQuery = `
+        INSERT INTO public.user_family (user_id, family_id) VALUES ($1, $2)
+      `;
+      
+      await client.query(familyInsertQuery, [userId, params.placeId]);
+      
+      // Commit transaction
+      await client.query('COMMIT');
+      
+      // Send welcome email
+      const passwordMessage = weSetPassword ? `Your temporary password is "${mypassword}"` : "";
+      
+      const emailTemplate = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2c3e50;">Welcome to 'Pray Over Us'</h2>
+          <p>Dear ${params.firstName},</p>
+          <p>You have joined the prayer community of faithfuls.</p>
+          <p>Post your prayer requests and pray for other people.</p>
+          ${passwordMessage ? `<div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0;">
+            <strong>Important:</strong> ${passwordMessage}
+          </div>` : ''}
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://www.prayoverus.com/index.html" 
+               style="background-color: #3498db; color: white; padding: 12px 24px; 
+                      text-decoration: none; border-radius: 5px; display: inline-block;">
+              Login now!
+            </a>
+          </div>
+          <p>Blessings,<br>The PrayOverUs Team</p>
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+          <p style="font-size: 12px; color: #666;">
+            Sent from PrayOverUs.com registration system
+          </p>
+        </div>
+      `;
+      
+      const fromPerson = { 
+        email: "paul@prayoverus.com", 
+        name: "PrayOverUs" 
+      };
+      
+      const toPerson = { 
+        email: params.email, 
+        name: params.firstName 
+      };
+      
+      // Send email (don't wait for it to complete)
+      mailerSendSingle(emailTemplate, fromPerson, toPerson, "Welcome to 'Pray Over Us'", null, null)
+        .then(emailResult => {
+          console.log('Welcome email sent:', emailResult);
+        })
+        .catch(emailError => {
+          console.error('Welcome email failed:', emailError);
+        });
+      
+      // Return success response
+      res.json({
+        error: 0,
+        result: "User created successfully",
+        user_id: userId,
+        username: username,
+        message: weSetPassword ? `Temporary password sent to ${params.email}` : "User registered successfully"
+      });
+      
+    } catch (dbError) {
+      await client.query('ROLLBACK');
+      throw dbError;
+    } finally {
+      client.release();
+    }
+    
+  } catch (error) {
+    console.error('Error in /createUser endpoint:', error);
+    res.json({ error: 1, result: error.message || 'Internal server error' });
   }
 });
 
