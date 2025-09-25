@@ -982,17 +982,22 @@ app.post('/createUser', authenticate, async (req, res) => {
     try {
       await client.query('BEGIN');
       
-      // Insert user and get the ID
+      // Get the next available user_id
+      const maxIdResult = await client.query('SELECT COALESCE(MAX(user_id), 0) + 1 as next_id FROM public.user');
+      const nextUserId = maxIdResult.rows[0].next_id;
+      
+      // Insert user with explicit user_id
       const userInsertQuery = `
         INSERT INTO public.user (
-          user_name, password, email, real_name, last_name, location, 
+          user_id, user_name, password, email, real_name, last_name, location, 
           user_title, user_about, picture, gender, phone, type, 
           contacted_timestamp, active
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
         RETURNING user_id
       `;
       
       const userValues = [
+        nextUserId,
         username,
         hashedPassword,
         params.email,
