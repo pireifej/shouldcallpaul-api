@@ -952,7 +952,7 @@ app.post('/createUser', authenticate, async (req, res) => {
     const params = req.body;
     
     // Validate required parameters
-    const requiredParams = ["email", "firstName", "gender", "placeId", "picture"];
+    const requiredParams = ["email", "firstName", "gender"];
     for (let i = 0; i < requiredParams.length; i++) {
       const requiredParam = requiredParams[i];
       if (!params[requiredParam]) {
@@ -1001,7 +1001,7 @@ app.post('/createUser', authenticate, async (req, res) => {
         ' ',
         ' ',
         ' ',
-        params.picture,
+        params.picture || '',
         params.gender,
         params.phone || '',
         'standard',
@@ -1022,13 +1022,6 @@ app.post('/createUser', authenticate, async (req, res) => {
       
       const settingsValues = [userId, 1, 1, 1, 1, 1, 1];
       await client.query(settingsInsertQuery, settingsValues);
-      
-      // Insert user family (using family_id instead of place_id based on schema)
-      const familyInsertQuery = `
-        INSERT INTO public.user_family (user_id, family_id) VALUES ($1, $2)
-      `;
-      
-      await client.query(familyInsertQuery, [userId, params.placeId]);
       
       // Commit transaction
       await client.query('COMMIT');
