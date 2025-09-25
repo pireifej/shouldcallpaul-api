@@ -1006,7 +1006,7 @@ app.post('/createUser', authenticate, async (req, res) => {
         params.phone || '',
         'standard',
         null,
-        true
+        1
       ];
       
       const userResult = await client.query(userInsertQuery, userValues);
