@@ -1,0 +1,102 @@
+app.post('/createUser', basicAuth({
+  authorizer: myAuthorizer,
+  challenge: true,
+  unauthorizedResponse: 'Unauthorized'
+}), (req, res) => {
+    log(req);
+    var params = req.body;
+    const requiredParams = ["email", "firstName", "gender", "placeId", "picture"];
+    for (var i = 0; i < requiredParams.length; i++) {
+	var requiredParam = requiredParams[i];
+	if (!params[requiredParam]) {
+	    res.json({error: 1, result: "Required params '" + requiredParam + "' missing"});
+	    return;
+	}
+    }
+
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    var length = 5;
+    for ( var i = 0; i < length; i++ ) {
+	result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    var username = result;
+    var mypassword = params.password;
+    var bcrypt = require('bcrypt');
+    const saltRounds = 5;
+    var weSetPassword = false;
+
+    if (!mypassword) {
+	mypassword = common.getRandomString(7);
+	weSetPassword = true;
+    }
+
+    bcrypt.hash(mypassword, saltRounds, function(err, hash) {
+	var password = hash;
+	query = "INSERT INTO user (user_name, password, email, real_name, last_name, location, user_title, user_about, picture, gender, phone, type, contacted_timestamp, active) VALUES (";
+	query += "'" + username + "',";
+	query += "'" + password + "',";
+	query += "'" + params.email + "',";
+	query += "\"" + params.firstName + "\",";
+	query += "\"" + params.lastName + "\",";
+	query += "'" + " " + "',";
+	query += "'" + " " + "',";
+	query += "'" + " " + "',";
+	query += "'" + params.picture + "',";
+	query += "'" + params.gender + "',";
+	query += "'" + params.phone + "',";
+	query += "'" + "standard" + "',";
+	query += "0,";
+	query += "TRUE);";
+
+	query += "SET @last_id_in_table1 = LAST_INSERT_ID();";
+
+	query += "INSERT INTO settings (user_id, use_alias, request_emails, prayer_emails, allow_comments, general_emails, summary_emails) ";
+	query += "VALUES (@last_id_in_table1," + "1" + "," + "1" + "," + "1" + "," + "1" + "," + "1" + "," + "1" + "); ";
+
+	query += "INSERT INTO user_family (user_id, place_id) ";
+	query += "VALUES (@last_id_in_table1,\"" + params.placeId + "\"); ";
+
+	pool.getConnection()
+	    .then(conn => {
+		conn.query(query)
+		    .then((rows) => {
+			var obj = {};
+			var msg = (weSetPassword) ? "Your temporary password is \"" + mypassword + "\"" : "";
+
+			var fs = require('fs');
+			var template = "/home/pireifej/prayer-api/emailTemplates/emailTemplate.html";
+
+			fs.readFile(template, 'utf8', function (err,data) {
+			    if (err) {
+				res.json({error: 1, result: 'Error reading template file ' + template + ': ' + err});
+				return;
+			    }
+
+			    data = data.replace("{{heading}}", "Welcome to 'Pray Over Us'");
+			    data = data.replace("{{msg1}}", "You have joined the prayer community of faithfuls.");
+			    data = data.replace("{{msg2}}", "Post your prayer requests and pray for other people.");
+			    data = data.replace("{{msg3}}", "");
+			    data = data.replace("{{msg4}}", "");
+			    data = data.replace("{{buttonText}}", "Login now!");
+			    data = data.replace("{{buttonLink}}", "https://www.prayoverus.com/index.html");
+
+			    var to = {
+				name: params.firstName,
+				email: params.email
+			    };
+			
+			    mailerSendSingle(data, common.getPrayOverUsEmail(), to, "Welcome to 'Pray Over Us'", "", res);
+			})
+		    })
+		    .catch(err => {
+			res.json({error: 1, result: err});
+			conn.release();
+			conn.end();
+			return;
+		    });
+	    });
+
+    })
+})
