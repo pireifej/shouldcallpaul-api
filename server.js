@@ -1005,7 +1005,7 @@ app.post('/createUser', authenticate, async (req, res) => {
         params.gender,
         params.phone || '',
         'standard',
-        0,
+        null,
         true
       ];
       
