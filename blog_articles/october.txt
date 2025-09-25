@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I & You, and YOU - A Musical Gem</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>I & You, and YOU</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="img/october.JPG" alt="I & You musical production scene">
+        <div class="image-caption">Caroline and Anthony discover connection through poetry in Lauren Gunderson's musical adaptation</div>
+    </div>
+
+    <p>This Autumn, and only through October 12, you have a chance to see a true gem of a musical - I & You. For those who are familiar with Lauren Gunderson's work, you know that plays like her "The Book of Will" or "The Revolutionists" frequently show a parallel history of what we know that is often untold until she does so. Such is "I &You", now in its latest incarnation as a musical featuring the work of Ari Afsar. This is not their first collaboration as a team, yet this pocket-sized masterpiece reveals new depths with each creative partnership.</p>
+
+    <p>Afsar's music is all her own, though nods to Jonathan Larson and Jason Robert Brown add a bit of spice from time to time. Our dramatis personae - Caroline (Jasmine Forsberg) and Anthony (Benji Santiago) are the perfect blend of late child/nascent adult where you can almost see their brains and hearts growing. Starting as two very different vibrations, under the gossamer touch of Sarah Rasmussen's direction, gradually these two align their vibrations. Each one tunes to the other until they create something beautiful together.</p>
+
+    <p>Powerful separately, together the blend of Forsberg and Santiago's singing is sublime. When you add Beowulf Boritt's moveable feast of a stage, Japhy Weideman's dazzling lighting design, Elisabeth Weidner's four-dimensional sound design and Steph Paul and Tiger Brown's generative movement work along with a myriad of creators and masters of their craft, this is a substantial piece of theater that makes a place in your heart. You'll recognize the Moment, when it comes, and it will stay with you long after the final bow.</p>
+
+    <div class="highlight">
+        <p>There's a take-home bonus from this show as well. If you arrive already in love with Walt Whitman, whom you will remember lived a fair amount of his life around Exit 3 of the NJ Turnpike, then the whole exploration of the "Leaves of Grass" project will delight you. If you arrive thinking that all poetry is dull, banal, MUST rhyme, you're in for something really special. Lauren Gunderson is so eloquent in her love of words, you'll fall in love too.</p>
+    </div>
+
+    <div class="call-to-action">
+        <p><strong>October 12, this show is all over and I & You need to be there!</strong> See it with someone, anyone, and create a special connection.</p>
+        <p>Get your tickets here: <a href="https://www.mccarter.org/iandyou" target="_blank">https://www.mccarter.org/iandyou</a></p>
+    </div>
+
+</body>
+</html>
