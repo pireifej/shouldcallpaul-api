@@ -249,7 +249,7 @@ app.post('/getUserByEmail', authenticate, async (req, res) => {
         user_id,
         picture
       FROM public."user" 
-      WHERE LOWER(email) LIKE LOWER($1)
+      WHERE LOWER(email) = LOWER($1)
       LIMIT 1
     `;
     
