@@ -19,6 +19,7 @@ app.use(express.text({ limit: '50mb' })); // Parse text request bodies
 // Serve static files for profile images and blog images
 app.use('/profile_images', express.static('profile_images'));
 app.use('/img', express.static('blog_articles/img'));
+app.use('/resume_data', express.static('resume_data'));
 
 // Comprehensive request/response logging middleware
 app.use((req, res, next) => {
