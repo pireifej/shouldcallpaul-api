@@ -262,53 +262,6 @@ app.post('/getUserByEmail', authenticate, async (req, res) => {
   }
 });
 
-// POST /afterGetUserByEmail - Get user by email address (returns single user object)
-app.post('/afterGetUserByEmail', authenticate, async (req, res) => {
-  try {
-    const params = req.body;
-    
-    // Validate required parameters
-    const requiredParams = ["email"];
-    for (let i = 0; i < requiredParams.length; i++) {
-      const requiredParam = requiredParams[i];
-      if (!params[requiredParam]) {
-        return res.json({error: "Required params '" + requiredParam + "' missing"});
-      }
-    }
-    
-    // PostgreSQL query with proper SQL injection protection
-    const query = `
-      SELECT 
-        user_name,
-        email,
-        real_name,
-        user_title,
-        user_about,
-        location,
-        active,
-        timestamp,
-        user_id,
-        picture
-      FROM public."user" 
-      WHERE LOWER(email) = LOWER($1)
-      LIMIT 1
-    `;
-    
-    const result = await pool.query(query, [params.email]);
-    
-    // Return single user object or error if not found
-    if (result.rows.length > 0) {
-      res.json(result.rows[0]);
-    } else {
-      res.json({ error: "User not found" });
-    }
-    
-  } catch (error) {
-    console.error('Database query error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 // POST /getAllUsers - Get all users with prayer and request counts
 app.post('/getAllUsers', authenticate, async (req, res) => {
   try {
