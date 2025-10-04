@@ -1,12 +1,12 @@
 {
     "records": [
         {
-            "image": "cfca/cfca_2025_main.JPG",
+            "image": "https://shouldcallpaul.replit.app/resume_data/cfca/cfca_2025_main.JPG",
             "label": "Migrating Large-Scale Fraud Mitigation to the Cloud: Security and Compliance Excellence",
             "type": "conference",
             "link": "https://cfca.org/wp-content/uploads/2025/07/CFCA-Fall-Educational-Event-Agenda-2025.pdf",
             "desc": "<p>This presentation delves into the intricate process of migrating a large-scale fraud mitigation application from hundreds of on-premises servers to the cloud. Attendees will learn about the critical importance of cloud security, the use of cloud file share storage, and adherence to compliance standards. The talk will cover best practices for addressing code vulnerabilities, such as transitioning from hard-coded passwords to cloud variables and securely managing sensitive data files.</p><p>Additionally, the discussion will highlight how the cloud environment enhances fraud detection and prevention strategies, with a focus on maintaining pod status, ensuring effective production support, and achieving ease of maintenance. Join us to explore the journey towards a more secure, compliant, and efficient fraud mitigation infrastructure in the cloud, and how the cloud can bolster fraud mitigation efforts through advanced analytics and real-time monitoring.</p>",
-            "gallery": ["cfca/cfca_2025_certificate.JPG"],
+            "gallery": ["https://shouldcallpaul.replit.app/resume_data/cfca/cfca_2025_certificate.JPG"],
             "details": {
                 "date": "Thursday, October 2, 2025",
                 "location": "East Brunswick, NJ"
