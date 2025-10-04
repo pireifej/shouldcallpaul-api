@@ -1,8 +1,8 @@
 {
     "records": [
         {
-            "image": "img/future_school_ai_main.jpg",
-            "gallery": ["img/future_school_ai_group.jpg"],
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/future_school_ai_main.jpg",
+            "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/future_school_ai_group.jpg"],
             "label": "The Future of School Leadership with AI",
             "type": "workshops",
             "link": "https://monmouthcountylib.libcal.com/event/14704222",
