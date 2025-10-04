@@ -1,6 +1,19 @@
 {
     "records": [
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/storytelling_main.jpg",
+            "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/storytelling_presentation.jpg"],
+            "label": "Telling Tales: The Art of Storytelling",
+            "type": "workshops",
+            "link": "https://www.redbanklibrary.org/calendar/tellingtales",
+            "details": {
+                "date": "Friday, October 2, 2025",
+                "location": "Red Bank Public Library",
+                "duration": "1 hour"
+            },
+            "desc": "<p>There are a lot of ways to tell stories. Find out what suits your style as we explore and learn about storytelling. Listen, learn, and share during this evening program led by Paul Ireifej.</p>"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/future_school_ai_main.jpg",
             "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/future_school_ai_group.jpg"],
             "label": "The Future of School Leadership with AI",
