@@ -1,64 +1,76 @@
 {
     "records": [
-	{
-	    "image": "cfca/IMG_0184.JPG",
-	    "label": "Managing a Successful System Migration",
-	    "type": "conference",
-	    "agendaLink": "cfca/Chicago 2018 Agenda - Final SG2 6-20-2018.pdf",
-	    "desc": "<p>Communications Fraud Control Association (CFCA) 2018 Annual Meeting & Summer Educational Event. As companies change or get larger, the need to integrate legacy applications into newer infrastructure becomes increasingly more important. When building out a roadmap for integration, issues to consider are user training, development planning, and testing & historical data migration. We will review a proven approach for working through a migration without jeopardizing functional, system or data integrity. Important points include training and working with super users for requirement gathering, technical hurdles to anticipate with integration & code reuse, testing in a reliable environment that reflects production quality data adequately and bridging the gap with migrating historical data and live data.</p>",
-	    "gallery": ["cfca/20180626_151308.jpg"],
-	    "details": {
-		"date": "June 26, 2018",
-		"location": "Kimpton Monaco in Chicago, IL"
-	    }
-	},
-	{
-	    "image": "cfca/47F7693E-AC09-4CF6-A628-A2B5BE57166B-519-0000002C1532B394.jpg",
-	    "label": "Reeling in Outsourced Fraud Mitigation Development",
-	    "type": "conference",
-	    "agendaLink": "cfca/CFCA 2019 Tucson Agenda as of 10-04-2019_1.pdf",
-	    "powerpointLink": "cfca/ReelingInOutsourcedFraudMitigationDevelopment.pdf",
-	    "desc": "<p>Communications Fraud Control Association (CFCA) Fall 2019 Educational Event. \"Powerful and sustained change requires constant communication, not only throughout the rollout but after the major elements of the plan are in place. The more kinds of communication employed, the more effective they are.\" There are many reasons why large corporations choose to outsource a software development team, including cost savings, time savings, lack of inhouse experience and flexibility. There are many widely known strategies and documentations for making such a transition. However, what happens when you are forced to retire the outsourced development team and then reel that outsourced work back in? We recently went through this transition.</p>",
-	    "gallery": [],
-	    "details": {
-		"date": "October 15, 2019",
-		"location": "El Conquistador Tucson Hilton Resort in Tucson, AZ"
-	    }
-	},
-	{
-	    "label": "Real Time Machine Learning and AI Operations",
-	    "type": "conference",
-	    "powerpointLink": "cfca/RealTimeMachineLearningAndAIOperations.pdf",
-	    "desc": "<p>Communications Fraud Control Association (CFCA) Fall 2020 Educational Event. \"In corporate America, we operate by the maxim: what gets measured, gets done. We use data to recognize trends, inform our goals, and drive our decision-making and actions.\" This system utilizes big data, modern machine learning and other advanced analytics technologies to, directly and indirectly, enhance IT operations (monitoring, troubleshooting, and automation) functions with proactive and dynamic insight.</p>",
-	    "certificate": "docs/Speaker Certificate Paul Ireifej 27 October 20.pdf",
-	    "gallery": [],
-	    "details": {
-		"date": "October 27, 2020",
-		"location": "Zoom"
-	    }
-	},
-	{
-	    "label": "Transformation as a Service",
-	    "type": "conference",
-	    "powerpointLink": "cfca/TransformationAsAService.pdf",
-	    "desc": "<p>Communications Fraud Control Association (CFCA) \"Spring into 2020ONE Education Event\". \"Let your customers be your partners; let your vendors be your employees. What's necessary in this transformation more than anything else is courage and willingness to change\". This service transforms data input, provides a user interface for self-service, and can process different data sources and formats.</p>",
-	    "gallery": [],
-	    "certificate": "docs/CFCA Speaker Certificate Paul Ireifej - AT&amp;T.pdf",
-	    "details": {
-		"date": "April 19, 2021",
-		"location": "Zoom"
-	    }
-	},
-	{
-	    "label": "Fraud Application Hardening",
-	    "type": "conference",
-	    "powerpointLink": "cfca/fraudApplicationHardening.pdf",
-	    "desc": "<p>\"A release is like a boat. 80% of the holes plugged is not good enough.\" All encapsulating monitoring and alerting tool. Fraud Application Hardening provides complete protection: Customized rules & logic, Correlate all alerts based on unique key and aggregate and generate one alert.</p>",
-	    "gallery": [],
-	    "details": {
-		"date": "March 10, 2022",
-		"location": "Zoom"
-	    }
-	}
+        {
+            "image": "cfca/cfca_2025_main.JPG",
+            "label": "Migrating Large-Scale Fraud Mitigation to the Cloud: Security and Compliance Excellence",
+            "type": "conference",
+            "link": "https://cfca.org/wp-content/uploads/2025/07/CFCA-Fall-Educational-Event-Agenda-2025.pdf",
+            "desc": "",
+            "gallery": ["cfca/cfca_2025_certificate.JPG"],
+            "details": {
+                "date": "Thursday, October 2, 2025",
+                "location": "East Brunswick, NJ"
+            }
+        },
+        {
+            "image": "cfca/IMG_0184.JPG",
+            "label": "Managing a Successful System Migration",
+            "type": "conference",
+            "agendaLink": "cfca/Chicago 2018 Agenda - Final SG2 6-20-2018.pdf",
+            "desc": "<p>Communications Fraud Control Association (CFCA) 2018 Annual Meeting & Summer Educational Event. As companies change or get larger, the need to integrate legacy applications into newer infrastructure becomes increasingly more important. When building out a roadmap for integration, issues to consider are user training, development planning, and testing & historical data migration. We will review a proven approach for working through a migration without jeopardizing functional, system or data integrity. Important points include training and working with super users for requirement gathering, technical hurdles to anticipate with integration & code reuse, testing in a reliable environment that reflects production quality data adequately and bridging the gap with migrating historical data and live data.</p>",
+            "gallery": ["cfca/20180626_151308.jpg"],
+            "details": {
+                "date": "June 26, 2018",
+                "location": "Kimpton Monaco in Chicago, IL"
+            }
+        },
+        {
+            "image": "cfca/47F7693E-AC09-4CF6-A628-A2B5BE57166B-519-0000002C1532B394.jpg",
+            "label": "Reeling in Outsourced Fraud Mitigation Development",
+            "type": "conference",
+            "agendaLink": "cfca/CFCA 2019 Tucson Agenda as of 10-04-2019_1.pdf",
+            "powerpointLink": "cfca/ReelingInOutsourcedFraudMitigationDevelopment.pdf",
+            "desc": "<p>Communications Fraud Control Association (CFCA) Fall 2019 Educational Event. \"Powerful and sustained change requires constant communication, not only throughout the rollout but after the major elements of the plan are in place. The more kinds of communication employed, the more effective they are.\" There are many reasons why large corporations choose to outsource a software development team, including cost savings, time savings, lack of inhouse experience and flexibility. There are many widely known strategies and documentations for making such a transition. However, what happens when you are forced to retire the outsourced development team and then reel that outsourced work back in? We recently went through this transition.</p>",
+            "gallery": [],
+            "details": {
+                "date": "October 15, 2019",
+                "location": "El Conquistador Tucson Hilton Resort in Tucson, AZ"
+            }
+        },
+        {
+            "label": "Real Time Machine Learning and AI Operations",
+            "type": "conference",
+            "powerpointLink": "cfca/RealTimeMachineLearningAndAIOperations.pdf",
+            "desc": "<p>Communications Fraud Control Association (CFCA) Fall 2020 Educational Event. \"In corporate America, we operate by the maxim: what gets measured, gets done. We use data to recognize trends, inform our goals, and drive our decision-making and actions.\" This system utilizes big data, modern machine learning and other advanced analytics technologies to, directly and indirectly, enhance IT operations (monitoring, troubleshooting, and automation) functions with proactive and dynamic insight.</p>",
+            "certificate": "docs/Speaker Certificate Paul Ireifej 27 October 20.pdf",
+            "gallery": [],
+            "details": {
+                "date": "October 27, 2020",
+                "location": "Zoom"
+            }
+        },
+        {
+            "label": "Transformation as a Service",
+            "type": "conference",
+            "powerpointLink": "cfca/TransformationAsAService.pdf",
+            "desc": "<p>Communications Fraud Control Association (CFCA) \"Spring into 2020ONE Education Event\". \"Let your customers be your partners; let your vendors be your employees. What's necessary in this transformation more than anything else is courage and willingness to change\". This service transforms data input, provides a user interface for self-service, and can process different data sources and formats.</p>",
+            "gallery": [],
+            "certificate": "docs/CFCA Speaker Certificate Paul Ireifej - AT&amp;T.pdf",
+            "details": {
+                "date": "April 19, 2021",
+                "location": "Zoom"
+            }
+        },
+        {
+            "label": "Fraud Application Hardening",
+            "type": "conference",
+            "powerpointLink": "cfca/fraudApplicationHardening.pdf",
+            "desc": "<p>\"A release is like a boat. 80% of the holes plugged is not good enough.\" All encapsulating monitoring and alerting tool. Fraud Application Hardening provides complete protection: Customized rules & logic, Correlate all alerts based on unique key and aggregate and generate one alert.</p>",
+            "gallery": [],
+            "details": {
+                "date": "March 10, 2022",
+                "location": "Zoom"
+            }
+        }
     ]
 }
