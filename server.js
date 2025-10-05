@@ -1339,9 +1339,13 @@ app.post('/getPrayedFor', authenticate, async (req, res) => {
     
     // PostgreSQL query to get all requests the user has prayed for
     const query = `
-      SELECT DISTINCT r.* 
+      SELECT DISTINCT 
+        r.*,
+        u.picture,
+        u.real_name as first_name
       FROM public.request r
       INNER JOIN public.user_request ur ON r.request_id = ur.request_id
+      INNER JOIN public."user" u ON r.user_id = u.user_id
       WHERE ur.user_id = $1
       ORDER BY r.timestamp DESC
     `;
