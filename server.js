@@ -1322,6 +1322,39 @@ app.post('/getPrayerByRequestId', authenticate, async (req, res) => {
   }
 });
 
+// POST /getPrayedFor - Get all requests that a user has prayed for
+app.post('/getPrayedFor', authenticate, async (req, res) => {
+  try {
+    log(req);
+    const params = req.body;
+    
+    // Validate required parameters
+    const requiredParams = ["userId"];
+    for (let i = 0; i < requiredParams.length; i++) {
+      const requiredParam = requiredParams[i];
+      if (!params[requiredParam]) {
+        return res.json({error: "Required params '" + requiredParam + "' missing"});
+      }
+    }
+    
+    // PostgreSQL query to get all requests the user has prayed for
+    const query = `
+      SELECT DISTINCT r.* 
+      FROM public.request r
+      INNER JOIN public.user_request ur ON r.request_id = ur.request_id
+      WHERE ur.user_id = $1
+      ORDER BY r.timestamp DESC
+    `;
+    
+    const result = await pool.query(query, [params.userId]);
+    res.json(result.rows);
+    
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // POST /getMyRequestFeed - Get user's own prayer request feed with authentication
 app.post('/getMyRequestFeed', authenticate, async (req, res) => {
   log(req);
