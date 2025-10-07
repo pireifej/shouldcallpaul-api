@@ -953,7 +953,7 @@ app.post('/createUser', authenticate, async (req, res) => {
     const params = req.body;
     
     // Validate required parameters
-    const requiredParams = ["email", "firstName", "gender"];
+    const requiredParams = ["email", "firstName"];
     for (let i = 0; i < requiredParams.length; i++) {
       const requiredParam = requiredParams[i];
       if (!params[requiredParam]) {
@@ -1008,7 +1008,7 @@ app.post('/createUser', authenticate, async (req, res) => {
         ' ',
         ' ',
         params.picture || '',
-        params.gender,
+        params.gender || null,
         params.phone || '',
         'standard',
         null,
