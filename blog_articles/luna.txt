@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wander Luna with Mrs. Stern</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wander Luna with Mrs. Stern</h1>
+    <p class="byline">by Sherri Rase</p>
+
+    <p>Who knew that libraries are such dangerous places? Did you know that a woman and her mother were arrested just because the woman frequented a Library? In 1933? In Berlin?</p>
+
+    <p>If the penny has dropped for you, or not, you need to see Jenny Lyn Bader's master work "Mrs. Stern Wanders the Prussian State Library" playing at Luna Stage now through November 2. Originating at Luna as a world premiere, it has since gone on it's own perambulation to NYC, a Summer in Martha's Vineyard and back to NYC before returning home. Get your tickets now, I'll wait.</p>
+
+    <p>Back now? Ella Dershowitz as the inestimable Mrs. Hannah (Arendt) Stern has big shoes to fill – and she does that with a measured grace and aplomb. Hannah would have been a formidable poker player – she is fighting for her life, much as Scheherazade told her stories, Hannah is guarding her truth while fighting for the lives of her mother and herself. Both women were arrested because Hannah, literally a doctor of Philosophy, was researching her next book at the best resource available. But, was that ALL she was doing? Brett Temple, who plays the young officer who is Hannah's interrogator, has been with this production since it's premier in 2019. Karl has been recently been promoted from a beat cop to an Inspector and he is very conscious of being effective in his new promotion. Jenny Lyn Bader crafts an interaction that draws you in like a whirlpool. I had the meta-experience of knowing what was coming with the Nazi regime while seeing this young man who dearly loves his country caught in the web of history. Karl is powerless, caught in the riptide of what's to come and Hannah is dancing as fast as she can, knowing her life and that of her mother hang in the balance. When the attorney arrives, played by Drew Hirshfield, we begin to see that the luftmensch scholar and married lady are just two of the facets of this remarkable woman. Reading the room moment by moment, as arachnids feel the music in their webs, Hannah is locked in a life-or-death struggle that you'll be researching yourself to find what came next.</p>
+
+    <div class="highlight">
+        <p>You've got a limited opportunity to experience this play for yourself. This is time travel that is accessible from everywhere, and it's cyclical prescience will rock you to your core.</p>
+    </div>
+
+    <div class="call-to-action">
+        <p><strong>"Mrs. Stern Wanders the Prussian State Library" runs now through November 2 only - get your tickets now!</strong></p>
+        <p><a href="https://www.lunastage.org/mrs-stern-wanders-the-prussian-state-library" target="_blank">https://www.lunastage.org/mrs-stern-wanders-the-prussian-state-library</a></p>
+    </div>
+
+</body>
+</html>
