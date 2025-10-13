@@ -5,6 +5,8 @@ const bcrypt = require('bcrypt');
 const OpenAI = require('openai');
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
+const { promisify } = require('util');
 const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
 require('dotenv').config();
 
@@ -1595,6 +1597,127 @@ app.post('/deleteRequestById', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Delete request error:', error);
     res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
+// POST /deleteUser - Delete user and all related data with backup
+app.post('/deleteUser', authenticate, async (req, res) => {
+  const execPromise = promisify(exec);
+  
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    if (!params.userId) {
+      return res.json({ error: 1, result: "Required param 'userId' missing" });
+    }
+
+    // Step 1: Check if user exists and is active
+    const userCheckQuery = `
+      SELECT user_id, real_name, email, active 
+      FROM public.user 
+      WHERE user_id = $1
+    `;
+    
+    const userCheckResult = await pool.query(userCheckQuery, [params.userId]);
+    
+    if (userCheckResult.rows.length === 0) {
+      return res.json({ error: 1, result: "User not found" });
+    }
+    
+    const user = userCheckResult.rows[0];
+    
+    if (user.active !== 1) {
+      return res.json({ error: 1, result: "User is already inactive or deleted" });
+    }
+
+    // Step 2: Create backup directory if it doesn't exist
+    const backupDir = path.join(__dirname, 'backups');
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+
+    // Step 3: Create database backup
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, -5);
+    const backupFile = path.join(backupDir, `user_deletion_backup_${params.userId}_${timestamp}.sql`);
+    
+    try {
+      const pgDumpCommand = `pg_dump "${process.env.DATABASE_URL}" > "${backupFile}"`;
+      await execPromise(pgDumpCommand);
+      console.log(`Database backup created: ${backupFile}`);
+    } catch (backupError) {
+      console.error('Backup error:', backupError);
+      return res.json({ error: 1, result: "Failed to create database backup: " + backupError.message });
+    }
+
+    // Step 4: Begin transaction for deletion
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      
+      // Delete in correct order to avoid foreign key violations
+      
+      // 4a. Delete from user_request where this user prayed for others
+      const deleteUserRequestSelf = await client.query(
+        'DELETE FROM public.user_request WHERE user_id = $1',
+        [params.userId]
+      );
+      
+      // 4b. Delete from user_request where others prayed for this user's requests
+      const deleteUserRequestOthers = await client.query(
+        `DELETE FROM public.user_request 
+         WHERE request_id IN (
+           SELECT request_id FROM public.request WHERE user_id = $1
+         )`,
+        [params.userId]
+      );
+      
+      // 4c. Delete from request table (this user's prayer requests)
+      const deleteRequests = await client.query(
+        'DELETE FROM public.request WHERE user_id = $1',
+        [params.userId]
+      );
+      
+      // 4d. Delete from settings table
+      const deleteSettings = await client.query(
+        'DELETE FROM public.settings WHERE user_id = $1',
+        [params.userId]
+      );
+      
+      // 4e. Delete from user table
+      const deleteUser = await client.query(
+        'DELETE FROM public.user WHERE user_id = $1 RETURNING user_id, real_name, email',
+        [params.userId]
+      );
+      
+      await client.query('COMMIT');
+      
+      // Return success response
+      res.json({
+        error: 0,
+        result: "User deleted successfully",
+        deleted_user: deleteUser.rows[0],
+        backup_file: backupFile,
+        deleted_counts: {
+          user_prayers: deleteUserRequestSelf.rowCount,
+          others_prayers: deleteUserRequestOthers.rowCount,
+          requests: deleteRequests.rowCount,
+          settings: deleteSettings.rowCount
+        }
+      });
+      
+    } catch (deleteError) {
+      await client.query('ROLLBACK');
+      console.error('Deletion error:', deleteError);
+      res.json({ error: 1, result: "Failed to delete user: " + deleteError.message });
+    } finally {
+      client.release();
+    }
+    
+  } catch (error) {
+    console.error('Error in /deleteUser endpoint:', error);
+    res.json({ error: 1, result: "Internal server error: " + error.message });
   }
 });
 
