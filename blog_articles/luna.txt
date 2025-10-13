@@ -67,6 +67,11 @@
 <body>
     <h1>Wander Luna with Mrs. Stern</h1>
     <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="img/luna.jpg" alt="Brett Temple as Karl and Ella Dershowitz as Hannah in Mrs. Stern Wanders the Prussian State Library">
+        <div class="image-caption">Brett Temple (Karl) and Ella Dershowitz (Hannah) in "Mrs. Stern Wanders the Prussian State Library" - Photo by Valerie Terranova</div>
+    </div>
 
     <p>Who knew that libraries are such dangerous places? Did you know that a woman and her mother were arrested just because the woman frequented a Library? In 1933? In Berlin?</p>
 
