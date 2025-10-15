@@ -41,6 +41,19 @@
             "desc": "<p>Attention Teens! Do you want to feel more confident when speaking in front of a group? Whether it's for class presentations, interviews, or leadership roles, strong public speaking skills can make a big difference. With experienced public speaker and coach, Paul Ireifej, you'll get practical tools to become a more effective and confident communicator. No prior experience needed -- just bring your voice and an open mind!</p>"
         },
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/career-day-1.jpg",
+            "gallery": ["https://shouldcallpaul.replit.app/resume_data/career-day-2.jpg"],
+            "label": "Career Day at Indian Hill",
+            "type": "workshops",
+            "details": {
+                "date": "May 30, 2025",
+                "location": "Holmdel, NJ",
+                "attendees": "20+",
+                "duration": "20 min x 7"
+            },
+            "desc": "<p>Gave a total of seven presentations to 4, 5 and 6 grade classes at Indian Hill School during their Career Day to showcase having a job in Software Engineering and Computer Programming. This was my second year in a row doing it.</p>"
+        },
+        {
             "image": "img/redbankaione.jpg",
             "gallery": ["img/airedbanktwo.jpg"],
             "label": "AI for Beginners Workshop - Red Bank",
