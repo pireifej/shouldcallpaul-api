@@ -1,64 +1,108 @@
 # Overview
 
-This project is a MariaDB to PostgreSQL database migration tool with a Flask web application for monitoring the import process. The system consists of multiple Python scripts that handle different aspects of converting and importing data from MariaDB SQL dump files into PostgreSQL, along with a simple web interface to verify database connectivity and monitor the migration status.
+This project is a comprehensive prayer and blog platform featuring an Express.js API server with PostgreSQL database backend. The system serves multiple purposes: a mobile/web prayer community application, a blog CMS for static content, and public resume/portfolio data endpoints for the shouldcallpaul.com personal website. The platform enables authenticated users to share prayer requests, receive community support, and stay connected through email notifications.
 
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Changes (October 2025)
+
+- **October 17, 2025**: Fixed broadcast email rate limiting to comply with MailerSend's 120 requests/min limit
+  - Changed from batch-based delays to per-email delays (600ms between each email = 100 emails/min)
+  - Fixed duplicate email address issue in TO/CC fields by making CC list dynamic
+  - Added progress logging every 10 emails for better monitoring
+
+- **Previous updates**: Created broadcast email system with personalization, added blog articles, added Career Day workshop entry, fixed getCommunityWall endpoint
+
 # System Architecture
 
-## Core Migration Components
+## API Server Architecture
 
-The system uses a multi-script approach to handle the complexity of database migration:
+**Framework Choice**: Express.js provides a lightweight, flexible Node.js web server ideal for RESTful APIs. The server binds to `0.0.0.0:5000` to ensure public accessibility in the Replit environment.
 
-**Conversion Layer**: The `convert_mariadb_to_postgres.py` script handles the initial SQL syntax conversion, transforming MariaDB-specific constructs (AUTO_INCREMENT, backticks, data types) into PostgreSQL-compatible format. This addresses the fundamental incompatibility between the two database systems' SQL dialects.
+**Database Integration**: PostgreSQL database with connection pooling via `pg` library. Environment variable `DATABASE_URL` manages connection configuration for both development and production environments.
 
-**Schema Management**: The `create_staging_schema.py` focuses on extracting and converting table structure definitions, ensuring the target PostgreSQL database has the correct schema before data import. This separation allows for better error handling and debugging of structural issues.
+**Authentication System**: User authentication with bcrypt password hashing, session management, and secure endpoints for user registration and login.
 
-**Data Import Strategies**: Multiple import scripts implement different approaches to handle the complexity of importing data:
-- `simple_import.py` - Basic row-by-row import for straightforward cases
-- `robust_import.py` - Advanced tokenization for handling complex data with nested quotes and special characters
-- `staging_import.py` - State machine-based tokenizer for the most complex data scenarios
-- `targeted_import.py` - Table-specific import for granular control over the migration process
+## Core Features
 
-**Problem Addressed**: MariaDB and PostgreSQL have different SQL syntaxes, data types, and features. Direct import of MariaDB dumps into PostgreSQL fails due to these incompatibilities.
+### Prayer Request System
+- **Community Prayer Wall**: Users can view prayer requests from other community members (excluding their own requests)
+- **Personal Requests**: Users can submit, view, and manage their own prayer requests
+- **Prayer Response**: Community members can "pray for" requests, with tracking of who has prayed
 
-**Solution Rationale**: The multi-script approach allows for progressive complexity handling - starting with simple conversions and escalating to more sophisticated parsing when needed. This provides flexibility to handle different types of data complexity without over-engineering simple cases.
+### Blog CMS
+- **Static Content**: Blog articles stored as HTML files with associated images in `blog_articles/` directory
+- **Image Management**: Blog images stored in `blog_articles/img/` for organized content delivery
+- **Article Endpoints**: RESTful API endpoints serve blog content and metadata
 
-## Web Application Architecture
+### Email Notification System
+- **Service Provider**: MailerSend API for professional email delivery
+- **Rate Limiting Strategy**: 600ms delay between each email (100 emails/min) to safely stay under the 120 requests/min API limit
+- **Personalization**: Emails use recipient's `real_name` field (fallback to `user_name` then "Friend") for personalized greetings
+- **CC Tracking**: Broadcasts CC both `paul@prayoverus.com` and `prayoverus@gmail.com` with dynamic duplicate prevention (avoids duplicating the TO recipient in CC list)
+- **Broadcast Capabilities**: 
+  - Test mode: Single email to `paul@prayoverus.com`
+  - Production mode: Individual emails to all users with personalized content
+  - Custom email templates with logo, personalized body, and call-to-action buttons
+- **Error Handling**: Individual email failure tracking with detailed error logging
 
-**Framework Choice**: Flask with SQLAlchemy ORM provides a lightweight web interface for monitoring the migration process without adding unnecessary complexity.
+### Resume/Portfolio Data Endpoints
+- **Purpose**: Serve structured JSON data for the shouldcallpaul.com personal website
+- **Data Categories**: Workshops, conferences, speeches, projects, races, and patent information
+- **File Storage**: Static JSON files in `resume_data/` directory with associated images
+- **Recent Addition**: Career Day at Indian Hill workshop (May 30, 2025) with two images
 
-**Database Integration**: Uses PostgreSQL as the target database with connection pooling and health monitoring to ensure stable database operations during large data imports.
+## Technical Design Decisions
 
-**Monitoring Interface**: Single-route application that displays database connectivity status, PostgreSQL version, and table count to verify migration progress.
+### Email Rate Limiting
+**Problem**: MailerSend enforces a 120 requests/min rate limit. Initial batch-based approach (100 emails instantly, 2s pause) exceeded this limit at ~50 emails/second.
 
-## Data Processing Design
+**Solution**: Per-email delay of 600ms ensures 100 emails/min sending rate, safely under the API limit. Delays are maintained even on individual email failures to prevent rate limit violations.
 
-**Tokenization Strategy**: Progressive complexity in parsing SQL VALUES statements, from simple regex splitting to full state machine tokenization. This handles edge cases like nested quotes, escaped characters, and complex data types that commonly cause import failures.
+### Email Duplicate Prevention
+**Problem**: MailerSend rejects emails with the same address in both TO and CC fields.
 
-**Error Handling**: Each import strategy can handle different levels of data complexity, allowing the system to fall back to more robust parsing when simpler methods fail.
+**Solution**: Dynamic CC list construction checks the TO recipient and excludes them from the CC array, ensuring no duplicates while maintaining tracking requirements.
 
-**Transaction Management**: Row-level transaction handling in robust import scripts ensures data integrity and allows for partial recovery from import errors.
+### Database Design
+- **ID Management**: Manual ID generation using `MAX(id)+1` pattern for tables without auto-increment
+- **User Fields**: `real_name` field for formal names, `user_name` for display/fallback
+- **Environment Separation**: Development database accessible via tools; production requires manual intervention
 
-# External Dependencies
+## External Dependencies
 
-## Database Systems
-- **PostgreSQL** - Target database system for the migration
-- **MariaDB** - Source database (via SQL dump files, not direct connection)
+### Core Services
+- **PostgreSQL**: Primary database system (Neon-backed Replit database)
+- **MailerSend**: Email delivery service with API key management via environment secrets
 
-## Python Libraries
-- **Flask** - Web application framework for the monitoring interface
-- **Flask-SQLAlchemy** - Database ORM and connection management
-- **psycopg2** - PostgreSQL database adapter for direct database operations
-- **SQLAlchemy** - Database abstraction layer with DeclarativeBase for modern SQLAlchemy patterns
+### Node.js Libraries
+- **express**: Web server framework
+- **pg**: PostgreSQL client for database operations
+- **bcrypt**: Password hashing for secure authentication
+- **dotenv**: Environment variable management
+- **cors**: Cross-origin resource sharing for API access
+- **mailersend**: Official MailerSend SDK for email delivery
+- **openai**: OpenAI API integration for AI features
 
-## Environment Configuration
-- **DATABASE_URL** - PostgreSQL connection string
-- **SESSION_SECRET** - Flask session security key
+### Environment Configuration
+- **DATABASE_URL**: PostgreSQL connection string (automatically configured by Replit)
+- **MAILERSEND_API_KEY**: API key for email service (stored in environment secrets)
+- **PORT**: Server port (defaults to 5000)
 
-## File Dependencies
-- **backup.sql** - MariaDB SQL dump file (expected input file for migration)
+### Static Assets
+- **profile_images/**: User profile images and platform logo (`pray_over_us_logo.jpg`)
+- **blog_articles/**: HTML blog content and images
+- **resume_data/**: JSON portfolio data and associated images
 
-The architecture assumes the presence of a MariaDB SQL dump file and requires a target PostgreSQL database instance for the migration destination.
+## API Endpoint Categories
+
+1. **Authentication**: User registration, login, session management
+2. **Prayer Requests**: Create, read, update prayer requests; community wall access
+3. **Blog**: Retrieve blog articles and metadata
+4. **Email**: Broadcast notifications to user base
+5. **Resume Data**: Public endpoints for portfolio information
+6. **Debug**: Database connectivity and health checks
+
+The architecture prioritizes reliability, security, and scalability while maintaining simplicity in deployment and maintenance within the Replit environment.
