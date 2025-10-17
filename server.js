@@ -1722,6 +1722,168 @@ app.post('/deleteUser', authenticate, async (req, res) => {
 });
 
 // Debug endpoint to check database connection (no authentication)
+// Broadcast email to all users
+app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
+  log(req);
+  const params = req.body;
+  
+  const requiredParams = ["includeAllUsers", "subject", "body", "buttonLink"];
+  for (let i = 0; i < requiredParams.length; i++) {
+    const requiredParam = requiredParams[i];
+    if (params[requiredParam] === undefined) {
+      res.json({ error: "Required param '" + requiredParam + "' missing" });
+      return;
+    }
+  }
+
+  try {
+    // Get all user emails from database
+    let bccRecipients = [];
+    
+    if (params.includeAllUsers) {
+      const usersQuery = 'SELECT email, user_name FROM public."user" WHERE email IS NOT NULL AND email != \'\'';
+      const usersResult = await pool.query(usersQuery);
+      
+      bccRecipients = usersResult.rows.map(user => 
+        new Recipient(user.email, user.user_name)
+      );
+      
+      console.log(`📧 Sending broadcast email to ${bccRecipients.length} users`);
+    } else {
+      console.log('📧 Sending test broadcast email (no BCC recipients)');
+    }
+
+    // Create HTML email template with Pray Over Us branding
+    const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 30px 20px;
+      text-align: center;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 15px;
+      background-color: white;
+      border-radius: 50%;
+      padding: 10px;
+    }
+    .header h1 {
+      color: #ffffff;
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    .content {
+      padding: 40px 30px;
+      line-height: 1.6;
+      color: #333333;
+      font-size: 16px;
+    }
+    .button-container {
+      text-align: center;
+      margin: 30px 0;
+      padding: 20px 0;
+    }
+    .button {
+      display: inline-block;
+      padding: 14px 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 16px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    .footer {
+      background-color: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      color: #666666;
+      font-size: 14px;
+      border-top: 1px solid #e0e0e0;
+    }
+    .footer a {
+      color: #667eea;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <img src="https://shouldcallpaul.replit.app/profile_images/pray_over_us_logo.jpg" alt="Pray Over Us" class="logo">
+      <h1>Pray Over Us</h1>
+    </div>
+    <div class="content">
+      ${params.body}
+    </div>
+    <div class="button-container">
+      <a href="${params.buttonLink}" class="button">Open Pray Over Us</a>
+    </div>
+    <div class="footer">
+      <p>This email was sent from Pray Over Us</p>
+      <p><a href="https://prayoverus.com">Visit Our Website</a></p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    // Set up MailerSend
+    const mailerSend = new MailerSend({
+      apiKey: process.env.MAILERSEND_API_KEY
+    });
+
+    const sentFrom = new Sender("paul@prayoverus.com", "Pray Over Us");
+    const recipients = [new Recipient("paul@prayoverus.com", "Paul")];
+
+    const emailParams = new EmailParams()
+      .setFrom(sentFrom)
+      .setTo(recipients)
+      .setBcc(bccRecipients)
+      .setReplyTo(sentFrom)
+      .setSubject(params.subject)
+      .setHtml(emailHtml)
+      .setText("Email from PrayOverUs.com");
+
+    await mailerSend.email.send(emailParams);
+    
+    const recipientCount = bccRecipients.length;
+    const message = params.includeAllUsers 
+      ? `Broadcast email sent to ${recipientCount} users` 
+      : "Test broadcast email sent to paul@prayoverus.com only";
+    
+    res.json({ 
+      error: 0, 
+      result: message,
+      recipientCount: recipientCount
+    });
+
+  } catch (err) {
+    console.error('Broadcast email error:', err);
+    res.json({ error: 1, result: err.message });
+  }
+});
+
 app.get('/debug', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW() as current_time, current_database() as db_name');
