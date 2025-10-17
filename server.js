@@ -1853,10 +1853,6 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
     });
 
     const sentFrom = new Sender("paul@prayoverus.com", "Pray Over Us");
-    const ccRecipients = [
-      new Recipient("paul@prayoverus.com", "Paul"),
-      new Recipient("prayoverus@gmail.com", "Pray Over Us")
-    ];
 
     let successCount = 0;
     let failCount = 0;
@@ -1873,15 +1869,28 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
       // Create personalized email HTML
       const personalizedHtml = createEmailHtml(firstName, params.body, params.buttonLink, params.buttonText);
       
+      // Build CC list - avoid duplicating the TO recipient
+      const ccRecipients = [];
+      if (user.email !== "paul@prayoverus.com") {
+        ccRecipients.push(new Recipient("paul@prayoverus.com", "Paul"));
+      }
+      if (user.email !== "prayoverus@gmail.com") {
+        ccRecipients.push(new Recipient("prayoverus@gmail.com", "Pray Over Us"));
+      }
+      
       try {
         const emailParams = new EmailParams()
           .setFrom(sentFrom)
           .setTo([new Recipient(user.email, user.user_name)])
-          .setCc(ccRecipients)
           .setReplyTo(sentFrom)
           .setSubject(params.subject)
           .setHtml(personalizedHtml)
           .setText("Email from PrayOverUs.com");
+        
+        // Only add CC if there are recipients
+        if (ccRecipients.length > 0) {
+          emailParams.setCc(ccRecipients);
+        }
 
         await mailerSend.email.send(emailParams);
         successCount++;
