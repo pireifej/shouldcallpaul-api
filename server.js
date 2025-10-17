@@ -1741,7 +1741,7 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
     let userRecipients = [];
     
     if (params.includeAllUsers) {
-      const usersQuery = 'SELECT email, user_name FROM public."user" WHERE email IS NOT NULL AND email != \'\'';
+      const usersQuery = 'SELECT email, user_name, real_name FROM public."user" WHERE email IS NOT NULL AND email != \'\'';
       const usersResult = await pool.query(usersQuery);
       
       userRecipients = usersResult.rows;
@@ -1863,10 +1863,14 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
     const delayMs = 2000; // 2 seconds between batches
 
     // Send emails in batches
-    const recipientsToSend = params.includeAllUsers ? userRecipients : [{email: "paul@prayoverus.com", user_name: "Paul"}];
+    const recipientsToSend = params.includeAllUsers ? userRecipients : [{email: "paul@prayoverus.com", user_name: "Paul", real_name: "Paul"}];
     
     for (let i = 0; i < recipientsToSend.length; i++) {
       const user = recipientsToSend[i];
+      const firstName = user.real_name || user.user_name || "Friend";
+      
+      // Personalize email with user's first name
+      const personalizedHtml = emailHtml.replace('${params.body}', `<p>Hi ${firstName},</p>${params.body}`);
       
       try {
         const emailParams = new EmailParams()
@@ -1875,7 +1879,7 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
           .setCc(ccRecipients)
           .setReplyTo(sentFrom)
           .setSubject(params.subject)
-          .setHtml(emailHtml)
+          .setHtml(personalizedHtml)
           .setText("Email from PrayOverUs.com");
 
         await mailerSend.email.send(emailParams);
