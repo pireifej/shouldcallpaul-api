@@ -1738,19 +1738,17 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
 
   try {
     // Get all user emails from database
-    let bccRecipients = [];
+    let userRecipients = [];
     
     if (params.includeAllUsers) {
       const usersQuery = 'SELECT email, user_name FROM public."user" WHERE email IS NOT NULL AND email != \'\'';
       const usersResult = await pool.query(usersQuery);
       
-      bccRecipients = usersResult.rows.map(user => 
-        new Recipient(user.email, user.user_name)
-      );
+      userRecipients = usersResult.rows;
       
-      console.log(`📧 Sending broadcast email to ${bccRecipients.length} users`);
+      console.log(`📧 Preparing to send broadcast email to ${userRecipients.length} users in batches`);
     } else {
-      console.log('📧 Sending test broadcast email (no BCC recipients)');
+      console.log('📧 Sending test broadcast email (to paul@prayoverus.com only)');
     }
 
     // Create HTML email template with Pray Over Us branding
@@ -1854,30 +1852,59 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
     });
 
     const sentFrom = new Sender("paul@prayoverus.com", "Pray Over Us");
-    const recipients = [new Recipient("paul@prayoverus.com", "Paul")];
-    const ccRecipients = [new Recipient("prayoverus@gmail.com", "Pray Over Us")];
+    const ccRecipients = [
+      new Recipient("paul@prayoverus.com", "Paul"),
+      new Recipient("prayoverus@gmail.com", "Pray Over Us")
+    ];
 
-    const emailParams = new EmailParams()
-      .setFrom(sentFrom)
-      .setTo(recipients)
-      .setCc(ccRecipients)
-      .setBcc(bccRecipients)
-      .setReplyTo(sentFrom)
-      .setSubject(params.subject)
-      .setHtml(emailHtml)
-      .setText("Email from PrayOverUs.com");
+    let successCount = 0;
+    let failCount = 0;
+    const batchSize = 100;
+    const delayMs = 2000; // 2 seconds between batches
 
-    await mailerSend.email.send(emailParams);
+    // Send emails in batches
+    const recipientsToSend = params.includeAllUsers ? userRecipients : [{email: "paul@prayoverus.com", user_name: "Paul"}];
     
-    const recipientCount = bccRecipients.length;
+    for (let i = 0; i < recipientsToSend.length; i++) {
+      const user = recipientsToSend[i];
+      
+      try {
+        const emailParams = new EmailParams()
+          .setFrom(sentFrom)
+          .setTo([new Recipient(user.email, user.user_name)])
+          .setCc(ccRecipients)
+          .setReplyTo(sentFrom)
+          .setSubject(params.subject)
+          .setHtml(emailHtml)
+          .setText("Email from PrayOverUs.com");
+
+        await mailerSend.email.send(emailParams);
+        successCount++;
+        
+        // Add delay every batchSize emails to avoid rate limits
+        if ((i + 1) % batchSize === 0 && i + 1 < recipientsToSend.length) {
+          console.log(`📧 Sent ${i + 1}/${recipientsToSend.length} emails. Pausing for ${delayMs/1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+        
+      } catch (emailError) {
+        console.error(`Failed to send to ${user.email}:`, emailError.message);
+        failCount++;
+      }
+    }
+    
     const message = params.includeAllUsers 
-      ? `Broadcast email sent to ${recipientCount} users` 
-      : "Test broadcast email sent to paul@prayoverus.com only";
+      ? `Broadcast email sent: ${successCount} successful, ${failCount} failed out of ${recipientsToSend.length} total` 
+      : "Test broadcast email sent to paul@prayoverus.com";
+    
+    console.log(`📧 Broadcast complete: ${message}`);
     
     res.json({ 
       error: 0, 
       result: message,
-      recipientCount: recipientCount
+      successCount: successCount,
+      failCount: failCount,
+      totalRecipients: recipientsToSend.length
     });
 
   } catch (err) {
