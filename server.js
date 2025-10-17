@@ -1893,7 +1893,7 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
         }
         
       } catch (emailError) {
-        console.error(`Failed to send to ${user.email}:`, emailError.message);
+        console.error(`Failed to send to ${user.email}:`, emailError);
         failCount++;
       }
     }
