@@ -1856,10 +1856,10 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
 
     let successCount = 0;
     let failCount = 0;
-    const batchSize = 100;
-    const delayMs = 2000; // 2 seconds between batches
+    const delayBetweenEmails = 600; // 600ms between emails = 100 emails/min (safe under 120/min limit)
+    const logInterval = 10; // Log progress every 10 emails
 
-    // Send emails in batches
+    // Send emails with rate limiting
     const recipientsToSend = params.includeAllUsers ? userRecipients : [{email: "paul@prayoverus.com", user_name: "Paul", real_name: "Paul"}];
     
     for (let i = 0; i < recipientsToSend.length; i++) {
@@ -1895,15 +1895,24 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
         await mailerSend.email.send(emailParams);
         successCount++;
         
-        // Add delay every batchSize emails to avoid rate limits
-        if ((i + 1) % batchSize === 0 && i + 1 < recipientsToSend.length) {
-          console.log(`📧 Sent ${i + 1}/${recipientsToSend.length} emails. Pausing for ${delayMs/1000}s...`);
-          await new Promise(resolve => setTimeout(resolve, delayMs));
+        // Log progress periodically
+        if ((i + 1) % logInterval === 0 || i + 1 === recipientsToSend.length) {
+          console.log(`📧 Progress: ${i + 1}/${recipientsToSend.length} emails sent (${successCount} successful, ${failCount} failed)`);
+        }
+        
+        // Add delay after each email to respect rate limit (except for the last one)
+        if (i + 1 < recipientsToSend.length) {
+          await new Promise(resolve => setTimeout(resolve, delayBetweenEmails));
         }
         
       } catch (emailError) {
         console.error(`Failed to send to ${user.email}:`, emailError);
         failCount++;
+        
+        // Still wait even on error to maintain rate limit
+        if (i + 1 < recipientsToSend.length) {
+          await new Promise(resolve => setTimeout(resolve, delayBetweenEmails));
+        }
       }
     }
     
