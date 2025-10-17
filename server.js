@@ -1830,7 +1830,7 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
 <body>
   <div class="email-container">
     <div class="header">
-      <img src="https://shouldcallpaul.replit.app/profile_images/pray_over_us_logo.jpg" alt="Pray Over Us" class="logo">
+      <img src="https://prayoverus.com/assets/img/logo/hope1.PNG" alt="Pray Over Us" class="logo">
       <h1>Pray Over Us</h1>
     </div>
     <div class="content">
