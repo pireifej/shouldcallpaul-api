@@ -1855,10 +1855,12 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
 
     const sentFrom = new Sender("paul@prayoverus.com", "Pray Over Us");
     const recipients = [new Recipient("paul@prayoverus.com", "Paul")];
+    const ccRecipients = [new Recipient("prayoverus@gmail.com", "Pray Over Us")];
 
     const emailParams = new EmailParams()
       .setFrom(sentFrom)
       .setTo(recipients)
+      .setCc(ccRecipients)
       .setBcc(bccRecipients)
       .setReplyTo(sentFrom)
       .setSubject(params.subject)
