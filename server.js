@@ -1751,8 +1751,8 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
       console.log('📧 Sending test broadcast email (to paul@prayoverus.com only)');
     }
 
-    // Create HTML email template with Pray Over Us branding
-    const emailHtml = `
+    // Function to create personalized HTML email template
+    const createEmailHtml = (firstName, body, buttonLink, buttonText) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -1832,10 +1832,11 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
       <h1>Pray Over Us</h1>
     </div>
     <div class="content">
-      ${params.body}
+      <p>Hi ${firstName},</p>
+      ${body}
     </div>
     <div class="button-container">
-      <a href="${params.buttonLink}" class="button">${params.buttonText}</a>
+      <a href="${buttonLink}" class="button">${buttonText}</a>
     </div>
     <div class="footer">
       <p>This email was sent from Pray Over Us</p>
@@ -1869,8 +1870,8 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
       const user = recipientsToSend[i];
       const firstName = user.real_name || user.user_name || "Friend";
       
-      // Personalize email with user's first name
-      const personalizedHtml = emailHtml.replace('${params.body}', `<p>Hi ${firstName},</p>${params.body}`);
+      // Create personalized email HTML
+      const personalizedHtml = createEmailHtml(firstName, params.body, params.buttonLink, params.buttonText);
       
       try {
         const emailParams = new EmailParams()
