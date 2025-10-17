@@ -1727,7 +1727,7 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
   log(req);
   const params = req.body;
   
-  const requiredParams = ["includeAllUsers", "subject", "body", "buttonLink"];
+  const requiredParams = ["includeAllUsers", "subject", "body", "buttonLink", "buttonText"];
   for (let i = 0; i < requiredParams.length; i++) {
     const requiredParam = requiredParams[i];
     if (params[requiredParam] === undefined) {
@@ -1837,7 +1837,7 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
       ${params.body}
     </div>
     <div class="button-container">
-      <a href="${params.buttonLink}" class="button">Open Pray Over Us</a>
+      <a href="${params.buttonLink}" class="button">${params.buttonText}</a>
     </div>
     <div class="footer">
       <p>This email was sent from Pray Over Us</p>
