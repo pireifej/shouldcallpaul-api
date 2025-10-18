@@ -567,7 +567,7 @@ app.post('/requestPasswordReset', async (req, res) => {
 <body>
   <div class="container">
     <div class="logo">
-      <img src="https://prayoverus.com/profile_images/pray_over_us_logo.jpg" alt="Pray Over Us">
+      <img src="https://prayoverus.com/assets/img/logo/hope1.PNG" alt="Pray Over Us">
     </div>
     <div class="content">
       <p>Hi ${firstName},</p>
