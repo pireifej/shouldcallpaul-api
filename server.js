@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const OpenAI = require('openai');
 const fs = require('fs');
 const path = require('path');
@@ -503,6 +504,171 @@ app.post('/login', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.json({error: 1, result: error.message});
+  }
+});
+
+app.post('/requestPasswordReset', async (req, res) => {
+  try {
+    const params = req.body;
+    
+    if (!params.email) {
+      return res.json({error: 1, result: "Email is required"});
+    }
+    
+    const email = params.email.toLowerCase().trim();
+    
+    const userQuery = await pool.query(
+      'SELECT user_id, user_name, real_name FROM public."user" WHERE LOWER(email) = $1 AND active = 1',
+      [email]
+    );
+    
+    if (userQuery.rows.length === 0) {
+      return res.json({error: 0, result: "If that email exists, you'll receive a password reset link shortly."});
+    }
+    
+    const user = userQuery.rows[0];
+    
+    const recentTokenQuery = await pool.query(
+      'SELECT created_at FROM password_reset_tokens WHERE user_id = $1 AND created_at > NOW() - INTERVAL \'5 minutes\' ORDER BY created_at DESC LIMIT 1',
+      [user.user_id]
+    );
+    
+    if (recentTokenQuery.rows.length > 0) {
+      return res.json({error: 0, result: "If that email exists, you'll receive a password reset link shortly."});
+    }
+    
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    
+    await pool.query(
+      'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)',
+      [user.user_id, token, expiresAt]
+    );
+    
+    const resetLink = `https://prayoverus.com/reset-password?token=${token}`;
+    const firstName = user.real_name || user.user_name || "Friend";
+    
+    const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
+    .container { max-width: 600px; margin: 20px auto; background-color: white; padding: 30px; border-radius: 10px; }
+    .logo { text-align: center; margin-bottom: 20px; }
+    .logo img { max-width: 150px; height: auto; }
+    .content { line-height: 1.6; color: #333; }
+    .button-container { text-align: center; margin: 30px 0; }
+    .button { display: inline-block; padding: 15px 30px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
+    .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 12px; }
+    .warning { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <img src="https://prayoverus.com/profile_images/pray_over_us_logo.jpg" alt="Pray Over Us">
+    </div>
+    <div class="content">
+      <p>Hi ${firstName},</p>
+      <p>We received a request to reset your password for your Pray Over Us account.</p>
+      <p>Click the button below to reset your password:</p>
+    </div>
+    <div class="button-container">
+      <a href="${resetLink}" class="button">Reset Password</a>
+    </div>
+    <div class="warning">
+      <strong>⏰ This link expires in 1 hour</strong>
+    </div>
+    <div class="content">
+      <p>If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.</p>
+      <p>For security, this link can only be used once.</p>
+    </div>
+    <div class="footer">
+      <p>This email was sent from Pray Over Us</p>
+      <p><a href="https://prayoverus.com">Visit Our Website</a></p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+    
+    const mailerSend = new MailerSend({
+      apiKey: process.env.MAILERSEND_API_KEY
+    });
+    
+    const sentFrom = new Sender("paul@prayoverus.com", "Pray Over Us");
+    const emailParams = new EmailParams()
+      .setFrom(sentFrom)
+      .setTo([new Recipient(email, firstName)])
+      .setReplyTo(sentFrom)
+      .setSubject("Reset Your Password - Pray Over Us")
+      .setHtml(emailHtml)
+      .setText("Password reset requested for your Pray Over Us account");
+    
+    await mailerSend.email.send(emailParams);
+    
+    console.log(`📧 Password reset email sent to ${email}`);
+    
+    res.json({error: 0, result: "If that email exists, you'll receive a password reset link shortly."});
+    
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    res.json({error: 1, result: "An error occurred. Please try again later."});
+  }
+});
+
+app.post('/resetPassword', async (req, res) => {
+  try {
+    const params = req.body;
+    
+    if (!params.token || !params.newPassword) {
+      return res.json({error: 1, result: "Token and new password are required"});
+    }
+    
+    if (params.newPassword.length < 6) {
+      return res.json({error: 1, result: "Password must be at least 6 characters"});
+    }
+    
+    const tokenQuery = await pool.query(
+      'SELECT user_id, expires_at, used FROM password_reset_tokens WHERE token = $1',
+      [params.token]
+    );
+    
+    if (tokenQuery.rows.length === 0) {
+      return res.json({error: 1, result: "Invalid or expired reset link"});
+    }
+    
+    const tokenData = tokenQuery.rows[0];
+    
+    if (tokenData.used) {
+      return res.json({error: 1, result: "This reset link has already been used"});
+    }
+    
+    if (new Date() > new Date(tokenData.expires_at)) {
+      return res.json({error: 1, result: "This reset link has expired"});
+    }
+    
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(params.newPassword, saltRounds);
+    
+    await pool.query(
+      'UPDATE public."user" SET password = $1 WHERE user_id = $2',
+      [hashedPassword, tokenData.user_id]
+    );
+    
+    await pool.query(
+      'UPDATE password_reset_tokens SET used = true WHERE token = $1',
+      [params.token]
+    );
+    
+    console.log(`✅ Password reset successful for user ${tokenData.user_id}`);
+    
+    res.json({error: 0, result: "Password reset successful! You can now log in with your new password."});
+    
+  } catch (error) {
+    console.error('Password reset error:', error);
+    res.json({error: 1, result: "An error occurred. Please try again later."});
   }
 });
 
