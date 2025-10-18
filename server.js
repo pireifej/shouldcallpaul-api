@@ -1391,7 +1391,7 @@ Instructions for Generating the Prayer:
    - Use <br> tags for line breaks (NOT newline characters)
    - Output ONLY HTML - no plain text newlines or escape characters
 
-6. Ending: Do NOT include "Amen" at the end of the prayer, as the user interface already provides an "Amen" button.
+6. CRITICAL - NO "AMEN" ENDING: Do NOT end the prayer with "Amen" or any variation (Amen., AMEN, etc.). The app has its own "Amen" button. The prayer MUST end with the final petition or doxology WITHOUT "Amen". This is extremely important.
 
 7. Important: Do NOT use asterisks, markdown formatting, or \\n newlines. Only use HTML tags (<strong> and <br>).`;
 
@@ -1418,6 +1418,12 @@ Instructions for Generating the Prayer:
       
       // Convert any remaining newlines to HTML line breaks for proper HTML formatting
       newPrayer = newPrayer.replace(/\n/g, '<br>');
+      
+      // Safety net: Remove "Amen" from the end if AI added it anyway (case-insensitive)
+      newPrayer = newPrayer.replace(/<br>\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
+      newPrayer = newPrayer.replace(/<br>\s*Amen\.?\s*$/i, '');
+      newPrayer = newPrayer.replace(/\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
+      newPrayer = newPrayer.replace(/\s*Amen\.?\s*$/i, '');
 
       // Step 4: Insert the generated prayer
       const prayerInsertQuery = `
