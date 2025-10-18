@@ -545,7 +545,7 @@ app.post('/requestPasswordReset', async (req, res) => {
       [user.user_id, token, expiresAt]
     );
     
-    const resetLink = `https://prayoverus.com/reset-password?token=${token}`;
+    const resetLink = `https://prayoverus.com/reset-password.html?token=${token}`;
     const firstName = user.real_name || user.user_name || "Friend";
     
     const emailHtml = `
