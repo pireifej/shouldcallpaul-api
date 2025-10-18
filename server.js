@@ -1383,14 +1383,17 @@ Instructions for Generating the Prayer:
 
 4. Integration: Seamlessly weave the person's name and the specific request into the body of the prayer.
 
-5. HTML Formatting: Return the prayer as HTML text with the following words wrapped in <strong> tags for bold emphasis:
-   - The person's name (${realName})
-   - Divine names: God, Lord, Jesus, Christ, Holy Spirit, Father, Mary, Saint, Savior, Redeemer, Creator
-   - Key intercession words: heal, healing, protect, protection, guide, guidance, bless, blessing, comfort, strengthen, peace, grace, mercy, love, hope, faith, wisdom, courage, patience
+5. HTML Formatting: Return the prayer as pure HTML with the following requirements:
+   - Wrap the following words in <strong> tags for bold emphasis:
+     * The person's name (${realName})
+     * Divine names: God, Lord, Jesus, Christ, Holy Spirit, Father, Mary, Saint, Savior, Redeemer, Creator
+     * Key intercession words: heal, healing, protect, protection, guide, guidance, bless, blessing, comfort, strengthen, peace, grace, mercy, love, hope, faith, wisdom, courage, patience
+   - Use <br> tags for line breaks (NOT newline characters)
+   - Output ONLY HTML - no plain text newlines or escape characters
 
 6. Ending: Do NOT include "Amen" at the end of the prayer, as the user interface already provides an "Amen" button.
 
-7. Important: Do NOT use asterisks or markdown formatting. Only use HTML <strong> tags as specified above.`;
+7. Important: Do NOT use asterisks, markdown formatting, or \\n newlines. Only use HTML tags (<strong> and <br>).`;
 
     
     try {
@@ -1411,7 +1414,10 @@ Instructions for Generating the Prayer:
         return;
       }
 
-      const newPrayer = chatResult.choices[0].message.content.replace(/'/g, "");
+      let newPrayer = chatResult.choices[0].message.content.replace(/'/g, "");
+      
+      // Convert any remaining newlines to HTML line breaks for proper HTML formatting
+      newPrayer = newPrayer.replace(/\n/g, '<br>');
 
       // Step 4: Insert the generated prayer
       const prayerInsertQuery = `
