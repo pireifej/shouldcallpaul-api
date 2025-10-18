@@ -1368,7 +1368,30 @@ app.post('/createRequestAndPrayer', authenticate, async (req, res) => {
     const userPicture = userResult.rows[0].picture;
 
     // Step 3: Generate prayer using our getChatCompletion endpoint
-    const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.|User Request (Insert here): ${params.requestText}|Name Associated with the Request: ${realName}|Instructions for Generating the Prayer: 1. Format: The prayer should be suitable for reading aloud and follow a typical structure (e.g., address to God/Jesus/Mary/Saint, statement of need, intercession, concluding doxology). 2. Personalization: If the person named is **not** the user asking for the prayer, the prayer must be written **in the first person plural (e.g., "We pray for...") or the second person singular (e.g., "Look upon...")** to intercede *for* the named person. 3. Gender Pronoun Rule: Use a gender pronoun (**he/him/his** or **she/her/hers**) only when referring to the named person. Make an educated guess about the appropriate gender based on the common usage of the provided name. If the name is ambiguous or gender-neutral (e.g., Alex, Jordan), use the name itself (e.g., "bless **[Name]**") instead of a pronoun to maintain reverence and accuracy. 4. Integration: Seamlessly weave the person's name and the specific request into the body of the prayer. 5. Ending: Do NOT include "Amen" at the end of the prayer, as the user interface already provides an "Amen" button.`;
+    const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.
+
+User Request: ${params.requestText}
+Name Associated with the Request: ${realName}
+
+Instructions for Generating the Prayer:
+
+1. Format: The prayer should be suitable for reading aloud and follow a typical structure (e.g., address to God/Jesus/Mary/Saint, statement of need, intercession, concluding doxology).
+
+2. Personalization: If the person named is not the user asking for the prayer, the prayer must be written in the first person plural (e.g., "We pray for...") or the second person singular (e.g., "Look upon...") to intercede for the named person.
+
+3. Gender Pronoun Rule: Use a gender pronoun (he/him/his or she/her/hers) only when referring to the named person. Make an educated guess about the appropriate gender based on the common usage of the provided name. If the name is ambiguous or gender-neutral (e.g., Alex, Jordan), use the name itself instead of a pronoun to maintain reverence and accuracy.
+
+4. Integration: Seamlessly weave the person's name and the specific request into the body of the prayer.
+
+5. HTML Formatting: Return the prayer as HTML text with the following words wrapped in <strong> tags for bold emphasis:
+   - The person's name (${realName})
+   - Divine names: God, Lord, Jesus, Christ, Holy Spirit, Father, Mary, Saint, Savior, Redeemer, Creator
+   - Key intercession words: heal, healing, protect, protection, guide, guidance, bless, blessing, comfort, strengthen, peace, grace, mercy, love, hope, faith, wisdom, courage, patience
+
+6. Ending: Do NOT include "Amen" at the end of the prayer, as the user interface already provides an "Amen" button.
+
+7. Important: Do NOT use asterisks or markdown formatting. Only use HTML <strong> tags as specified above.`;
+
     
     try {
       // Make internal call to our getChatCompletion endpoint
