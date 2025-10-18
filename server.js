@@ -1414,7 +1414,7 @@ Instructions for Generating the Prayer:
         return;
       }
 
-      let newPrayer = chatResult.choices[0].message.content.replace(/'/g, "");
+      let newPrayer = chatResult.choices[0].message.content;
       
       // Convert any remaining newlines to HTML line breaks for proper HTML formatting
       newPrayer = newPrayer.replace(/\n/g, '<br>');
