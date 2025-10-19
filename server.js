@@ -1371,21 +1371,32 @@ app.post('/createRequestAndPrayer', authenticate, async (req, res) => {
     const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.
 
 User Request: ${params.requestText}
-Name Associated with the Request: ${realName}
+Author of Request: ${realName}
+
+IMPORTANT - Identify the Correct Prayer Subject:
+The "Author of Request" is the person MAKING the request, but NOT necessarily the person to pray for. You must carefully read the request text to determine the correct subject:
+
+- If the request mentions another person (e.g., "my husband", "my mother", "my friend John"), pray for THAT person (use their specific name if provided)
+  Example: "Pray for my husband Jiri for good health" → Pray for Jiri, NOT ${realName}
+  
+- If the request says "pray for me", "I need...", "help me...", then pray for the author: ${realName}
+  Example: "Pray for me to find strength" → Pray for ${realName}
+
+- Use specific names from the request when provided, rather than generic terms like "your servant"
 
 Instructions for Generating the Prayer:
 
 1. Format: The prayer should be suitable for reading aloud and follow a typical structure (e.g., address to God/Jesus/Mary/Saint, statement of need, intercession, concluding doxology).
 
-2. Personalization: If the person named is not the user asking for the prayer, the prayer must be written in the first person plural (e.g., "We pray for...") or the second person singular (e.g., "Look upon...") to intercede for the named person.
+2. Personalization: Write the prayer in the first person plural (e.g., "We pray for...") or the second person singular (e.g., "Look upon...") to intercede for the prayer subject you identified above.
 
-3. Gender Pronoun Rule: Use a gender pronoun (he/him/his or she/her/hers) only when referring to the named person. Make an educated guess about the appropriate gender based on the common usage of the provided name. If the name is ambiguous or gender-neutral (e.g., Alex, Jordan), use the name itself instead of a pronoun to maintain reverence and accuracy.
+3. Gender Pronoun Rule: Use a gender pronoun (he/him/his or she/her/hers) only when referring to the prayer subject. Make an educated guess about the appropriate gender based on the common usage of the provided name. If the name is ambiguous or gender-neutral (e.g., Alex, Jordan), use the name itself instead of a pronoun to maintain reverence and accuracy.
 
-4. Integration: Seamlessly weave the person's name and the specific request into the body of the prayer.
+4. Integration: Seamlessly weave the correct person's name and the specific request into the body of the prayer.
 
 5. HTML Formatting: Return the prayer as pure HTML with the following requirements:
    - Wrap the following words in <strong> tags for bold emphasis:
-     * The person's name (${realName})
+     * All person names mentioned in the prayer (the prayer subject and any other individuals mentioned)
      * Divine names: God, Lord, Jesus, Christ, Holy Spirit, Father, Mary, Saint, Savior, Redeemer, Creator
      * Key intercession words: heal, healing, protect, protection, guide, guidance, bless, blessing, comfort, strengthen, peace, grace, mercy, love, hope, faith, wisdom, courage, patience
    - Use <br> tags for line breaks (NOT newline characters)
