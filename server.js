@@ -1682,7 +1682,7 @@ app.post('/getMyRequests', authenticate, async (req, res) => {
   }
 });
 
-// POST /getCommunityWall - Get community prayer wall (active requests user hasn't prayed for)
+// POST /getCommunityWall - Get community prayer wall with prayer counts and names
 app.post('/getCommunityWall', authenticate, async (req, res) => {
   log(req);
   const params = req.body;
@@ -1699,7 +1699,7 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
   try {
     const timezone = params.tz || 'UTC';
     
-    // PostgreSQL query to get active requests user hasn't prayed for
+    // PostgreSQL query to get all active requests with prayer information
     const query = `
       SELECT DISTINCT 
         request.request_id,
@@ -1718,19 +1718,26 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
         request.timestamp as timestamp_raw,
         "user".user_name,
         "user".real_name,
-        "user".picture
+        "user".picture,
+        COALESCE(prayer_info.prayer_count, 0) as prayer_count,
+        COALESCE(prayer_info.prayed_by_names, ARRAY[]::text[]) as prayed_by_names,
+        CASE WHEN prayer_info.user_has_prayed THEN true ELSE false END as user_has_prayed
       FROM public.request
       LEFT JOIN public.category ON category.category_id = request.fk_category_id
       INNER JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
       LEFT JOIN public.user_family ON user_family.user_id = request.user_id
+      LEFT JOIN LATERAL (
+        SELECT 
+          COUNT(*)::int as prayer_count,
+          ARRAY_AGG(praying_user.real_name ORDER BY praying_user.real_name) as prayed_by_names,
+          BOOL_OR(user_request.user_id = $1) as user_has_prayed
+        FROM public.user_request
+        INNER JOIN public."user" as praying_user ON praying_user.user_id = user_request.user_id
+        WHERE user_request.request_id = request.request_id
+      ) as prayer_info ON true
       WHERE request.active = 1
-      AND request.request_id NOT IN (
-        SELECT request_id 
-        FROM public.user_request 
-        WHERE user_id = $1
-      )
       ORDER BY timestamp_raw DESC
     `;
 
