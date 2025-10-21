@@ -1434,6 +1434,9 @@ Instructions for Generating the Prayer:
 
       let newPrayer = chatResult.choices[0].message.content;
       
+      // Convert markdown-style bold (**text**) to HTML <strong> tags
+      newPrayer = newPrayer.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      
       // Convert any remaining newlines to HTML line breaks for proper HTML formatting
       newPrayer = newPrayer.replace(/\n/g, '<br>');
       
