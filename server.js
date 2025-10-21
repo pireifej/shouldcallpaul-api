@@ -1382,7 +1382,14 @@ The "Author of Request" is the person MAKING the request, but NOT necessarily th
 - If the request says "pray for me", "I need...", "help me...", then pray for the author: ${realName}
   Example: "Pray for me to find strength" → Pray for ${realName}
 
-- Use specific names from the request when provided, rather than generic terms like "your servant"
+CRITICAL - DO NOT INVENT NAMES:
+- NEVER make up or invent names that are not explicitly provided in the request text
+- If specific names are NOT provided, use possessive phrases instead
+  Example: "Pray for my dad" → Use "${realName}'s father" NOT "Paul Sr." or invented names
+  Example: "Pray for my coworkers" → Use "${realName}'s coworkers" NOT "Grace, Michael, and Sarah"
+  Example: "Pray for my family" → Use "${realName}'s family" NOT invented family member names
+- ONLY use a specific name if it appears verbatim in the request text
+- When no name is given, use relationship terms with possessive: "his father", "her mother", "${realName}'s children", etc.
 
 Instructions for Generating the Prayer:
 
