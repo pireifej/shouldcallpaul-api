@@ -1498,6 +1498,15 @@ Instructions for Generating the Prayer:
   }
 });
 
+// Root endpoint for deployment health checks
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Prayer Over Us API Server',
+    timestamp: new Date().toISOString() 
+  });
+});
+
 // Health check endpoint (no authentication required)
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
