@@ -88,5 +88,10 @@
         <p><a href="https://www.lunastage.org/mrs-stern-wanders-the-prussian-state-library" target="_blank">https://www.lunastage.org/mrs-stern-wanders-the-prussian-state-library</a></p>
     </div>
 
+    <div class="image-container">
+        <img src="img/luna-poster.png" alt="Mrs. Stern Wanders the Prussian State Library - Extended thru Nov 9th">
+        <div class="image-caption">Extended thru Nov 9th! - Luna Stage</div>
+    </div>
+
 </body>
 </html>
