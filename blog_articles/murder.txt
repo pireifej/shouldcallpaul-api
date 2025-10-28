@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>An Old Fashioned Family Murder - Now at GSP</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>An Old Fashioned Family Murder - Now at GSP</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/murder.jpg" alt="Cast of An Old Fashioned Family Murder at George Street Playhouse">
+        <div class="image-caption">The cast of George Street Playhouse's 2025 production of "An Old-Fashioned Family Murder" - Photo by T. Charles Erickson</div>
+    </div>
+
+    <p>This is Spooky Season, well and truly, and George Street has brought us the most wonderful treat in "An Old Fashioned Family Murder". All the noir tropes are there – old manor house, old money with new ideas, set in the heart of noir – 1943 and with a cast of lovable and unlovable characters. Leading this accomplished cast is Emmy and Golden Globe Award Winner, Sally Struthers as the estimable Mrs. Shirley Peck a widow who sees everything and uses Socratic method to help others see what she does. Take a moment, this accomplished theatre and screen actor will be so close, her myriad of expressions will steal every scene she's in. Tony Carlin plays the boorish self important author Arthur Whittington, replete with the mindset of an early 20th century man that includes disdain for women. Spoiler alert – he's spoiling for something and it appears that he gets it when he divulges a family secret. Hence, the nascent mystery. The spinster sister clad in Victorian weeds is mystery enthusiast Dotty Claythorne, whom you'll recognize as Tony Award nominee Caitlin Kinnunen. James Taylor Odom plays Detective Paul Peck, Mrs. Peck's son, who is learning the family business of sleuthing and some family secrets of his own. Allison Scagliotti is the femme fatale worldly older sister and her fiancé and himbo pool boy Jasper Jamison is Michael Evan Williams. This ensemble is entirely one to watch as the show is two acts of a delicate dance that plays within the frames of thought of the time and what we all had to do to navigate the shoals of society.</p>
+
+    <div class="highlight">
+        <p>There is no doubt that the Houdini of this WhoDunIt is Ms. Struthers. Joe DiPietro saw her in "Nice Work if You Can Get It" and wrote this mistress-piece to highlight her brilliance. Her supporting cast are all gems in the diadem of this show.</p>
+    </div>
+
+    <p>This is just the romp of galumphing good fun that you need going into Noir Season, Halloween and (ARGGHHHH) Election Season. Take your friends who are themselves the most sharp. See. This. Show. Then go for a bite afterward, you'll have an evening of great entertainment and conversations that will last the season.</p>
+
+    <div class="call-to-action">
+        <p><strong>The show runs through November 2 only, you'll LOVE it!</strong></p>
+        <p><a href="https://www.georgestreetplayhouse.org/events/detail/old-fashioned" target="_blank">Visit George Street Playhouse for tickets today</a></p>
+    </div>
+
+</body>
+</html>
