@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Mill's Musical Bull Durham</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Love and Baseball – Bull Durham Now at PPM</h1>
+    <p class="byline">By Sherri Rase</p>
+
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/paper.jpg" alt="Carmen Cusack as Annie Savoy">
+        <p class="image-caption">Carmen Cusack (Annie Savoy) - photo by Curtis Brown</p>
+    </div>
+
+    <p>During this show, the World Series will be decided in the 21st century. "Bull Durham" the Musical, while all about making it to The Show, hearkens back to 1988 when so much was different, yet somehow more of the same.</p>
+
+    <p>The boys of this summer are going through a selection process of which they are not yet aware. Annie Savoy (Carmen Cusack) is about to choose the player that she will mold into a player who will have a career. Annie has forgotten more about baseball than some of these players may ever know. She's the whole package – a handsome, experienced woman who uses a very different coaching style on her protégés. Yet, she's going to get some schooling as well as giving lessons.</p>
+
+    <p>This is a powerhouse of a show, from the book by writer/director Ron Shelton who also happened to pen the movie, to Susan Werner's sharp and sensitive music and lyrics, this is a dream team that's rounded out by director Marc Bruni. This is a show of moments, a whole LOT of them, and you'll savor each one. Nuke's youthful enthusiasm for every aspect of fame as well as baseball is infectious. And the mood swings are as large as his ego, yet Savarese' performance always keeps us on his side.</p>
+
+    <div class="highlight">
+        <p>Among the most enjoyable songs for me included the opener "The Church of Baseball", the frictive sparks of "Honey Works for Me", "A Little Time to Myself" and the purely delightful "Every Woman Deserves to Wear White".</p>
+    </div>
+
+    <p>There is literally something for everyone in this show, so get out there and GO!</p>
+
+    <div class="call-to-action">
+        <p><strong>Get your tickets at Paper Mill Playhouse</strong></p>
+        <p><a href="https://papermill.org/bull-durham/" target="_blank">Visit for more information</a></p>
+    </div>
+
+    <p>This show runs only through November 2 and it is a show for every age. After all, it is all about the Show.</p>
+</body>
+</html>
