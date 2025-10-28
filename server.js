@@ -9,6 +9,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const { promisify } = require('util');
 const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
+const multer = require('multer');
 require('dotenv').config();
 
 const app = express();
@@ -2188,6 +2189,196 @@ app.get('/debug', async (req, res) => {
       error: error.message,
       code: error.code 
     });
+  }
+});
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'blog_articles/img/');
+  },
+  filename: function (req, file, cb) {
+    // Use the filename provided in the request or generate from title
+    const customName = req.body.imageFilename || 'article-image';
+    const ext = path.extname(file.originalname);
+    cb(null, customName + ext);
+  }
+});
+
+const upload = multer({ storage: storage });
+
+// Admin endpoint to create a new blog article
+app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async (req, res) => {
+  try {
+    const { title, content, author, imageFilename } = req.body;
+    
+    // Validate required fields
+    if (!title || !content) {
+      return res.json({ error: 1, result: 'Title and content are required' });
+    }
+    
+    if (!req.file) {
+      return res.json({ error: 1, result: 'Image file is required' });
+    }
+    
+    // Generate filename-safe blog article file name from title
+    const blogArticleFile = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .substring(0, 50);
+    
+    // Generate preview text (first 200 characters)
+    const preview = content.substring(0, 200).trim() + '...';
+    
+    // Generate the HTML content
+    const authorName = author || 'Sherri Rase';
+    const imageUrl = `https://shouldcallpaul.replit.app/img/${req.file.filename}`;
+    
+    // Convert plain text content to HTML paragraphs
+    const paragraphs = content.split('\n\n').filter(p => p.trim());
+    let htmlContent = '';
+    
+    for (let i = 0; i < paragraphs.length; i++) {
+      const para = paragraphs[i].trim();
+      
+      // Check if paragraph contains a URL (likely a call-to-action)
+      if (para.includes('http://') || para.includes('https://')) {
+        const urlMatch = para.match(/(https?:\/\/[^\s]+)/);
+        if (urlMatch) {
+          const url = urlMatch[0];
+          const text = para.replace(url, '').trim();
+          htmlContent += `
+    <div class="call-to-action">
+        <p><strong>${text}</strong></p>
+        <p><a href="${url}" target="_blank">Visit for more information</a></p>
+    </div>
+`;
+        }
+      }
+      // Check if it's a short paragraph (likely a highlight/quote)
+      else if (para.length < 300 && i > 0 && i < paragraphs.length - 1) {
+        htmlContent += `
+    <div class="highlight">
+        <p>${para}</p>
+    </div>
+`;
+      }
+      // Regular paragraph
+      else {
+        htmlContent += `
+    <p>${para}</p>
+`;
+      }
+    }
+    
+    const htmlTemplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>${htmlContent}
+</body>
+</html>`;
+    
+    // Save the HTML file
+    const htmlFilePath = path.join(__dirname, 'blog_articles', `${blogArticleFile}.txt`);
+    fs.writeFileSync(htmlFilePath, htmlTemplate);
+    
+    // Get the next available ID
+    const maxIdResult = await pool.query('SELECT MAX(id) as max_id FROM public.blog_article');
+    const nextId = (maxIdResult.rows[0].max_id || 0) + 1;
+    
+    // Insert into database
+    const insertQuery = `
+      INSERT INTO public.blog_article (id, created_datetime, title, blog_article_file, preview, image)
+      VALUES ($1, NOW(), $2, $3, $4, $5)
+      RETURNING id
+    `;
+    
+    const imageDbPath = `img/${req.file.filename}`;
+    const result = await pool.query(insertQuery, [
+      nextId,
+      title,
+      blogArticleFile,
+      preview,
+      imageDbPath
+    ]);
+    
+    console.log(`✅ Blog article created successfully: ID ${nextId}, file: ${blogArticleFile}.txt`);
+    
+    res.json({
+      error: 0,
+      result: 'Blog article created successfully',
+      articleId: nextId,
+      blogArticleFile: blogArticleFile,
+      imageUrl: imageUrl
+    });
+    
+  } catch (error) {
+    console.error('Error creating blog article:', error);
+    res.status(500).json({ error: 1, result: error.message });
   }
 });
 
