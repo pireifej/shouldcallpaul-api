@@ -69,7 +69,7 @@
     <p class="byline">by Sherri Rase</p>
     
     <div class="image-container">
-        <img src="img/disney.jpg" alt="Disney's Fantasia with NJ Symphony">
+        <img src="https://shouldcallpaul.replit.app/img/disney.jpg" alt="Disney's Fantasia with NJ Symphony">
         <div class="image-caption">NJ Symphony performs Disney's Fantasia</div>
     </div>
 
