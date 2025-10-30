@@ -66,11 +66,11 @@
 </head>
 <body>
     <h1>Shakespeare Theatre's Frankenstein</h1>
-    <p class="byline">By Sherri Rase</p>
-
+    <p class="byline">by Sherri Rase</p>
+    
     <div class="image-container">
-        <img src="https://shouldcallpaul.replit.app/img/frankenstein.png" alt="Mary Shelley's Frankenstein at Shakespeare Theatre of NJ">
-        <p class="image-caption">Photo by Avery Brunkus</p>
+        <img src="img/frank.png" alt="Mary Shelley's Frankenstein at Shakespeare Theatre of NJ">
+        <div class="image-caption">Photo by Avery Brunkus</div>
     </div>
 
     <p>Shakespeare Theatre of New Jersey has dubbed this season to be one of "violent delights" and their production of David Catlin's masterful "Mary Shelley's Frankenstein" is, well, the embodiment of this very idea. This production, directed by Artistic Director Brian B. Crowe, is a nuanced psychological work that is so sharp, sometimes we don't realize the cut until we see the blood.</p>
@@ -89,11 +89,7 @@
         <p>Whipped into this mélange are the tidbits of backstory of the actual characters with a wrap that has you buzzing on the way out the door. Come for the title, the show will thrill you and give you a great deal to think about - 19th century prose with a 21st century impact.</p>
     </div>
 
-    <div class="call-to-action">
-        <p><strong>Get your tickets now for "Mary Shelley's Frankenstein" for a most memorable modern Prometheus.</strong></p>
-        <p><a href="https://www.shakespearenj.org/events/detail/mary-shelleys-frankenstein" target="_blank">Visit for more information</a></p>
-    </div>
+    <p>Get your tickets now for "Mary Shelley's Frankenstein" for a most memorable modern Prometheus. <a href="https://www.shakespearenj.org/events/detail/mary-shelleys-frankenstein">https://www.shakespearenj.org/events/detail/mary-shelleys-frankenstein</a> now through November 16 only!</p>
 
-    <p>Now through November 16 only!</p>
 </body>
 </html>
