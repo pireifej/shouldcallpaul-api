@@ -2221,12 +2221,12 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
       return res.json({ error: 1, result: 'Image file is required' });
     }
     
-    // Generate filename-safe blog article file name from title
+    // Generate filename-safe blog article file name from title (max 20 chars for DB)
     const blogArticleFile = title
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
-      .substring(0, 50);
+      .substring(0, 20);
     
     // Generate preview text (first 200 characters)
     const preview = content.substring(0, 200).trim() + '...';
