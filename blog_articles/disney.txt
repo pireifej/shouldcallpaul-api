@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disney's "Fantasia" and Your NJ Symphony</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Disney's "Fantasia" and Your NJ Symphony</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="img/disney.jpg" alt="Disney's Fantasia with NJ Symphony">
+        <div class="image-caption">NJ Symphony performs Disney's Fantasia</div>
+    </div>
+
+    <div class="highlight">
+        <p>Those of us who grew up in certain generations remember Sunday nights as being special. First there was Wild Kingdom, followed by the Wonderful World of Disney. And when a show began every week with fireworks over a princess' castle, you know there were great things to come.</p>
+    </div>
+
+    <p>Disney's "Fantasia" put visuals to classical music long before the advent of MTV and children and parents alike ate it up with a spoon.</p>
+
+    <p>First released as a film touring 13 cities, Fantasia brought eight different pieces to life with the agency of Leopold Stokowski and the Philadelphia Orchestra was recorded as a multi-track phenomenon where they used Fantasound, a system that Disney developed in conjunction with RCA, to give audiences a truly original experience.</p>
+
+    <p>NJ Symphony has done us one better by bringing the score to brilliant life under the baton of Constantine Kitsopoulos. We enjoyed selections from both the original "Fantasia" as well as "Fantasia 2000" and there were fans of all ages who enjoyed a different aspect of the wonders of Disney. Maestro Kitsopoulos lead us on a merry chase through Beethoven's Fifth, The Sorcerer's Apprentice, The Pines of Rome and so much more.</p>
+
+    <p>Seated adjacent to me were two families with children who were about 7 or 8 years old. My companion and I knew what to expect, yet listening to the joy in these children's words and the sounds they made at the visual and audible spectacle added to the experience. My favorite NJ Symphony stars were there and though it was afternoon, Bart Feller's flute carried me through into evening.</p>
+
+    <div class="highlight">
+        <p>What's next for the symphony? What's next for you? This season is just beginning with film scores, cultural doors and so much more!</p>
+    </div>
+
+    <div class="call-to-action">
+        <p><strong>Visit NJ Symphony today for upcoming performances!</strong></p>
+        <p><a href="http://www.njsymphony.org" target="_blank">www.njsymphony.org</a></p>
+    </div>
+
+</body>
+</html>
