@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shakespeare Theatre's Frankenstein</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shakespeare Theatre's Frankenstein</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="img/frank.png" alt="Mary Shelley's Frankenstein at Shakespeare Theatre of New Jersey">
+        <div class="image-caption">Shakespeare Theatre of New Jersey presents "Mary Shelley's Frankenstein"</div>
+    </div>
+
+    <p>Shakespeare Theatre of New Jersey has dubbed this season to be one of "violent delights" and their production of David Catlin's masterful "Mary Shelley's Frankenstein" is, well, the embodiment of this very idea. This production, directed by Artistic Director Brian B. Crowe, is a nuanced psychological work that is so sharp, sometimes we don't realize the cut until we see the blood.</p>
+
+    <p>We begin in a gothic drawing room where Percy Bysshe Shelley (Sean-Michael Wilkinson) is just finishing his ghastly ghost story to entertain his friends and his (current) paramour Mary Wollstonecraft Shelley (Amber Friendly). Lord Byron (Jay Wade) weighs in that while Percy feels no one need follow him, that his own effort was in fact the winner. Wisely, Dr. John Polidori (Neil Redfield) and Claire Clairmont (Brooke Turner) (who happens to be carrying Byron's baby) choose to remain as impartial a judging panel as possible. Ms. Friendly is challenged by the men to craft something to entertain them all and in a flash, the story begins.</p>
+
+    <p>Mr. Wilkinson takes on Victor, our benighted hero, who learns the VERY hard way that just because we can do something, should we? Mr. Redfield becomes Victor's bestie Henry and Ms. Friendly is Victor's beloved Elizabeth. Ms. Turner is a chameleon, replete with accents and characters that run the gamut from boychild to harridan, and Mr. Wade is a monster such as you've never seen. Heart-breakingly self aware yet unable to control his passions, while Victor has created him, he himself is trapped in his own psyche. Byron/Monster is at once powerful and impotent. Nature and nurture are both in play. It was a delicious irony that Byron, a man known for his own monstrous nature, is both performer and performance.</p>
+
+    <div class="highlight">
+        <p>Sarah Beth Hall's sets are perfect spooky season fare with shreds of cloth clinging like memories in specific places. Yao Chen's costumes are pure delight with Andrew Hungerford's lights and Ariana Cardoza's sound adding such subtle touches that you feel them before you notice them.</p>
+    </div>
+
+    <p>Rocio Mendez choreographed both intimacy and fights and Julie Foh coached dialect and voice. Truly, Mr. Crowe assembled a dream team for this gothic fever'd vision.</p>
+
+    <p>Whipped into this mélange are the tidbits of backstory of the actual characters with a wrap that has you buzzing on the way out the door. Come for the title, the show will thrill you and give you a great deal to think about - 19th century prose with a 21st century impact.</p>
+
+    <div class="highlight">
+        <p>Get your tickets now for "Mary Shelley's Frankenstein" for a most memorable modern Prometheus.</p>
+    </div>
+
+    <div class="call-to-action">
+        <p><strong>"Mary Shelley's Frankenstein" runs now through November 16 only!</strong></p>
+        <p><a href="https://www.shakespearenj.org/events/detail/mary-shelleys-frankenstein" target="_blank">https://www.shakespearenj.org/events/detail/mary-shelleys-frankenstein</a></p>
+    </div>
+
+</body>
+</html>
