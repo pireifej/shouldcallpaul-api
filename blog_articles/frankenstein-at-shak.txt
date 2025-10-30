@@ -68,6 +68,11 @@
     <h1>Shakespeare Theatre's Frankenstein</h1>
     <p class="byline">By Sherri Rase</p>
 
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/frankenstein.png" alt="Mary Shelley's Frankenstein at Shakespeare Theatre of NJ">
+        <p class="image-caption">Photo by Avery Brunkus</p>
+    </div>
+
     <p>Shakespeare Theatre of New Jersey has dubbed this season to be one of "violent delights" and their production of David Catlin's masterful "Mary Shelley's Frankenstein" is, well, the embodiment of this very idea. This production, directed by Artistic Director Brian B. Crowe, is a nuanced psychological work that is so sharp, sometimes we don't realize the cut until we see the blood.</p>
 
     <p>We begin in a gothic drawing room where Percy Bysshe Shelley (Sean-Michael Wilkinson) is just finishing his ghastly ghost story to entertain his friends and his (current) paramour Mary Wollstonecraft Shelley (Amber Friendly). Lord Byron (Jay Wade) weighs in that while Percy feels no one need follow him, that his own effort was in fact the winner. Wisely, Dr. John Polidori (Neil Redfield) and Claire Clairmont (Brooke Turner) (who happens to be carrying Byron's baby) choose to remain audience. Mary has a trick or two up her sleeve however, and thus our tale begins. Remember, there was no Netflix-and-chill, people made their own music and spun their own tales – and this one has stood the test of time.</p>
