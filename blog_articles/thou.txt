@@ -40,6 +40,21 @@
             margin: 20px 0;
             text-align: center;
         }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
         a {
             color: #3498db;
             text-decoration: none;
@@ -51,6 +66,12 @@
 </head>
 <body>
     <h1>Urban Telegraph Communications Workshops</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/thou.jpg" alt="Urban Telegraph Communications Workshops">
+        <div class="image-caption">Urban Telegraph Communications Workshops</div>
+    </div>
     
     <p>This Thursday night in Montclair, something special is happening at the First Lutheran Church of Montclair in the Luther Room – Urban Telegraph's Communications workshops!</p>
 
