@@ -39,6 +39,21 @@
             border-left: 4px solid #27ae60;
             margin: 15px 0;
         }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
         a {
             color: #3498db;
             text-decoration: none;
@@ -50,6 +65,12 @@
 </head>
 <body>
     <h1>Sherr's Going-to-the-Theatre Tips</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/happen.jpeg" alt="Going to the Theatre Tips">
+        <div class="image-caption">Tips for theatre-goers</div>
+    </div>
     
     <p>After a bit of a hiatus, I'm baaaack! Check it out!</p>
 

@@ -33,6 +33,21 @@
             border-left: 4px solid #3498db;
             margin: 20px 0;
         }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
         a {
             color: #3498db;
             text-decoration: none;
@@ -45,6 +60,11 @@
 <body>
     <h1>"The Last Romance" at Morris Museum's Bickford Theatre</h1>
     <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/up.jpg" alt="The Last Romance at Bickford Theatre">
+        <div class="image-caption">The Last Romance at Morris Museum's Bickford Theatre</div>
+    </div>
     
     <p>Joe DiPietro is a Jersey boy. He "writes" Jersey, and is most known for writing his characters in such a natural style that the dialogue comes sui generis from their lips rather than from a writer's pen. An East Coast premiere, "The Last Romance" is a play written originally for Marion Ross and her husband Paul Michael, who became friends with DiPietro and, while they are not mirrors of Carol and Ralph, there are elements of each actor in each of these characters and is part of what makes them SO real.</p>
 

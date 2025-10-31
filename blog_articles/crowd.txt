@@ -33,6 +33,21 @@
             border-left: 4px solid #3498db;
             margin: 20px 0;
         }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
         a {
             color: #3498db;
             text-decoration: none;
@@ -44,6 +59,12 @@
 </head>
 <body>
     <h1>The James-Lange Theory and Self-Care</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/crowd.jpeg" alt="Self-Care and Wellbeing">
+        <div class="image-caption">Keeping up appearances for yourself</div>
+    </div>
     
     <p>Remember the James-Lange theory in Psychology 101? Encourage your body to "feel" something on the outside and ultimately it will penetrate within.</p>
 
