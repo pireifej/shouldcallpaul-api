@@ -60,7 +60,7 @@
 <body>
     <h1>Chatham Community Players' "Lion" ROARS</h1>
     
-    <p style="display: inline-block;margin: 20px;text-align: center;"><img src="img/five.jpg" alt="Description of image"><span style="font-style: italic;"><br></span></p>
+    <p style="display: inline-block;margin: 20px;text-align: center;"><img src="https://shouldcallpaul.replit.app/img/five.jpg" alt="Description of image"><span style="font-style: italic;"><br></span></p>
     <p style="display: inline-block;margin: 20px;text-align: center;"><span style="font-style: italic;">l to r, Maria Brodeur, Kevern Cameron & Adrian Spizuoco photo by Jill Fischer</span></p>
 
     <p>King Henry II (Kevern Cameron) is in a pickle. It's Christmastime in 1183 and France and England as we know them today do not officially exist. England controls much of what is now France, in the immediate wake of the Norman Conquest, while Henry rules in Brittany, Normandy, and the land his current wife Eleanor (Maria Brodeur) brought with her, the province of Aquitaine. When they first met, she was married to Louis VII, the French King and son of her guardian Louis VI. At the time we meet them in James Goldman's classic, "The Lion in Winter," now being given in New Jersey by the Chatham Community Players, he's about 50 and she's 61–both advanced in age and wiles and moving their children and ward around like pawns in a game of Christmas chess.</p>

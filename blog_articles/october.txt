@@ -69,7 +69,7 @@
     <p class="byline">by Sherri Rase</p>
     
     <div class="image-container">
-        <img src="img/october.JPG" alt="I & You musical production scene">
+        <img src="https://shouldcallpaul.replit.app/img/october.JPG" alt="I & You musical production scene">
         <div class="image-caption">Caroline and Anthony discover connection through poetry in Lauren Gunderson's musical adaptation</div>
     </div>
 

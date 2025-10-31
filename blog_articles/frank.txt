@@ -69,7 +69,7 @@
     <p class="byline">by Sherri Rase</p>
     
     <div class="image-container">
-        <img src="img/frank.png" alt="Mary Shelley's Frankenstein at Shakespeare Theatre of New Jersey">
+        <img src="https://shouldcallpaul.replit.app/img/frank.png" alt="Mary Shelley's Frankenstein at Shakespeare Theatre of New Jersey">
         <div class="image-caption">Shakespeare Theatre of New Jersey presents "Mary Shelley's Frankenstein"</div>
     </div>
 

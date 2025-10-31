@@ -68,7 +68,7 @@
     <p>Lea DeLaria has been a cause célèbre since 1993 when she became the first out gay comic to be featured on late night television when she appeared on Arsenio Hall's show. Now a nationwide household name, though she's been a name in many of our households for the past 25 years and more, Lea is enjoying some well-earned and richly deserved renown. A gifted jazz singer with Broadway chops, DeLaria revolutionized the portrayal of Hildy Esterhazy in the 1998 Broadway revival of "On The Town" that Entertainment Weekly called "showstopping". It garnered her a Drama Desk nomination. She's also got an impressive discography including the February 2015 release of her latest work, "House of David delaria+bowie=jazz" on the presciently named Ghostlight Records.</p>
 
     <div class="image-container">
-        <img src="img/swim.jpg" alt="Lea DeLaria">
+        <img src="https://shouldcallpaul.replit.app/img/swim.jpg" alt="Lea DeLaria">
         <div class="image-caption">photo by Sophie Holland</div>
     </div>
 

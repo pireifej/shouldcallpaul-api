@@ -62,7 +62,7 @@
     <p class="byline">by Sherri Rase</p>
     
     <div class="image-container">
-        <img src="img/dark.jpg" alt="Cast of let's talk about anything else at TOSOS">
+        <img src="https://shouldcallpaul.replit.app/img/dark.jpg" alt="Cast of let's talk about anything else at TOSOS">
         <div class="image-caption">The cast of "let's talk about anything else" explores grief and friendship in this powerful LGBTQ+ production</div>
     </div>
 

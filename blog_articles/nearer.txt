@@ -62,7 +62,7 @@
     <p class="byline">by Sherri Rase</p>
     
     <div class="image-container">
-        <img src="img/nearer.jpg" alt="Cast of A Song at Twilight">
+        <img src="https://shouldcallpaul.replit.app/img/nearer.jpg" alt="Cast of A Song at Twilight">
         <div class="image-caption">l to r Alison Weller, Laila Robins, Edmond Genest photo by Jerry Dalia</div>
     </div>
 
