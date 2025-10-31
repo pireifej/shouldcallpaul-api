@@ -33,6 +33,21 @@
             border-left: 4px solid #3498db;
             margin: 20px 0;
         }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
         a {
             color: #3498db;
             text-decoration: none;
@@ -44,6 +59,12 @@
 </head>
 <body>
     <h1>Edison Valley Playhouse Show Review</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/quiet.jpeg" alt="Edison Valley Playhouse">
+        <div class="image-caption">Edison Valley Playhouse production</div>
+    </div>
     
     <p>Tonight was a great show at the Edison Valley Playhouse, a must-see for activists and theatre aficionados alike.</p>
 </body>
