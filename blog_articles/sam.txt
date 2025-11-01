@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>300 Paintings - Now at McCarter's Matthews Theatre</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>300 Paintings – Now at McCarter's Matthews Theatre</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/sam.jpg" alt="Sam Kissajukian in front of his art during the show">
+        <div class="image-caption">Sam in front of his art mid show - Photo by Sarah Findlay</div>
+    </div>
+    
+    <p>Sam Kissajukian is everthing you'd want a comedian to be – he's candid, talented, creative and tells it like it truly is. Sam is also bipolar. Why is this important? Because after 10 years of building his career as a comedian and living his dream, he had a third-of-life crisis and realized he was so far from what he wanted his life to be, he quit comedy. Cold turkey, finite, done. He rented a former cake factory and decided he would be an artist. The journey he guides us through is a hero's quest to find himself, and does he EVER!</p>
+
+    <p>What does it take to realize that what you are doing with your life renders you invisible? The core, the essential part of yourself is pushed so far back, sometimes, that the mirror doesn't event show you who you really are. While some never reach that point, and others reach it later in life, Sam's essential self kicked him in the pants and said "You. You will be an artist." Sam, to his credit, listened. Like most hero's quests, there was a lot of travail that is lightly touched upon but remains. Art is suffering and good art makes suffering colorful and real and resonant. Throughtout the 90 minues of the program, we see the genesis of 300 plus paintings and the highs and lows they depict. Thank goodness for this modern age where we can discuss the differences in the ways that each of our brains processes. Sam realized in his journey that he is a visual learner, yet like the most thoughtful teachers, his slide show and monologue are varied with visual slides, statistics and stories that continually bring home the idea that this journey is shared and part of his healing and life. Further that while this is Sam's, we are each creating something special on our own, heed your psyche's kick-in-the-pants and do YOUR journey.</p>
+
+    <p>Sam's brain is unique and when he takes you by the hand and shows you his logic, his call-backs are subtle and clever. This show has something for everyone, something special for YOU and the engagement ends Sunday. Get your tickets now at <a href="https://www.mccarter.org/300paintings" target="_blank">www.mccarter.org/300paintings</a> and get a bonus with every ticket – meet Sam after the show, explore his mind and his work. He will answer your questions and you'll have a peak experience at the Matthews Theatre at McCarter.</p>
+
+    <div class="call-to-action">
+        <p><strong>This engagement is only running through Sunday, November 2! Get your tickets now!</strong></p>
+    </div>
+
+</body>
+</html>
