@@ -65,7 +65,7 @@
     </style>
 </head>
 <body>
-    <h1>Love and Baseball – Bull Durham Now at PPM</h1>
+    <h1>Love and Baseball – Bull Durham Now at PMP</h1>
     <p class="byline">By Sherri Rase</p>
 
     <div class="image-container">
