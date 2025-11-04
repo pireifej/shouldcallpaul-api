@@ -1523,6 +1523,27 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// GET /getAllChurches - Get all churches (no authentication required)
+app.get('/getAllChurches', async (req, res) => {
+  try {
+    const query = `
+      SELECT church_id, church_name, church_addr
+      FROM public.church
+      ORDER BY church_name ASC
+    `;
+    
+    const result = await pool.query(query);
+    
+    res.json({
+      error: 0,
+      churches: result.rows
+    });
+  } catch (err) {
+    console.error('Error fetching churches:', err);
+    res.status(500).json({ error: 'Database error: ' + err.message });
+  }
+});
+
 // POST /getPrayerByRequestId - Get prayer text for a specific request
 app.post('/getPrayerByRequestId', authenticate, async (req, res) => {
   log(req);
