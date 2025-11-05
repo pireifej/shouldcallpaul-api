@@ -715,7 +715,6 @@ app.post('/getRequestFeed', authenticate, async (req, res) => {
       INNER JOIN public."user" ON "user".user_id = request.user_id
       INNER JOIN public.settings ON settings.user_id = "user".user_id
       INNER JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
-      INNER JOIN public.user_family ON user_family.user_id = request.user_id
       WHERE request.active = 1
     `;
     
@@ -797,13 +796,11 @@ app.post('/getUser', authenticate, async (req, res) => {
           settings.allow_comments,
           settings.general_emails,
           settings.summary_emails,
-          user_family.family_id,
           ("user".timestamp AT TIME ZONE 'UTC' AT TIME ZONE $2) as timestamp,
           (SELECT COUNT(*) FROM public.user_request WHERE user_request.user_id = "user".user_id) as prayer_count,
           (SELECT COUNT(*) FROM public.request WHERE request.user_id = "user".user_id) as request_count
         FROM public."user"
         LEFT JOIN public.settings ON settings.user_id = $1
-        LEFT JOIN public.user_family ON user_family.user_id = $1
         WHERE "user".user_id = $1
       `;
       queryParams = [userIdNum, timezone];
@@ -828,13 +825,11 @@ app.post('/getUser', authenticate, async (req, res) => {
           settings.allow_comments,
           settings.general_emails,
           settings.summary_emails,
-          user_family.family_id,
           ("user".timestamp AT TIME ZONE 'UTC' AT TIME ZONE $2) as timestamp,
           (SELECT COUNT(*) FROM public.user_request WHERE user_request.user_id = "user".user_id) as prayer_count,
           (SELECT COUNT(*) FROM public.request WHERE request.user_id = "user".user_id) as request_count
         FROM public."user"
         LEFT JOIN public.settings ON settings.user_id = "user".user_id
-        LEFT JOIN public.user_family ON user_family.user_id = "user".user_id
         WHERE "user".user_name = $1
       `;
       queryParams = [userId, timezone];
@@ -1664,7 +1659,6 @@ app.post('/getMyRequestFeed', authenticate, async (req, res) => {
       INNER JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
-      LEFT JOIN public.user_family ON user_family.user_id = request.user_id
       WHERE request.user_id = $1
       ORDER BY timestamp_raw DESC
     `;
@@ -1720,7 +1714,6 @@ app.post('/getMyRequests', authenticate, async (req, res) => {
       INNER JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
-      LEFT JOIN public.user_family ON user_family.user_id = request.user_id
       WHERE request.user_id = $1 AND request.active = 1
       ORDER BY timestamp_raw DESC
     `;
@@ -1779,7 +1772,6 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
       INNER JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
-      LEFT JOIN public.user_family ON user_family.user_id = request.user_id
       LEFT JOIN LATERAL (
         SELECT 
           COUNT(*)::int as prayer_count,
