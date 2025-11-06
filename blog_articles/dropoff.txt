@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NJ Rep – World Premiere "The Drop Off"</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>NJ Rep – World Premiere "The Drop Off"</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/dropoff.jpg" alt="Joyce Sylvester and Chantal Jean-Pierre in The Drop Off">
+        <div class="image-caption">Joyce Sylvester & Chantal Jean-Pierre - Photo by Jordan Ryder</div>
+    </div>
+    
+    <p>Life is a gamble. Always and all ways. This is so very true in James Anthony Tyler's latest play, "The Drop Off", making it's World Premiere at New Jersey Repertory Company this Autumn. It's a long, long way from May to December and when the benighted Allain (Chantal Jean-Pierre) takes her mother Delphina (Joyce Sylvester) to her new home, in an assisted living facility, there are adjustments for both of them. They meet Mimi (Harmony Harris) who is a young woman who knows her way around older women. She's an expert caregiver who knows the right amount of love, tough and tender, to apply to particular situations. Delphina is just at the beginning of the onset of memory challenges and Allain is on the verge of losing her job if Delphina wanders off again. Yet, in the wonder of the malady, every long-standing thing is news to Ms. Delphina – the fact that her grandson lives in LA, that her daughter is divorced. Yet the one thing that shines clear through it all is her love for her deceased husband and Allain's struggle with gambling addiction. Did I mention, we're all in Las Vegas? And when Ms. Delphina meets Ms. Crystal (Niambi), there is a delightful version of "Who's on First" that left me marveling at the actors' mad skills.</p>
+
+    <p>Delicia Turner Sonnenberg helms this production and she conducts this heartstring quartet with delicacy and grace. The dream team is a who's who of NJ Rep's company, Jessica Park's set that strikes the perfect balance of institution and semi-personal. Jill Nagle's lighting complements the sets and especially when a decision is called out so that we visibly see what is going on in Allain's febrile brain at one point. Nicole Jescinth Smith is spot-on with the sophistication of the women and the colorful Mimi is in purple, truly a royal color. Nick Simone's sounds keep us in the moment and transport us. Be sure to check out the dramaturgy in the lobby as well. You'll get every moment in aces, all hearts, clubs, spades and finally diamonds. Get your tickets now, before they sell out.</p>
+
+    <div class="call-to-action">
+        <p><strong>This 160th World Premiere at New Jersey Repertory Company closes November 23, so get your tickets at <a href="https://njrep.org/show/the-drop-off/" target="_blank">https://njrep.org/show/the-drop-off/</a> and give an early gift of love.</strong></p>
+    </div>
+
+</body>
+</html>
