@@ -10,6 +10,7 @@ const { exec } = require('child_process');
 const { promisify } = require('util');
 const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
 const multer = require('multer');
+const admin = require('firebase-admin');
 require('dotenv').config();
 
 const app = express();
@@ -105,6 +106,20 @@ const pool = new Pool({
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY 
 });
+
+// Initialize Firebase Admin SDK
+let firebaseInitialized = false;
+try {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+  firebaseInitialized = true;
+  console.log('✅ Firebase Admin SDK initialized successfully');
+} catch (error) {
+  console.error('❌ Firebase initialization failed:', error.message);
+  console.log('⚠️  Push notifications will not work without Firebase credentials');
+}
 
 // Email sending function using MailerSend
 async function mailerSendSingle(template, fromPerson, toPerson, subject, extraResult, res) {
