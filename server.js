@@ -161,6 +161,59 @@ async function mailerSendSingle(template, fromPerson, toPerson, subject, extraRe
     }
 }
 
+// Push notification function using Firebase Cloud Messaging
+async function sendPushNotification(fcmToken, title, body, data = {}) {
+  if (!firebaseInitialized) {
+    console.log('⚠️  Firebase not initialized, skipping push notification');
+    return { error: 1, result: 'Firebase not initialized' };
+  }
+
+  if (!fcmToken) {
+    return { error: 1, result: 'No FCM token provided' };
+  }
+
+  try {
+    const message = {
+      notification: {
+        title: title,
+        body: body
+      },
+      data: data,
+      token: fcmToken,
+      android: {
+        priority: 'high',
+        notification: {
+          sound: 'default',
+          channelId: 'prayer_notifications'
+        }
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+            badge: 1
+          }
+        }
+      }
+    };
+
+    const response = await admin.messaging().send(message);
+    console.log('✅ Push notification sent successfully:', response);
+    return { error: 0, result: 'Push notification sent', messageId: response };
+  } catch (error) {
+    console.error('❌ Push notification error:', error);
+    
+    // Handle invalid/expired tokens
+    if (error.code === 'messaging/invalid-registration-token' || 
+        error.code === 'messaging/registration-token-not-registered') {
+      console.log('🗑️  Invalid FCM token, should be removed from database');
+      return { error: 1, result: 'Invalid token', shouldRemoveToken: true };
+    }
+    
+    return { error: 1, result: error.message };
+  }
+}
+
 function log(req, params) {
     let date_ob = new Date();
     console.log(new Date(), req.originalUrl, JSON.stringify(req.body));
@@ -916,11 +969,15 @@ app.post('/prayFor', authenticate, async (req, res) => {
       // Step 2: Get request owner information
       const requestOwnerQuery = `
         SELECT 
+          "user".user_id,
           "user".real_name, 
           "user".email, 
-          "user".picture, 
-          request.request_text, 
-          settings.prayer_emails 
+          "user".picture,
+          "user".fcm_token, 
+          request.request_text,
+          request.request_title, 
+          settings.prayer_emails,
+          settings.push_notifications 
         FROM public.request 
         INNER JOIN public."user" ON "user".user_id = request.user_id 
         INNER JOIN public.settings ON settings.user_id = request.user_id 
@@ -985,17 +1042,55 @@ app.post('/prayFor', authenticate, async (req, res) => {
         }
       }
       
+      // Step 5: Send push notification if the request owner has a FCM token and wants push notifications
+      let pushResult = null;
+      if (requestOwner?.push_notifications !== false && requestOwner?.fcm_token) {
+        try {
+          const notificationTitle = "Someone prayed for you 🙏";
+          const notificationBody = `${userWhoPrayed.real_name} just prayed for your request`;
+          const notificationData = {
+            type: 'prayer',
+            requestId: params.requestId.toString(),
+            userId: requestOwner.user_id.toString(),
+            prayerUserName: userWhoPrayed.real_name
+          };
+          
+          pushResult = await sendPushNotification(
+            requestOwner.fcm_token,
+            notificationTitle,
+            notificationBody,
+            notificationData
+          );
+          
+          console.log('Prayer notification push sent:', pushResult);
+          
+          // If token is invalid, remove it from database
+          if (pushResult.shouldRemoveToken) {
+            await pool.query(
+              'UPDATE public."user" SET fcm_token = NULL WHERE user_id = $1',
+              [requestOwner.user_id]
+            );
+            console.log(`🗑️  Removed invalid FCM token for user ${requestOwner.user_id}`);
+          }
+        } catch (pushError) {
+          console.error('Failed to send prayer notification push:', pushError);
+          pushResult = { error: 1, result: pushError.message };
+        }
+      }
+      
       // Return success response with the prayer data
       res.json({
         success: true,
         message: "Prayer recorded successfully",
         emailSent: emailResult?.error === 0,
+        pushSent: pushResult?.error === 0,
         data: {
           requestOwner: {
             name: requestOwner?.real_name,
             email: requestOwner?.email,
             requestText: requestOwner?.request_text,
-            wantsEmails: requestOwner?.prayer_emails
+            wantsEmails: requestOwner?.prayer_emails,
+            wantsPushNotifications: requestOwner?.push_notifications
           },
           userWhoPrayed: {
             name: userWhoPrayed?.real_name,
@@ -1123,6 +1218,44 @@ app.get('/resume/:filename', async (req, res) => {
   } catch (error) {
     console.error('Error serving resume file:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /registerFCMToken - Register or update a user's FCM token for push notifications
+app.post('/registerFCMToken', authenticate, async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    if (!params.userId || !params.fcmToken) {
+      return res.json({ error: 1, result: "Required params 'userId' and 'fcmToken' missing" });
+    }
+    
+    // Update the user's FCM token in the database
+    const updateQuery = `
+      UPDATE public."user" 
+      SET fcm_token = $1, fcm_token_updated = NOW() 
+      WHERE user_id = $2
+      RETURNING user_id, real_name
+    `;
+    
+    const result = await pool.query(updateQuery, [params.fcmToken, params.userId]);
+    
+    if (result.rows.length === 0) {
+      return res.json({ error: 1, result: "User not found" });
+    }
+    
+    console.log(`✅ FCM token registered for user ${result.rows[0].real_name} (ID: ${params.userId})`);
+    
+    res.json({ 
+      error: 0, 
+      result: "FCM token registered successfully",
+      userId: params.userId
+    });
+    
+  } catch (error) {
+    console.error('Error registering FCM token:', error);
+    res.status(500).json({ error: 1, result: 'Internal server error' });
   }
 });
 
