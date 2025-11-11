@@ -6,14 +6,23 @@ This project is a comprehensive prayer and blog platform featuring an Express.js
 
 Preferred communication style: Simple, everyday language.
 
-# Recent Changes (October 2025)
+# Recent Changes (November 2025)
+
+- **November 11, 2025**: Implemented Firebase Cloud Messaging (FCM) push notifications
+  - Added Firebase Admin SDK integration with secure credential management
+  - Created `/registerFCMToken` endpoint for mobile apps to register device tokens
+  - Enhanced `/prayFor` endpoint to send push notifications when someone prays for a request
+  - Added database columns: `user.fcm_token`, `user.fcm_token_updated`, `settings.push_notifications`
+  - Automatic cleanup of invalid/expired FCM tokens
+  - Respects user privacy settings for push notification preferences
+  - Implemented admin notification email for new prayer request creation
 
 - **October 17, 2025**: Fixed broadcast email rate limiting to comply with MailerSend's 120 requests/min limit
   - Changed from batch-based delays to per-email delays (600ms between each email = 100 emails/min)
   - Fixed duplicate email address issue in TO/CC fields by making CC list dynamic
   - Added progress logging every 10 emails for better monitoring
 
-- **Previous updates**: Created broadcast email system with personalization, added blog articles, added Career Day workshop entry, fixed getCommunityWall endpoint
+- **Previous updates**: Created broadcast email system with personalization, added blog articles, added Career Day workshop entry, fixed getCommunityWall endpoint, removed all user_family table references
 
 # System Architecture
 
@@ -31,6 +40,8 @@ Preferred communication style: Simple, everyday language.
 - **Community Prayer Wall**: Users can view prayer requests from other community members (excluding their own requests)
 - **Personal Requests**: Users can submit, view, and manage their own prayer requests
 - **Prayer Response**: Community members can "pray for" requests, with tracking of who has prayed
+- **Push Notifications**: Mobile users receive instant push notifications when someone prays for their requests
+- **Admin Notifications**: Paul receives email alerts whenever a new prayer request is created
 
 ### Blog CMS
 - **Static Content**: Blog articles stored as HTML files with associated images in `blog_articles/` directory
@@ -76,6 +87,7 @@ Preferred communication style: Simple, everyday language.
 ### Core Services
 - **PostgreSQL**: Primary database system (Neon-backed Replit database)
 - **MailerSend**: Email delivery service with API key management via environment secrets
+- **Firebase Cloud Messaging (FCM)**: Free, unlimited push notification service for mobile apps
 
 ### Node.js Libraries
 - **express**: Web server framework
@@ -85,10 +97,12 @@ Preferred communication style: Simple, everyday language.
 - **cors**: Cross-origin resource sharing for API access
 - **mailersend**: Official MailerSend SDK for email delivery
 - **openai**: OpenAI API integration for AI features
+- **firebase-admin**: Firebase Admin SDK for push notifications
 
 ### Environment Configuration
 - **DATABASE_URL**: PostgreSQL connection string (automatically configured by Replit)
 - **MAILERSEND_API_KEY**: API key for email service (stored in environment secrets)
+- **FIREBASE_SERVICE_ACCOUNT**: Firebase service account JSON for push notifications (stored in environment secrets)
 - **PORT**: Server port (defaults to 5000)
 
 ### Static Assets
@@ -102,7 +116,33 @@ Preferred communication style: Simple, everyday language.
 2. **Prayer Requests**: Create, read, update prayer requests; community wall access
 3. **Blog**: Retrieve blog articles and metadata
 4. **Email**: Broadcast notifications to user base
-5. **Resume Data**: Public endpoints for portfolio information
-6. **Debug**: Database connectivity and health checks
+5. **Push Notifications**: FCM token registration and mobile push notifications
+6. **Resume Data**: Public endpoints for portfolio information
+7. **Debug**: Database connectivity and health checks
+
+## Push Notification System
+
+### Architecture
+Firebase Cloud Messaging (FCM) provides free, unlimited push notifications to mobile devices. The system:
+- Stores device FCM tokens in the `user` table
+- Respects user preferences via `settings.push_notifications`
+- Automatically cleans up invalid/expired tokens
+- Sends high-priority notifications for immediate delivery
+
+### Endpoints
+- **POST /registerFCMToken**: Mobile apps register their device token
+  - Parameters: `userId`, `fcmToken`
+  - Updates `user.fcm_token` and `user.fcm_token_updated`
+  
+### Notification Triggers
+- **Prayer Response**: When someone prays for a user's request
+  - Title: "Someone prayed for you 🙏"
+  - Body: "[Name] just prayed for your request"
+  - Includes request ID and user data for deep linking
+
+### Database Schema
+- `user.fcm_token` (VARCHAR 255): Device FCM token
+- `user.fcm_token_updated` (TIMESTAMP): Last token update time
+- `settings.push_notifications` (BOOLEAN): User preference for push notifications
 
 The architecture prioritizes reliability, security, and scalability while maintaining simplicity in deployment and maintenance within the Replit environment.
