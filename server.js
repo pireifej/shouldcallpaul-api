@@ -1479,6 +1479,61 @@ Instructions for Generating the Prayer:
         message: "Request and prayer created successfully"
       });
 
+      // Step 7: Send notification email to admin
+      const notificationHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">New Prayer Request Created</h2>
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>Created by:</strong> ${realName}</p>
+            <p><strong>Request ID:</strong> ${requestId}</p>
+            <p><strong>Prayer ID:</strong> ${prayerId}</p>
+          </div>
+          <div style="margin: 20px 0;">
+            <h3 style="color: #2c3e50;">Request Title:</h3>
+            <p style="background-color: #e8f5e9; padding: 15px; border-left: 4px solid #4caf50; margin: 10px 0;">
+              ${params.requestTitle}
+            </p>
+          </div>
+          <div style="margin: 20px 0;">
+            <h3 style="color: #2c3e50;">Request Text:</h3>
+            <p style="background-color: #fff3e0; padding: 15px; border-left: 4px solid #ff9800; margin: 10px 0;">
+              ${params.requestText}
+            </p>
+          </div>
+          <div style="margin: 20px 0;">
+            <h3 style="color: #2c3e50;">Generated Prayer:</h3>
+            <div style="background-color: #f3e5f5; padding: 15px; border-left: 4px solid #9c27b0; margin: 10px 0; line-height: 1.6;">
+              ${newPrayer}
+            </div>
+          </div>
+          <hr style="border: 1px solid #eee; margin: 20px 0;">
+          <p style="color: #7f8c8d; font-size: 12px;">
+            This is an automated notification from PrayOverUs.com
+          </p>
+        </div>
+      `;
+
+      const fromPerson = { 
+        email: "paul@prayoverus.com", 
+        name: "PrayOverUs Notifications" 
+      };
+      
+      const toPerson = {
+        email: "paul@prayoverus.com",
+        name: "Paul"
+      };
+
+      mailerSendSingle(
+        notificationHtml,
+        fromPerson,
+        toPerson,
+        `New Prayer Request: ${params.requestTitle}`,
+        null,
+        null
+      ).catch(emailError => {
+        console.error('Admin notification email failed:', emailError);
+      });
+
       // Clean up idempotency file
       if (fs.existsSync(newRequestCheck)) {
         fs.unlink(newRequestCheck, (err) => {
