@@ -1313,8 +1313,8 @@ app.post('/createUser', authenticate, async (req, res) => {
         INSERT INTO public.user (
           user_id, user_name, password, email, real_name, last_name, location, 
           user_title, user_about, picture, gender, phone, type, 
-          contacted_timestamp, active
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+          contacted_timestamp, active, church_id
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
         RETURNING user_id
       `;
       
@@ -1333,7 +1333,8 @@ app.post('/createUser', authenticate, async (req, res) => {
         params.phone || '',
         'standard',
         null,
-        1
+        1,
+        params.church_id || 4
       ];
       
       const userResult = await client.query(userInsertQuery, userValues);
