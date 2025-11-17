@@ -362,10 +362,13 @@ app.post('/getAllUsers', authenticate, async (req, res) => {
         "user".user_title,
         "user".user_about,
         "user".picture,
+        "user".church_id,
+        church.church_name,
         ("user".timestamp AT TIME ZONE 'UTC' AT TIME ZONE $1) as timestamp,
         (SELECT COUNT(*) FROM public.user_request WHERE user_request.user_id = "user".user_id) as prayer_count,
         (SELECT COUNT(*) FROM public.request WHERE request.user_id = "user".user_id) as request_count
       FROM public."user"
+      LEFT JOIN public.church ON church.church_id = "user".church_id
     `;
     
     let queryParams = [params.tz];
