@@ -859,6 +859,8 @@ app.post('/getUser', authenticate, async (req, res) => {
           "user".user_about,
           "user".gender,
           "user".picture,
+          "user".church_id,
+          church.church_name,
           settings.use_alias,
           settings.request_emails,
           settings.prayer_emails,
@@ -870,6 +872,7 @@ app.post('/getUser', authenticate, async (req, res) => {
           (SELECT COUNT(*) FROM public.request WHERE request.user_id = "user".user_id) as request_count
         FROM public."user"
         LEFT JOIN public.settings ON settings.user_id = $1
+        LEFT JOIN public.church ON church.church_id = "user".church_id
         WHERE "user".user_id = $1
       `;
       queryParams = [userIdNum, timezone];
@@ -888,6 +891,8 @@ app.post('/getUser', authenticate, async (req, res) => {
           "user".user_about,
           "user".gender,
           "user".picture,
+          "user".church_id,
+          church.church_name,
           settings.use_alias,
           settings.request_emails,
           settings.prayer_emails,
@@ -899,6 +904,7 @@ app.post('/getUser', authenticate, async (req, res) => {
           (SELECT COUNT(*) FROM public.request WHERE request.user_id = "user".user_id) as request_count
         FROM public."user"
         LEFT JOIN public.settings ON settings.user_id = "user".user_id
+        LEFT JOIN public.church ON church.church_id = "user".church_id
         WHERE "user".user_name = $1
       `;
       queryParams = [userId, timezone];
