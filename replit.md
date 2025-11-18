@@ -8,14 +8,20 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (November 2025)
 
-- **November 18, 2025**: Added profile picture upload functionality
-  - New `/uploadProfilePicture` endpoint for secure image uploads from mobile app
-  - Accepts multipart/form-data with image files (JPG, PNG, WEBP up to 5MB)
-  - Stores images in `/public/profile-pictures/` with `{userId}_profile.{ext}` naming convention
-  - Added new database column `profile_picture_url` to user table
-  - Updates both `profile_picture_url` (new) and `picture` (legacy) for backward compatibility
-  - Security: Uses memory storage with validation before disk writes to prevent path traversal attacks
-  - Enhanced `/getUser` to return `profile_picture_url` field
+- **November 18, 2025**: Added image upload functionality for profiles and prayer requests
+  - **Profile Pictures**: New `/uploadProfilePicture` endpoint for secure image uploads from mobile app
+    - Accepts multipart/form-data with image files (JPG, PNG, WEBP up to 5MB)
+    - Stores images in `/public/profile-pictures/` with `{userId}_profile.{ext}` naming convention
+    - Added new database column `profile_picture_url` to user table
+    - Updates both `profile_picture_url` (new) and `picture` (legacy) for backward compatibility
+    - Security: Uses memory storage with validation before disk writes to prevent path traversal attacks
+    - Enhanced `/getUser` to return `profile_picture_url` field
+  - **Prayer Request Images**: Enhanced `/createRequestAndPrayer` to accept images
+    - Now handles both JSON (existing) and multipart/form-data (new with images)
+    - Stores images in `/public/prayer-images/` with `{requestId}_prayer.{ext}` naming convention
+    - Updates `request.picture` field with image URL after request creation
+    - All fetch endpoints (`/getRequestFeed`, `/getMyRequests`, `/getCommunityWall`) return `request_picture`
+    - Same security approach as profile pictures: memory storage, validation, cleanup on errors
   - Created `/updateUser` endpoint for profile editing (user_about, user_title, church_id)
   - Enhanced `/getAllUsers` to include church_id and church_name for each user
 
