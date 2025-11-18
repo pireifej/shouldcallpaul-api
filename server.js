@@ -23,6 +23,7 @@ app.use(express.text({ limit: '50mb' })); // Parse text request bodies
 
 // Serve static files for profile images and blog images
 app.use('/profile_images', express.static('profile_images'));
+app.use('/profile-pictures', express.static('public/profile-pictures'));
 app.use('/img', express.static('blog_articles/img'));
 app.use('/resume_data', express.static('resume_data'));
 
@@ -862,6 +863,7 @@ app.post('/getUser', authenticate, async (req, res) => {
           "user".user_about,
           "user".gender,
           "user".picture,
+          "user".profile_picture_url,
           "user".church_id,
           church.church_name,
           settings.use_alias,
@@ -894,6 +896,7 @@ app.post('/getUser', authenticate, async (req, res) => {
           "user".user_about,
           "user".gender,
           "user".picture,
+          "user".profile_picture_url,
           "user".church_id,
           church.church_name,
           settings.use_alias,
@@ -2479,6 +2482,116 @@ app.get('/debug', async (req, res) => {
       code: error.code 
     });
   }
+});
+
+// Configure multer for profile picture uploads - use memory storage for security
+const profilePictureUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = ['.jpg', '.jpeg', '.png', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPG, PNG, and WEBP formats are allowed'));
+    }
+  }
+});
+
+// POST /uploadProfilePicture - Upload user profile picture
+app.post('/uploadProfilePicture', authenticate, (req, res) => {
+  // Wrap multer to properly catch and handle errors
+  profilePictureUpload.single('image')(req, res, async (err) => {
+    let filePath = null;
+    
+    // Clean up disk file on any error
+    const cleanupFile = () => {
+      if (filePath && fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (unlinkErr) {
+          console.error('Failed to delete file:', unlinkErr);
+        }
+      }
+    };
+    
+    try {
+      // Handle multer errors
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.json({ error: 1, result: 'File size exceeds 5MB limit' });
+        }
+        
+        if (err.message === 'Only JPG, PNG, and WEBP formats are allowed') {
+          return res.json({ error: 1, result: 'Only JPG, PNG, and WEBP formats are allowed' });
+        }
+        
+        console.error('Upload error:', err);
+        return res.json({ error: 1, result: 'Failed to save image' });
+      }
+      
+      // Validate file was uploaded
+      if (!req.file) {
+        return res.json({ error: 1, result: 'Image file is required' });
+      }
+      
+      // Validate and sanitize userId AFTER file is in memory but BEFORE writing to disk
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.json({ error: 1, result: 'userId is required' });
+      }
+      
+      const userIdNum = parseInt(userId);
+      if (isNaN(userIdNum) || userIdNum <= 0) {
+        return res.json({ error: 1, result: 'Invalid userId' });
+      }
+      
+      // Check if user exists in database BEFORE writing file
+      const userCheckQuery = 'SELECT user_id FROM public."user" WHERE user_id = $1';
+      const userCheckResult = await pool.query(userCheckQuery, [userIdNum]);
+      
+      if (userCheckResult.rows.length === 0) {
+        return res.json({ error: 1, result: 'User not found' });
+      }
+      
+      // Now that all validation passed, safely construct filename and write to disk
+      const ext = path.extname(req.file.originalname).toLowerCase();
+      const filename = `${userIdNum}_profile${ext}`;
+      filePath = path.join('public/profile-pictures', filename);
+      
+      // Write buffer to disk
+      fs.writeFileSync(filePath, req.file.buffer);
+      
+      // Build the public URL for the uploaded image
+      const profilePictureUrl = `https://shouldcallpaul.replit.app/profile-pictures/${filename}`;
+      
+      // Update both profile_picture_url (new field) and picture (legacy field) for backward compatibility
+      const updateQuery = `
+        UPDATE public."user"
+        SET profile_picture_url = $1, picture = $1
+        WHERE user_id = $2
+        RETURNING user_id, profile_picture_url
+      `;
+      
+      await pool.query(updateQuery, [profilePictureUrl, userIdNum]);
+      
+      res.json({
+        error: 0,
+        message: 'Profile picture uploaded successfully',
+        profile_picture_url: profilePictureUrl
+      });
+      
+    } catch (error) {
+      console.error('Profile picture upload error:', error);
+      cleanupFile();
+      res.json({ error: 1, result: 'Failed to save image' });
+    }
+  });
 });
 
 // Configure multer for file uploads
