@@ -2571,14 +2571,15 @@ app.post('/uploadProfilePicture', authenticate, (req, res) => {
       const profilePictureUrl = `https://shouldcallpaul.replit.app/profile-pictures/${filename}`;
       
       // Update both profile_picture_url (new field) and picture (legacy field) for backward compatibility
+      // Use separate parameters to avoid PostgreSQL type confusion between TEXT and VARCHAR
       const updateQuery = `
         UPDATE public."user"
-        SET profile_picture_url = $1, picture = $1
-        WHERE user_id = $2
+        SET profile_picture_url = $1, picture = $2
+        WHERE user_id = $3
         RETURNING user_id, profile_picture_url
       `;
       
-      await pool.query(updateQuery, [profilePictureUrl, userIdNum]);
+      await pool.query(updateQuery, [profilePictureUrl, profilePictureUrl, userIdNum]);
       
       res.json({
         error: 0,
