@@ -8,7 +8,16 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (November 2025)
 
-- **November 18, 2025**: Added image upload functionality for profiles and prayer requests
+- **November 18, 2025**: Implemented church filter support and image upload functionality
+  - **Church Filter Feature**: Added church_id to API responses for client-side filtering
+    - Updated `/login` endpoint to include `church_id` in user response object
+    - Enhanced all prayer request endpoints to include `church_id` field:
+      - `/getRequestFeed` - Returns church_id of request creator
+      - `/getMyRequests` - Returns church_id of request creator
+      - `/getCommunityWall` - Returns church_id of request creator
+    - Mobile app can now filter prayers by church affiliation (client-side filtering)
+    - Backward compatible: existing clients unaffected by additional field
+  - **Image Upload Functionality**:
   - **Profile Pictures**: New `/uploadProfilePicture` endpoint for secure image uploads from mobile app
     - Accepts multipart/form-data with image files (JPG, PNG, WEBP up to 5MB)
     - Stores images in `/public/profile-pictures/` with `{userId}_profile.{ext}` naming convention
