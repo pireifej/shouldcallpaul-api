@@ -922,6 +922,68 @@ app.post('/getUser', authenticate, async (req, res) => {
   }
 });
 
+// POST /updateUser - Update user profile (About, Title, Church)
+app.post('/updateUser', authenticate, async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    if (!params.userId) {
+      return res.json({ error: 1, result: "Required param 'userId' missing" });
+    }
+    
+    // Validate that at least one field is being updated
+    if (!params.user_about && !params.user_title && !params.church_id) {
+      return res.json({ error: 1, result: "At least one field (user_about, user_title, or church_id) must be provided" });
+    }
+    
+    // Build dynamic UPDATE query based on provided fields
+    let updateFields = [];
+    let queryParams = [];
+    let paramIndex = 1;
+    
+    if (params.user_about !== undefined) {
+      updateFields.push(`user_about = $${paramIndex}`);
+      queryParams.push(params.user_about);
+      paramIndex++;
+    }
+    
+    if (params.user_title !== undefined) {
+      updateFields.push(`user_title = $${paramIndex}`);
+      queryParams.push(params.user_title);
+      paramIndex++;
+    }
+    
+    if (params.church_id !== undefined) {
+      updateFields.push(`church_id = $${paramIndex}`);
+      queryParams.push(params.church_id);
+      paramIndex++;
+    }
+    
+    // Add userId as the last parameter for WHERE clause
+    queryParams.push(params.userId);
+    
+    const query = `
+      UPDATE public."user" 
+      SET ${updateFields.join(', ')}
+      WHERE user_id = $${paramIndex}
+      RETURNING user_id, user_about, user_title, church_id
+    `;
+    
+    const result = await pool.query(query, queryParams);
+    
+    if (result.rows.length === 0) {
+      return res.json({ error: 1, result: "User not found" });
+    }
+    
+    res.json({ error: 0, result: "User updated successfully", user: result.rows[0] });
+    
+  } catch (error) {
+    console.error('Database update error:', error);
+    res.status(500).json({ error: 1, result: 'Internal server error' });
+  }
+});
+
 // POST /getChatCompletion - OpenAI chat completion endpoint  
 app.post('/getChatCompletion', authenticate, async (req, res) => {
   try {
