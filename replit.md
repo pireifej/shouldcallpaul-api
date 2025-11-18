@@ -8,11 +8,15 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (November 2025)
 
-- **November 18, 2025**: Created `/updateUser` endpoint for profile editing
-  - Allows updating user_about (About section), user_title (Title), and church_id (church assignment)
-  - Takes userId as required parameter
-  - Flexible: update one, two, or all three fields in a single request
-  - Returns updated user data on success
+- **November 18, 2025**: Added profile picture upload functionality
+  - New `/uploadProfilePicture` endpoint for secure image uploads from mobile app
+  - Accepts multipart/form-data with image files (JPG, PNG, WEBP up to 5MB)
+  - Stores images in `/public/profile-pictures/` with `{userId}_profile.{ext}` naming convention
+  - Added new database column `profile_picture_url` to user table
+  - Updates both `profile_picture_url` (new) and `picture` (legacy) for backward compatibility
+  - Security: Uses memory storage with validation before disk writes to prevent path traversal attacks
+  - Enhanced `/getUser` to return `profile_picture_url` field
+  - Created `/updateUser` endpoint for profile editing (user_about, user_title, church_id)
   - Enhanced `/getAllUsers` to include church_id and church_name for each user
 
 - **November 11, 2025**: Implemented Firebase Cloud Messaging (FCM) push notifications
