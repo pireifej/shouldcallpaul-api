@@ -538,7 +538,8 @@ app.post('/login', authenticate, async (req, res) => {
         active,
         timestamp,
         user_id,
-        picture
+        picture,
+        church_id
       FROM public."user" 
       WHERE LOWER(email) LIKE LOWER($1)
       LIMIT 1
@@ -783,7 +784,8 @@ app.post('/getRequestFeed', authenticate, async (req, res) => {
         (request.timestamp AT TIME ZONE 'UTC' AT TIME ZONE $1) as timestamp,
         "user".user_name,
         "user".real_name,
-        "user".picture
+        "user".picture,
+        "user".church_id
       FROM public.request
       INNER JOIN public.category ON category.category_id = request.fk_category_id
       INNER JOIN public."user" ON "user".user_id = request.user_id
@@ -2083,7 +2085,8 @@ app.post('/getMyRequests', authenticate, async (req, res) => {
         request.timestamp as timestamp_raw,
         "user".user_name,
         "user".real_name,
-        "user".picture
+        "user".picture,
+        "user".church_id
       FROM public.request
       LEFT JOIN public.category ON category.category_id = request.fk_category_id
       INNER JOIN public."user" ON "user".user_id = request.user_id
@@ -2139,6 +2142,7 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
         "user".user_name,
         "user".real_name,
         "user".picture,
+        "user".church_id,
         COALESCE(prayer_info.prayer_count, 0) as prayer_count,
         COALESCE(prayer_info.prayed_by_names, ARRAY[]::text[]) as prayed_by_names,
         CASE WHEN prayer_info.user_has_prayed THEN true ELSE false END as user_has_prayed
