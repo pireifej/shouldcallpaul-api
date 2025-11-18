@@ -24,6 +24,7 @@ app.use(express.text({ limit: '50mb' })); // Parse text request bodies
 // Serve static files for profile images and blog images
 app.use('/profile_images', express.static('profile_images'));
 app.use('/profile-pictures', express.static('public/profile-pictures'));
+app.use('/prayer-images', express.static('public/prayer-images'));
 app.use('/img', express.static('blog_articles/img'));
 app.use('/resume_data', express.static('resume_data'));
 
@@ -1496,9 +1497,70 @@ app.post('/createUser', authenticate, async (req, res) => {
   }
 });
 
+// Configure multer for prayer image uploads - use memory storage for security
+const prayerImageUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = ['.jpg', '.jpeg', '.png', '.webp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    
+    if (allowedTypes.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPG, PNG, and WEBP formats are allowed'));
+    }
+  }
+});
+
 // POST /createRequestAndPrayer - Create a prayer request and generate AI prayer
-app.post('/createRequestAndPrayer', authenticate, async (req, res) => {
+app.post('/createRequestAndPrayer', authenticate, (req, res) => {
+  // Check content type and handle accordingly
+  const contentType = req.get('Content-Type') || '';
+  
+  if (contentType.includes('multipart/form-data')) {
+    // Handle multipart/form-data with image upload
+    prayerImageUpload.single('image')(req, res, async (err) => {
+      await handleCreateRequestAndPrayer(req, res, err);
+    });
+  } else {
+    // Handle JSON request (original behavior)
+    handleCreateRequestAndPrayer(req, res, null);
+  }
+});
+
+// Shared handler for both JSON and multipart/form-data
+async function handleCreateRequestAndPrayer(req, res, multerError) {
+  let imagePath = null;
+  
+  // Clean up uploaded file on any error
+  const cleanupFile = () => {
+    if (imagePath && fs.existsSync(imagePath)) {
+      try {
+        fs.unlinkSync(imagePath);
+      } catch (unlinkErr) {
+        console.error('Failed to delete file:', unlinkErr);
+      }
+    }
+  };
+  
   try {
+    // Handle multer errors for image uploads
+    if (multerError) {
+      if (multerError.code === 'LIMIT_FILE_SIZE') {
+        return res.json({ error: 1, result: 'Image size exceeds 5MB limit' });
+      }
+      
+      if (multerError.message === 'Only JPG, PNG, and WEBP formats are allowed') {
+        return res.json({ error: 1, result: 'Only JPG, PNG, and WEBP formats are allowed' });
+      }
+      
+      console.error('Image upload error:', multerError);
+      return res.json({ error: 1, result: 'Failed to upload image' });
+    }
+    
     const params = req.body;
     
     const idempotencyKey = params["idempotencyKey"];
@@ -1549,6 +1611,15 @@ app.post('/createRequestAndPrayer', authenticate, async (req, res) => {
 
     const forMe = (params.forMe === "false") ? 0 : 1;
     const forAll = (params.forAll === "false") ? 0 : 1;
+    
+    // Handle image upload if present (multipart/form-data)
+    let pictureUrl = params.picture || null;
+    
+    if (req.file && req.file.buffer) {
+      // We have an uploaded image - we'll save it after getting the requestId
+      // For now, use a placeholder that we'll update after INSERT
+      pictureUrl = 'PENDING_IMAGE_UPLOAD';
+    }
 
     // Build parameters array with all values (null for optional ones)
     const queryParams = [
@@ -1557,7 +1628,7 @@ app.post('/createRequestAndPrayer', authenticate, async (req, res) => {
       params.requestTitle,                    // $3
       8,                                      // $4 - fk_category_id
       params.otherPerson || null,             // $5
-      params.picture || null,                 // $6
+      pictureUrl,                             // $6
       params.prayerId || null,                // $7
       params.otherPersonUserId || null,       // $8
       params.otherPersonGender || null,       // $9
@@ -1570,6 +1641,30 @@ app.post('/createRequestAndPrayer', authenticate, async (req, res) => {
 
     const insertResult = await pool.query(insertQuery, queryParams);
     const requestId = insertResult.rows[0].request_id;
+    
+    // Save uploaded image file if present
+    if (req.file && req.file.buffer) {
+      try {
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        const filename = `${requestId}_prayer${ext}`;
+        imagePath = path.join('public/prayer-images', filename);
+        
+        // Write buffer to disk
+        fs.writeFileSync(imagePath, req.file.buffer);
+        
+        // Build the public URL for the uploaded image
+        pictureUrl = `https://shouldcallpaul.replit.app/prayer-images/${filename}`;
+        
+        // Update the request with the actual image URL
+        const updatePictureQuery = `UPDATE public.request SET picture = $1 WHERE request_id = $2`;
+        await pool.query(updatePictureQuery, [pictureUrl, requestId]);
+        
+      } catch (imageError) {
+        console.error('Error saving prayer image:', imageError);
+        cleanupFile();
+        // Continue without image - don't fail the whole request
+      }
+    }
 
     // Step 2: Get user details for prayer generation
     const userQuery = `
@@ -1779,9 +1874,10 @@ Instructions for Generating the Prayer:
 
   } catch (error) {
     console.error('Database error:', error);
+    cleanupFile();
     res.status(500).json({ error: 'Internal server error' });
   }
-});
+}
 
 // Root endpoint for deployment health checks
 app.get('/', (req, res) => {
