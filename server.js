@@ -2129,7 +2129,11 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
     
     if (filterByChurch) {
       // Add church filter - only show prayers from users in the same church
-      whereClause += ` AND "user".church_id = (SELECT church_id FROM public."user" WHERE user_id = $1)`;
+      // UNLESS the requesting user's church_id is 4 (None), which means "show all prayers"
+      whereClause += ` AND (
+        "user".church_id = (SELECT church_id FROM public."user" WHERE user_id = $1)
+        OR (SELECT church_id FROM public."user" WHERE user_id = $1) = 4
+      )`;
     }
     
     // PostgreSQL query to get all active requests with prayer information
