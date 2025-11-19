@@ -2121,6 +2121,16 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
 
   try {
     const timezone = params.tz || 'UTC';
+    const filterByChurch = params.filterByChurch === true || params.filterByChurch === 'true';
+    
+    // Build the WHERE clause based on church filter
+    let whereClause = 'WHERE request.active = 1';
+    let queryParams = [params.userId, timezone];
+    
+    if (filterByChurch) {
+      // Add church filter - only show prayers from users in the same church
+      whereClause += ` AND "user".church_id = (SELECT church_id FROM public."user" WHERE user_id = $1)`;
+    }
     
     // PostgreSQL query to get all active requests with prayer information
     const query = `
@@ -2160,11 +2170,11 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
         INNER JOIN public."user" as praying_user ON praying_user.user_id = user_request.user_id
         WHERE user_request.request_id = request.request_id
       ) as prayer_info ON true
-      WHERE request.active = 1
+      ${whereClause}
       ORDER BY timestamp_raw DESC
     `;
 
-    const result = await pool.query(query, [params.userId, timezone]);
+    const result = await pool.query(query, queryParams);
     res.json(result.rows);
 
   } catch (err) {
