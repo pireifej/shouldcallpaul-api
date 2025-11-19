@@ -15,7 +15,6 @@
     "dotenv": "^17.2.2",
     "expo-server-sdk": "^4.0.0",
     "express": "^5.1.0",
-    "firebase-admin": "^13.6.0",
     "mailersend": "^2.6.0",
     "multer": "^2.0.2",
     "openai": "^5.20.3",
