@@ -861,7 +861,7 @@ app.post('/getUser', authenticate, async (req, res) => {
   }
 });
 
-// POST /updateUser - Update user profile (About, Title, Church)
+// POST /updateUser - Update user profile (About, Title, Church, Email)
 app.post('/updateUser', authenticate, async (req, res) => {
   try {
     const params = req.body;
@@ -872,8 +872,20 @@ app.post('/updateUser', authenticate, async (req, res) => {
     }
     
     // Validate that at least one field is being updated
-    if (!params.user_about && !params.user_title && !params.church_id) {
-      return res.json({ error: 1, result: "At least one field (user_about, user_title, or church_id) must be provided" });
+    if (!params.user_about && !params.user_title && !params.church_id && !params.email) {
+      return res.json({ error: 1, result: "At least one field (user_about, user_title, church_id, or email) must be provided" });
+    }
+    
+    // If email is being updated, check for uniqueness
+    if (params.email) {
+      const emailCheck = await pool.query(
+        'SELECT user_id FROM public."user" WHERE email = $1 AND user_id != $2',
+        [params.email, params.userId]
+      );
+      
+      if (emailCheck.rows.length > 0) {
+        return res.json({ error: 1, result: "Email address is already in use by another user" });
+      }
     }
     
     // Build dynamic UPDATE query based on provided fields
@@ -899,6 +911,12 @@ app.post('/updateUser', authenticate, async (req, res) => {
       paramIndex++;
     }
     
+    if (params.email !== undefined) {
+      updateFields.push(`email = $${paramIndex}`);
+      queryParams.push(params.email);
+      paramIndex++;
+    }
+    
     // Add userId as the last parameter for WHERE clause
     queryParams.push(params.userId);
     
@@ -906,7 +924,7 @@ app.post('/updateUser', authenticate, async (req, res) => {
       UPDATE public."user" 
       SET ${updateFields.join(', ')}
       WHERE user_id = $${paramIndex}
-      RETURNING user_id, user_about, user_title, church_id
+      RETURNING user_id, user_about, user_title, church_id, email
     `;
     
     const result = await pool.query(query, queryParams);

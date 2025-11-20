@@ -31,15 +31,23 @@ Preferred communication style: Simple, everyday language.
     - Updates `request.picture` field with image URL after request creation
     - All fetch endpoints (`/getRequestFeed`, `/getMyRequests`, `/getCommunityWall`) return `request_picture`
     - Same security approach as profile pictures: memory storage, validation, cleanup on errors
-  - Created `/updateUser` endpoint for profile editing (user_about, user_title, church_id)
+  - Created `/updateUser` endpoint for profile editing (user_about, user_title, church_id, email)
   - Enhanced `/getAllUsers` to include church_id and church_name for each user
 
-- **November 11, 2025**: Implemented Firebase Cloud Messaging (FCM) push notifications
-  - Added Firebase Admin SDK integration with secure credential management
+- **November 20, 2025**: Migrated from Firebase Cloud Messaging to Expo Push Notifications
+  - Removed firebase-admin dependency (143 packages uninstalled)
+  - Created `pushNotifications.js` helper with Expo SDK integration
+  - Implemented receipt polling to detect invalid/expired device tokens
+  - Enhanced `/prayFor` to automatically remove invalid Expo tokens from database
+  - `/registerFCMToken` endpoint now accepts Expo tokens (endpoint name kept for backward compatibility)
+  - Database columns unchanged: `user.fcm_token` stores Expo tokens, `settings.push_notifications` still respected
+  - Push notification flow: send → wait 1s → poll receipt → cleanup invalid tokens
+  - Added email updating capability to `/updateUser` endpoint with uniqueness validation
+
+- **November 11, 2025**: Initial push notification system
   - Created `/registerFCMToken` endpoint for mobile apps to register device tokens
   - Enhanced `/prayFor` endpoint to send push notifications when someone prays for a request
   - Added database columns: `user.fcm_token`, `user.fcm_token_updated`, `settings.push_notifications`
-  - Automatic cleanup of invalid/expired FCM tokens
   - Respects user privacy settings for push notification preferences
   - Implemented admin notification email for new prayer request creation
 
@@ -113,7 +121,7 @@ Preferred communication style: Simple, everyday language.
 ### Core Services
 - **PostgreSQL**: Primary database system (Neon-backed Replit database)
 - **MailerSend**: Email delivery service with API key management via environment secrets
-- **Firebase Cloud Messaging (FCM)**: Free, unlimited push notification service for mobile apps
+- **Expo Push Notifications**: Free, unlimited push notification service for mobile apps
 
 ### Node.js Libraries
 - **express**: Web server framework
@@ -123,12 +131,12 @@ Preferred communication style: Simple, everyday language.
 - **cors**: Cross-origin resource sharing for API access
 - **mailersend**: Official MailerSend SDK for email delivery
 - **openai**: OpenAI API integration for AI features
-- **firebase-admin**: Firebase Admin SDK for push notifications
+- **expo-server-sdk**: Expo Server SDK for push notifications
+- **multer**: Multipart/form-data handling for file uploads
 
 ### Environment Configuration
 - **DATABASE_URL**: PostgreSQL connection string (automatically configured by Replit)
 - **MAILERSEND_API_KEY**: API key for email service (stored in environment secrets)
-- **FIREBASE_SERVICE_ACCOUNT**: Firebase service account JSON for push notifications (stored in environment secrets)
 - **PORT**: Server port (defaults to 5000)
 
 ### Static Assets
@@ -142,23 +150,31 @@ Preferred communication style: Simple, everyday language.
 2. **Prayer Requests**: Create, read, update prayer requests; community wall access
 3. **Blog**: Retrieve blog articles and metadata
 4. **Email**: Broadcast notifications to user base
-5. **Push Notifications**: FCM token registration and mobile push notifications
+5. **Push Notifications**: Expo token registration and mobile push notifications
 6. **Resume Data**: Public endpoints for portfolio information
 7. **Debug**: Database connectivity and health checks
 
 ## Push Notification System
 
 ### Architecture
-Firebase Cloud Messaging (FCM) provides free, unlimited push notifications to mobile devices. The system:
-- Stores device FCM tokens in the `user` table
+Expo Push Notifications provide free, unlimited push notifications to mobile devices. The system:
+- Stores Expo push tokens in the `user.fcm_token` column (kept for backward compatibility)
 - Respects user preferences via `settings.push_notifications`
-- Automatically cleans up invalid/expired tokens
+- Automatically cleans up invalid/expired tokens via receipt polling
 - Sends high-priority notifications for immediate delivery
+- Polls receipts 1 second after sending to verify delivery
+
+### Implementation
+- **pushNotifications.js**: Helper module with Expo SDK integration
+- **Receipt Polling**: Checks delivery status and detects DeviceNotRegistered errors
+- **Token Cleanup**: Automatically removes invalid tokens from database
+- **Error Handling**: Distinguishes between permanent failures and retryable errors
 
 ### Endpoints
-- **POST /registerFCMToken**: Mobile apps register their device token
-  - Parameters: `userId`, `fcmToken`
+- **POST /registerFCMToken**: Mobile apps register their Expo push token
+  - Parameters: `userId`, `fcmToken` (accepts Expo tokens despite name)
   - Updates `user.fcm_token` and `user.fcm_token_updated`
+  - Note: Endpoint name kept for backward compatibility with existing mobile apps
   
 ### Notification Triggers
 - **Prayer Response**: When someone prays for a user's request
@@ -167,7 +183,7 @@ Firebase Cloud Messaging (FCM) provides free, unlimited push notifications to mo
   - Includes request ID and user data for deep linking
 
 ### Database Schema
-- `user.fcm_token` (VARCHAR 255): Device FCM token
+- `user.fcm_token` (VARCHAR 255): Expo push token (column name kept for backward compatibility)
 - `user.fcm_token_updated` (TIMESTAMP): Last token update time
 - `settings.push_notifications` (BOOLEAN): User preference for push notifications
 
