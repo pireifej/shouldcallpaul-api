@@ -11,7 +11,7 @@ const { promisify } = require('util');
 const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
 const multer = require('multer');
 const { sendPushNotification } = require('./pushNotifications');
-const { ObjectStorageService, ObjectNotFoundError } = require('./objectStorage');
+const { uploadImage } = require('./cloudinaryService');
 require('dotenv').config();
 
 const app = express();
@@ -1624,29 +1624,23 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
     const insertResult = await pool.query(insertQuery, queryParams);
     const requestId = insertResult.rows[0].request_id;
     
-    // Save uploaded image file to object storage if present
+    // Save uploaded image file to Cloudinary if present
     if (req.file && req.file.buffer) {
       try {
-        // Upload to object storage for persistence across deployments
-        const objectStorageService = new ObjectStorageService();
-        const objectPath = await objectStorageService.uploadFile(
+        // Upload to Cloudinary for persistence across deployments
+        pictureUrl = await uploadImage(
           req.file.buffer,
-          req.file.mimetype,
-          'prayer-images'
+          'prayer-app/prayer-images'
         );
         
-        // Build the public URL for the uploaded image using configurable base URL
-        const baseUrl = getBaseUrl(req);
-        pictureUrl = `${baseUrl}${objectPath}`;
-        
-        console.log(`✅ Prayer image uploaded to object storage: ${pictureUrl}`);
+        console.log(`✅ Prayer image uploaded to Cloudinary: ${pictureUrl}`);
         
         // Update the request with the actual image URL
         const updatePictureQuery = `UPDATE public.request SET picture = $1 WHERE request_id = $2`;
         await pool.query(updatePictureQuery, [pictureUrl, requestId]);
         
       } catch (imageError) {
-        console.error('Error saving prayer image to object storage:', imageError);
+        console.error('Error saving prayer image to Cloudinary:', imageError);
         // Continue without image - don't fail the whole request, but log the error
         console.warn(`⚠️ Prayer request ${requestId} created without image due to storage error`);
       }
@@ -2644,25 +2638,19 @@ app.post('/uploadProfilePicture', authenticate, (req, res) => {
         return res.json({ error: 1, result: 'User not found' });
       }
       
-      // Upload to object storage for persistence across deployments
-      const objectStorageService = new ObjectStorageService();
-      let objectPath;
+      // Upload to Cloudinary for persistence across deployments
+      let profilePictureUrl;
       try {
-        objectPath = await objectStorageService.uploadFile(
+        profilePictureUrl = await uploadImage(
           req.file.buffer,
-          req.file.mimetype,
-          'profile-pictures'
+          'prayer-app/profile-pictures'
         );
       } catch (uploadError) {
-        console.error('Object storage upload failed:', uploadError);
+        console.error('Cloudinary upload failed:', uploadError);
         return res.status(500).json({ error: 1, result: 'Failed to upload image to storage' });
       }
       
-      // Build the public URL for the uploaded image using configurable base URL
-      const baseUrl = getBaseUrl(req);
-      const profilePictureUrl = `${baseUrl}${objectPath}`;
-      
-      console.log(`✅ Profile picture uploaded to object storage: ${profilePictureUrl}`);
+      console.log(`✅ Profile picture uploaded to Cloudinary: ${profilePictureUrl}`);
       
       // Update both profile_picture_url (new field) and picture (legacy field) for backward compatibility
       // Use separate parameters to avoid PostgreSQL type confusion between TEXT and VARCHAR
