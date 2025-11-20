@@ -203,22 +203,6 @@ const authenticate = (req, res, next) => {
   }
 };
 
-// GET /objects/* - Serve images from object storage
-// This endpoint serves public images uploaded to Replit App Storage
-app.get(/^\/objects\/(.+)$/, async (req, res) => {
-  const objectStorageService = new ObjectStorageService();
-  try {
-    const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-    await objectStorageService.downloadObject(objectFile, res);
-  } catch (error) {
-    console.error('Error serving object from storage:', error);
-    if (error instanceof ObjectNotFoundError) {
-      return res.status(404).json({ error: 'Image not found' });
-    }
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 // GET /api/requests - Retrieve all requests from database
 app.get('/api/requests', authenticate, async (req, res) => {
   try {

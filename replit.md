@@ -34,16 +34,16 @@ Preferred communication style: Simple, everyday language.
   - Created `/updateUser` endpoint for profile editing (user_about, user_title, church_id, email)
   - Enhanced `/getAllUsers` to include church_id and church_name for each user
 
-- **November 20, 2025**: Migrated image storage to Replit App Storage (Object Storage)
+- **November 20, 2025**: Migrated image storage to Cloudinary
   - **Critical fix**: Images now persist across production deployments (previously lost on restarts)
-  - Created `objectStorage.js` service for Google Cloud Storage integration via Replit
-  - Migrated `/uploadProfilePicture` and `/createRequestAndPrayer` to use object storage
-  - Added `/objects/*` endpoint to serve uploaded images from persistent storage
-  - Environment: `PRIVATE_OBJECT_DIR=/request-images` bucket for all user uploads
-  - Image URLs now: `https://shouldcallpaul.replit.app/objects/{category}/{uuid}.{ext}`
-  - Configurable base URL via `BASE_URL` environment variable for multi-environment support
+  - Created `cloudinaryService.js` for reliable image uploads and CDN delivery
+  - Migrated `/uploadProfilePicture` and `/createRequestAndPrayer` to use Cloudinary
+  - Images stored in Cloudinary folders: `prayer-app/profile-pictures` and `prayer-app/prayer-images`
+  - Image URLs now: Direct Cloudinary URLs (e.g., `https://res.cloudinary.com/dclyvhsee/...`)
+  - Cloudinary free tier: 25 monthly credits (sufficient for typical usage)
+  - Environment secrets: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+  - Automatic image optimization and CDN delivery included
   - Improved error handling: upload failures now return proper HTTP 500 errors
-  - Categories: `profile-pictures` for user avatars, `prayer-images` for prayer requests
 
 - **November 20, 2025**: Migrated from Firebase Cloud Messaging to Expo Push Notifications
   - Removed firebase-admin dependency (143 packages uninstalled)
