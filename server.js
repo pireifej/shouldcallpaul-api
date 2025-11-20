@@ -1625,6 +1625,10 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
         
       } catch (imageError) {
         console.error('Error saving prayer image to Cloudinary:', imageError);
+        // Reset picture to NULL on upload failure so clients don't get broken placeholder URL
+        pictureUrl = null;
+        const updatePictureQuery = `UPDATE public.request SET picture = NULL WHERE request_id = $1`;
+        await pool.query(updatePictureQuery, [requestId]);
         // Continue without image - don't fail the whole request, but log the error
         console.warn(`⚠️ Prayer request ${requestId} created without image due to storage error`);
       }
