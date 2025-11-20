@@ -12,6 +12,7 @@
   "dependencies": {
     "@google-cloud/storage": "^7.17.3",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "expo-server-sdk": "^4.0.0",
