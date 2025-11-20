@@ -11,10 +11,14 @@ const { promisify } = require('util');
 const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
 const multer = require('multer');
 const { sendPushNotification } = require('./pushNotifications');
+const { ObjectStorageService, ObjectNotFoundError } = require('./objectStorage');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Trust proxy for correct protocol detection behind reverse proxies
+app.set('trust proxy', true);
 
 // Middleware
 app.use(cors()); // Enable CORS for mobile and web apps
@@ -154,6 +158,26 @@ function log(req, params) {
     console.log(new Date(), req.originalUrl, JSON.stringify(req.body));
 }
 
+// Helper function to get base URL from environment or request
+function getBaseUrl(req) {
+  // 1. Use explicit BASE_URL environment variable if set (for custom domains)
+  if (process.env.BASE_URL) {
+    return process.env.BASE_URL;
+  }
+  
+  // 2. Derive from request headers for automatic multi-environment support
+  // Honor X-Forwarded-Proto header for TLS-offloading proxies (trust proxy must be enabled)
+  const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
+  const host = req.get('host');
+  
+  if (host) {
+    return `${protocol}://${host}`;
+  }
+  
+  // 3. Fallback to production domain only if request info unavailable
+  return 'https://shouldcallpaul.replit.app';
+}
+
 // Basic authentication middleware - supports dual passwords
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -178,6 +202,22 @@ const authenticate = (req, res, next) => {
     res.status(401).json({ error: 'Invalid credentials' });
   }
 };
+
+// GET /objects/* - Serve images from object storage
+// This endpoint serves public images uploaded to Replit App Storage
+app.get(/^\/objects\/(.+)$/, async (req, res) => {
+  const objectStorageService = new ObjectStorageService();
+  try {
+    const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+    await objectStorageService.downloadObject(objectFile, res);
+  } catch (error) {
+    console.error('Error serving object from storage:', error);
+    if (error instanceof ObjectNotFoundError) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // GET /api/requests - Retrieve all requests from database
 app.get('/api/requests', authenticate, async (req, res) => {
@@ -1488,19 +1528,6 @@ app.post('/createRequestAndPrayer', authenticate, (req, res) => {
 
 // Shared handler for both JSON and multipart/form-data
 async function handleCreateRequestAndPrayer(req, res, multerError) {
-  let imagePath = null;
-  
-  // Clean up uploaded file on any error
-  const cleanupFile = () => {
-    if (imagePath && fs.existsSync(imagePath)) {
-      try {
-        fs.unlinkSync(imagePath);
-      } catch (unlinkErr) {
-        console.error('Failed to delete file:', unlinkErr);
-      }
-    }
-  };
-  
   try {
     // Handle multer errors for image uploads
     if (multerError) {
@@ -1597,27 +1624,31 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
     const insertResult = await pool.query(insertQuery, queryParams);
     const requestId = insertResult.rows[0].request_id;
     
-    // Save uploaded image file if present
+    // Save uploaded image file to object storage if present
     if (req.file && req.file.buffer) {
       try {
-        const ext = path.extname(req.file.originalname).toLowerCase();
-        const filename = `${requestId}_prayer${ext}`;
-        imagePath = path.join('public/prayer-images', filename);
+        // Upload to object storage for persistence across deployments
+        const objectStorageService = new ObjectStorageService();
+        const objectPath = await objectStorageService.uploadFile(
+          req.file.buffer,
+          req.file.mimetype,
+          'prayer-images'
+        );
         
-        // Write buffer to disk
-        fs.writeFileSync(imagePath, req.file.buffer);
+        // Build the public URL for the uploaded image using configurable base URL
+        const baseUrl = getBaseUrl(req);
+        pictureUrl = `${baseUrl}${objectPath}`;
         
-        // Build the public URL for the uploaded image
-        pictureUrl = `https://shouldcallpaul.replit.app/prayer-images/${filename}`;
+        console.log(`✅ Prayer image uploaded to object storage: ${pictureUrl}`);
         
         // Update the request with the actual image URL
         const updatePictureQuery = `UPDATE public.request SET picture = $1 WHERE request_id = $2`;
         await pool.query(updatePictureQuery, [pictureUrl, requestId]);
         
       } catch (imageError) {
-        console.error('Error saving prayer image:', imageError);
-        cleanupFile();
-        // Continue without image - don't fail the whole request
+        console.error('Error saving prayer image to object storage:', imageError);
+        // Continue without image - don't fail the whole request, but log the error
+        console.warn(`⚠️ Prayer request ${requestId} created without image due to storage error`);
       }
     }
 
@@ -2569,23 +2600,10 @@ const profilePictureUpload = multer({
   }
 });
 
-// POST /uploadProfilePicture - Upload user profile picture
+// POST /uploadProfilePicture - Upload user profile picture to object storage
 app.post('/uploadProfilePicture', authenticate, (req, res) => {
   // Wrap multer to properly catch and handle errors
   profilePictureUpload.single('image')(req, res, async (err) => {
-    let filePath = null;
-    
-    // Clean up disk file on any error
-    const cleanupFile = () => {
-      if (filePath && fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath);
-        } catch (unlinkErr) {
-          console.error('Failed to delete file:', unlinkErr);
-        }
-      }
-    };
-    
     try {
       // Handle multer errors
       if (err) {
@@ -2626,16 +2644,25 @@ app.post('/uploadProfilePicture', authenticate, (req, res) => {
         return res.json({ error: 1, result: 'User not found' });
       }
       
-      // Now that all validation passed, safely construct filename and write to disk
-      const ext = path.extname(req.file.originalname).toLowerCase();
-      const filename = `${userIdNum}_profile${ext}`;
-      filePath = path.join('public/profile-pictures', filename);
+      // Upload to object storage for persistence across deployments
+      const objectStorageService = new ObjectStorageService();
+      let objectPath;
+      try {
+        objectPath = await objectStorageService.uploadFile(
+          req.file.buffer,
+          req.file.mimetype,
+          'profile-pictures'
+        );
+      } catch (uploadError) {
+        console.error('Object storage upload failed:', uploadError);
+        return res.status(500).json({ error: 1, result: 'Failed to upload image to storage' });
+      }
       
-      // Write buffer to disk
-      fs.writeFileSync(filePath, req.file.buffer);
+      // Build the public URL for the uploaded image using configurable base URL
+      const baseUrl = getBaseUrl(req);
+      const profilePictureUrl = `${baseUrl}${objectPath}`;
       
-      // Build the public URL for the uploaded image
-      const profilePictureUrl = `https://shouldcallpaul.replit.app/profile-pictures/${filename}`;
+      console.log(`✅ Profile picture uploaded to object storage: ${profilePictureUrl}`);
       
       // Update both profile_picture_url (new field) and picture (legacy field) for backward compatibility
       // Use separate parameters to avoid PostgreSQL type confusion between TEXT and VARCHAR
@@ -2656,7 +2683,6 @@ app.post('/uploadProfilePicture', authenticate, (req, res) => {
       
     } catch (error) {
       console.error('Profile picture upload error:', error);
-      cleanupFile();
       res.json({ error: 1, result: 'Failed to save image' });
     }
   });

@@ -47,14 +47,19 @@ class ObjectStorageService {
 
   // Upload a file buffer to object storage
   async uploadFile(fileBuffer, fileType, category = 'uploads') {
-    const privateObjectDir = this.getPrivateObjectDir();
+    const privateObjectDir = this.getPrivateObjectDir(); // e.g., "/request-images"
     const objectId = randomUUID();
     const ext = this.getExtensionForMimeType(fileType);
-    const fullPath = `${privateObjectDir}/${category}/${objectId}${ext}`;
+    
+    // Build the storage path: /request-images/category/uuid.ext
+    const objectPath = `${category}/${objectId}${ext}`;
+    const fullPath = `${privateObjectDir}/${objectPath}`;
 
     const { bucketName, objectName } = this.parseObjectPath(fullPath);
     const bucket = objectStorageClient.bucket(bucketName);
     const file = bucket.file(objectName);
+
+    console.log(`📤 Uploading to bucket: ${bucketName}, object: ${objectName}`);
 
     // Upload the file buffer
     await file.save(fileBuffer, {
@@ -68,8 +73,10 @@ class ObjectStorageService {
       },
     });
 
+    console.log(`✅ Upload successful: ${fullPath}`);
+
     // Return the object path that can be accessed via /objects/ endpoint
-    return `/objects/${category}/${objectId}${ext}`;
+    return `/objects/${objectPath}`;
   }
 
   // Get file extension from MIME type
@@ -90,24 +97,27 @@ class ObjectStorageService {
       throw new ObjectNotFoundError();
     }
 
-    const parts = objectPath.slice(1).split('/');
-    if (parts.length < 2) {
-      throw new ObjectNotFoundError();
-    }
-
-    const entityId = parts.slice(1).join('/');
-    let entityDir = this.getPrivateObjectDir();
-    if (!entityDir.endsWith('/')) {
-      entityDir = `${entityDir}/`;
-    }
-    const objectEntityPath = `${entityDir}${entityId}`;
+    // Extract the path after /objects/
+    // e.g., /objects/profile-pictures/uuid.jpg -> profile-pictures/uuid.jpg
+    const entityId = objectPath.replace('/objects/', '');
+    
+    // Build the full storage path
+    const privateObjectDir = this.getPrivateObjectDir(); // e.g., "/request-images"
+    const objectEntityPath = `${privateObjectDir}/${entityId}`;
+    
+    console.log(`📥 Fetching object: ${objectEntityPath}`);
+    
     const { bucketName, objectName } = this.parseObjectPath(objectEntityPath);
     const bucket = objectStorageClient.bucket(bucketName);
     const objectFile = bucket.file(objectName);
+    
     const [exists] = await objectFile.exists();
     if (!exists) {
+      console.error(`❌ Object not found: bucket=${bucketName}, object=${objectName}`);
       throw new ObjectNotFoundError();
     }
+    
+    console.log(`✅ Object found: bucket=${bucketName}, object=${objectName}`);
     return objectFile;
   }
 
