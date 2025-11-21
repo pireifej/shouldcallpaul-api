@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NJ Symphony – Rhapsody in Blue</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>NJ Symphony – Rhapsody in Blue</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/nj_symphony_cann.jpg" alt="Michelle Cann with NJ Symphony">
+        <div class="image-caption">Pianist Michelle Cann with the NJ Symphony Orchestra</div>
+    </div>
+    
+    <p>The weekend ending November 9, NJ Symphony presented a brilliant concert featuring pianist Michelle Cann under the baton of the talented Tito Muñoz. Prior to the concert, Maestro Muñoz was interviewed by Brett Deubner, viola, who gave us great insight into what we were about to see. Whenever NJ Symphony hosts a pre-concert interview, make it a point to hear details that will make that day's concert richer still! Insights into how the conductors create their magic with an orchestra are absolutely riveting.</p>
+
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/nj_symphony_interview.jpg" alt="Maestro Tito Muñoz Pre-Concert Interview">
+        <div class="image-caption">Maestro Tito Muñoz Pre-Concert Interview</div>
+    </div>
+
+    <p>Piano soloist Michelle Cann began with the dazzling Florence Price - Piano Concerto in One Movement. This work begins gloriously with a richly figured tintinnabulating melody where Ms. Cann's hands gambol lightly on the keys. The strings call, then the piano responds with verve and a sense of peril - where is it going? The entire orchestra sweeps us off our feet into the arms of Price's seductive serenade. Ms. Cann's grace and phrasing brings the full scope of each section into a conversation with the orchestra until the finale with the pianist's hands flying in a cascade of beautiful rich notes. A tour de force.</p>
+
+    <p>Ms. Cann is among the leading interpreters of Florence Price's work and her interpretations were achingly beautiful, both strong and delicate. Several times I felt the glisten of tears during Price's concerto. A panoply of styles, it is a rarified piece requiring great skill and Ms. Cann communicates her joy in the delight and mastery of this work.</p>
+
+    <p>George Gershwin's Rhapsody in Blue, as familiar as it is in the piano transcription, the orchestral version is alchemy at its finest. From the opening call of the clarinet then the jazzy flourish from the brass, a bit of piano flirtation to the full all-call of the orchestra and back to piano virtuosity. Playful and bluesy by turns and then the orchestra marching in with a martial modal escalation into the dance break, pure magic. Maestro Muñoz lightly sculpts the orchestra, graceful and dramatic by turns, trusting the skill and deep knowledge of his players while taking us on the journey. Brava!</p>
+
+    <p>Ms. Cann's Encore introduced many in the audience to Hazel Scott, a classically trained brilliant jazz pianist from the Harlem Renaissance. Ms. Cann gave us fireworks with Scott's Transcription of Rachmaninoff's Prelude in C#minor.</p>
+
+    <p>The only way to move onward from a first act like that is to begin the second with Carlos Simon's Zodiac Symphony Suite for Orchestra.</p>
+
+    <div class="highlight">
+        <p><strong>Section I - Fire</strong> (Aries, Leo, Sagittarius) has a vibrant opening like a flash, then different parts of the orchestra trade voices with figures evoking a sense of the sinuous, sinister and sensual dance of flame. Dynamics range as the flames bank and leap.</p>
+
+        <p><strong>Section II - Water</strong> (Cancer, Scorpio, Pisces) starts with a rush at the beginning, suggesting a thrilling plunge, then a meander along a river. Scintillating sparkles of light on water are felt, and a sense of both adventuresome wanders and purposeful movement. A form reveling in itself, its flow and malleability. Then it gathers strength, joins with others and carries resources. Supporting the flow of travel, commerce and the future.</p>
+
+        <p><strong>Section III - Air</strong> (Gemini, Libra, Aquarius) evokes the wind so fully, it's easy to imagine the path of leaves, raindrops, snowflakes leading to the swoop of birds in flight. It is easy to imagine the majestic path of the eagle riding thermals to the path of the lark, or the tern. The flex of a sail, the ascent of a kite, it's all there.</p>
+
+        <p><strong>Section IV - Earth</strong> (Taurus, Capricorn, Virgo) feels like if fecundity had a sound, this would be the vibe. The music holds the scent of damp woodland earth, golden light lancing through trees to highlight a wildflower among roots and fallen leaves. A sense of peace, a coming together of the stolid Earth with the other elements to form the world we know, yet with a moment that reminds we are the stewards of natural wonder.</p>
+    </div>
+
+    <p>Rounding out the program was Aaron Copland's Suite from Billy the Kid, the perfect ending to an all American program spanning nearly a century. The musical articulation of an original Bad Boy features early life, a sense of what will my life be as well as the initial thrill of wrongdoing with the inevitable price to be paid. The grandeur of the West and the sweep of open space is a Copland trademark, what can equal the personal thrill of feeling that music resonate live? The palette of the orchestra at work and play are on brilliant display and every section gets a chance to shine. Copland's distinctive harmonic framework builds up and across the entire orchestra and again, the lightness of touch from Maestro Muñoz is a delight. Bravissimo!</p>
+
+    <div class="call-to-action">
+        <p><strong>What's next? Visit <a href="https://www.njsymphony.org" target="_blank">www.njsymphony.org</a> today and make your Holiday plans for Elf in Concert, the Nutcracker and MORE!</strong></p>
+    </div>
+
+</body>
+</html>
