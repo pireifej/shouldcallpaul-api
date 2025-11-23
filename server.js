@@ -1494,6 +1494,102 @@ const prayerImageUpload = multer({
   }
 });
 
+// POST /editRequest - Edit an existing prayer request (author only)
+app.post('/editRequest', authenticate, async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    if (!params.requestId || !params.userId || !params.requestText) {
+      return res.json({ 
+        error: 1, 
+        result: "Required params 'requestId', 'userId', and 'requestText' missing" 
+      });
+    }
+    
+    // Verify the user owns this prayer request
+    const ownershipQuery = `
+      SELECT user_id, request_title 
+      FROM public.request 
+      WHERE request_id = $1
+    `;
+    
+    const ownershipResult = await pool.query(ownershipQuery, [params.requestId]);
+    
+    if (ownershipResult.rows.length === 0) {
+      return res.json({ 
+        error: 1, 
+        result: "Prayer request not found" 
+      });
+    }
+    
+    const requestOwnerId = ownershipResult.rows[0].user_id;
+    
+    // Check if the user is the author
+    if (requestOwnerId !== parseInt(params.userId)) {
+      return res.json({ 
+        error: 1, 
+        result: "You can only edit your own prayer requests" 
+      });
+    }
+    
+    // Validate that request doesn't contain email addresses or websites
+    const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+    const urlPattern = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.(com|org|net|edu|gov|io|co|us|info|biz|me|app|dev|ai|tech|online|site|xyz|uk|ca|au|de|fr|in|br|jp|ru|cn|it|es|nl|se|no|dk|fi|pl|be|ch|at|cz|gr|pt|ie|nz|sg|hk|my|za|mx|ar|cl|pe|ve|co\.uk|co\.in|co\.jp|co\.nz|co\.za|ca\.gov|ac\.uk|edu\.au|gov\.uk|org\.uk|net\.au|gov\.au))\b/i;
+    
+    if (emailPattern.test(params.requestText)) {
+      return res.json({ 
+        error: 1, 
+        result: "Prayer requests cannot contain email addresses. Please remove any email addresses and try again." 
+      });
+    }
+    
+    if (urlPattern.test(params.requestText)) {
+      return res.json({ 
+        error: 1, 
+        result: "Prayer requests cannot contain website links or URLs. Please remove any web addresses and try again." 
+      });
+    }
+    
+    // Update the request text and timestamp
+    const updateQuery = `
+      UPDATE public.request 
+      SET request_text = $1, updated_timestamp = NOW() 
+      WHERE request_id = $2
+      RETURNING request_id, request_text, request_title, updated_timestamp
+    `;
+    
+    const updateResult = await pool.query(updateQuery, [
+      params.requestText,
+      params.requestId
+    ]);
+    
+    if (updateResult.rows.length === 0) {
+      return res.json({ 
+        error: 1, 
+        result: "Failed to update prayer request" 
+      });
+    }
+    
+    console.log(`✅ Prayer request ${params.requestId} edited by user ${params.userId}`);
+    
+    res.json({ 
+      error: 0, 
+      result: "Prayer request updated successfully",
+      data: {
+        requestId: updateResult.rows[0].request_id,
+        requestText: updateResult.rows[0].request_text,
+        requestTitle: updateResult.rows[0].request_title,
+        updatedTimestamp: updateResult.rows[0].updated_timestamp
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in /editRequest endpoint:', error);
+    res.json({ error: 1, result: error.message || 'Internal server error' });
+  }
+});
+
 // POST /createRequestAndPrayer - Create a prayer request and generate AI prayer
 app.post('/createRequestAndPrayer', authenticate, (req, res) => {
   // Check content type and handle accordingly

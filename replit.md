@@ -8,6 +8,18 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (November 2025)
 
+- **November 23, 2025**: Added prayer request editing and content validation
+  - **Content Validation**: Prayer requests now reject submissions containing email addresses or website URLs
+    - Applied to both `/createRequestAndPrayer` and `/editRequest` endpoints
+    - Clear error messages guide users to remove prohibited content
+    - Prevents spam and inappropriate contact information sharing
+  - **Edit Request Endpoint**: New `/editRequest` endpoint allows users to fix typos and update prayer text
+    - Requires authentication and ownership verification (users can only edit their own prayers)
+    - Validates requestId, userId, and requestText parameters
+    - Updates request text and timestamp in database
+    - Applies same content validation as creation (no emails/URLs)
+    - Returns updated prayer data with confirmation message
+
 - **November 18, 2025**: Implemented church filter support and image upload functionality
   - **Church Filter Feature**: Added church_id to API responses for client-side filtering
     - Updated `/login` endpoint to include `church_id` in user response object
