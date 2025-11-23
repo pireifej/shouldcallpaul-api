@@ -1565,6 +1565,27 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
         }
     }
 
+    // Validate that request doesn't contain email addresses or websites
+    const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
+    const urlPattern = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.(com|org|net|edu|gov|io|co|us|info|biz|me|app|dev|ai|tech|online|site|xyz|uk|ca|au|de|fr|in|br|jp|ru|cn|it|es|nl|se|no|dk|fi|pl|be|ch|at|cz|gr|pt|ie|nz|sg|hk|my|za|mx|ar|cl|pe|ve|co\.uk|co\.in|co\.jp|co\.nz|co\.za|ca\.gov|ac\.uk|edu\.au|gov\.uk|org\.uk|net\.au|gov\.au))\b/i;
+    
+    const requestText = params.requestText || '';
+    const requestTitle = params.requestTitle || '';
+    
+    if (emailPattern.test(requestText) || emailPattern.test(requestTitle)) {
+        return res.json({ 
+            error: 1, 
+            result: "Prayer requests cannot contain email addresses. Please remove any email addresses and try again." 
+        });
+    }
+    
+    if (urlPattern.test(requestText) || urlPattern.test(requestTitle)) {
+        return res.json({ 
+            error: 1, 
+            result: "Prayer requests cannot contain website links or URLs. Please remove any web addresses and try again." 
+        });
+    }
+
     // Step 1: Insert the request into the database (simplified approach)
     const insertQuery = `
       INSERT INTO public.request (
