@@ -2250,12 +2250,26 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
       LEFT JOIN LATERAL (
         SELECT 
-          COUNT(*)::int as prayer_count,
-          ARRAY_AGG(praying_user.real_name ORDER BY praying_user.real_name) as prayed_by_names,
-          BOOL_OR(user_request.user_id = $1) as user_has_prayed
-        FROM public.user_request
-        INNER JOIN public."user" as praying_user ON praying_user.user_id = user_request.user_id
-        WHERE user_request.request_id = request.request_id
+          COALESCE(SUM(user_prayer_count), 0)::int as prayer_count,
+          ARRAY_AGG(
+            CASE 
+              WHEN user_prayer_count = 1 THEN user_real_name
+              WHEN user_prayer_count = 2 THEN user_real_name || ' prayed twice'
+              ELSE user_real_name || ' prayed ' || user_prayer_count || ' times'
+            END
+            ORDER BY user_prayer_count DESC, user_real_name
+          ) FILTER (WHERE user_real_name IS NOT NULL) as prayed_by_names,
+          BOOL_OR(praying_user_id = $1) as user_has_prayed
+        FROM (
+          SELECT 
+            praying_user.user_id as praying_user_id,
+            praying_user.real_name as user_real_name,
+            COUNT(*)::int as user_prayer_count
+          FROM public.user_request
+          INNER JOIN public."user" as praying_user ON praying_user.user_id = user_request.user_id
+          WHERE user_request.request_id = request.request_id
+          GROUP BY praying_user.user_id, praying_user.real_name
+        ) as per_user_counts
       ) as prayer_info ON true
       ${whereClause}
       ORDER BY timestamp_raw DESC

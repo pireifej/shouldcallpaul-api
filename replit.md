@@ -1,213 +1,83 @@
 # Overview
 
-This project is a comprehensive prayer and blog platform featuring an Express.js API server with PostgreSQL database backend. The system serves multiple purposes: a mobile/web prayer community application, a blog CMS for static content, and public resume/portfolio data endpoints for the shouldcallpaul.com personal website. The platform enables authenticated users to share prayer requests, receive community support, and stay connected through email notifications.
+This project is a comprehensive prayer and blog platform, featuring an Express.js API server with a PostgreSQL database backend. It serves as a mobile/web prayer community application, a blog CMS for static content, and provides public resume/portfolio data endpoints for the shouldcallpaul.com personal website. The platform enables authenticated users to share prayer requests, receive community support, and stay connected through email notifications and push notifications.
 
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
 
-# Recent Changes (November 2025)
-
-- **November 23, 2025**: Added prayer request editing and content validation
-  - **Content Validation**: Prayer requests now reject submissions containing email addresses or website URLs
-    - Applied to both `/createRequestAndPrayer` and `/editRequest` endpoints
-    - Clear error messages guide users to remove prohibited content
-    - Prevents spam and inappropriate contact information sharing
-  - **Edit Request Endpoint**: New `/editRequest` endpoint allows users to fix typos and update prayer text
-    - Requires authentication and ownership verification (users can only edit their own prayers)
-    - Validates requestId, userId, and requestText parameters
-    - Updates request text and timestamp in database
-    - Applies same content validation as creation (no emails/URLs)
-    - Returns updated prayer data with confirmation message
-
-- **November 18, 2025**: Implemented church filter support and image upload functionality
-  - **Church Filter Feature**: Added church_id to API responses for client-side filtering
-    - Updated `/login` endpoint to include `church_id` in user response object
-    - Enhanced all prayer request endpoints to include `church_id` field:
-      - `/getRequestFeed` - Returns church_id of request creator
-      - `/getMyRequests` - Returns church_id of request creator
-      - `/getCommunityWall` - Returns church_id of request creator
-    - Mobile app can now filter prayers by church affiliation (client-side filtering)
-    - Backward compatible: existing clients unaffected by additional field
-  - **Image Upload Functionality**:
-  - **Profile Pictures**: New `/uploadProfilePicture` endpoint for secure image uploads from mobile app
-    - Accepts multipart/form-data with image files (JPG, PNG, WEBP up to 5MB)
-    - Stores images in `/public/profile-pictures/` with `{userId}_profile.{ext}` naming convention
-    - Added new database column `profile_picture_url` to user table
-    - Updates both `profile_picture_url` (new) and `picture` (legacy) for backward compatibility
-    - Security: Uses memory storage with validation before disk writes to prevent path traversal attacks
-    - Enhanced `/getUser` to return `profile_picture_url` field
-  - **Prayer Request Images**: Enhanced `/createRequestAndPrayer` to accept images
-    - Now handles both JSON (existing) and multipart/form-data (new with images)
-    - Stores images in `/public/prayer-images/` with `{requestId}_prayer.{ext}` naming convention
-    - Updates `request.picture` field with image URL after request creation
-    - All fetch endpoints (`/getRequestFeed`, `/getMyRequests`, `/getCommunityWall`) return `request_picture`
-    - Same security approach as profile pictures: memory storage, validation, cleanup on errors
-  - Created `/updateUser` endpoint for profile editing (user_about, user_title, church_id, email)
-  - Enhanced `/getAllUsers` to include church_id and church_name for each user
-
-- **November 20, 2025**: Migrated image storage to Cloudinary
-  - **Critical fix**: Images now persist across production deployments (previously lost on restarts)
-  - Created `cloudinaryService.js` for reliable image uploads and CDN delivery
-  - Migrated `/uploadProfilePicture` and `/createRequestAndPrayer` to use Cloudinary
-  - Images stored in Cloudinary folders: `prayer-app/profile-pictures` and `prayer-app/prayer-images`
-  - Image URLs now: Direct Cloudinary URLs (e.g., `https://res.cloudinary.com/dclyvhsee/...`)
-  - Cloudinary free tier: 25 monthly credits (sufficient for typical usage)
-  - Environment secrets: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-  - Automatic image optimization and CDN delivery included
-  - Improved error handling: upload failures now return proper HTTP 500 errors
-
-- **November 20, 2025**: Migrated from Firebase Cloud Messaging to Expo Push Notifications
-  - Removed firebase-admin dependency (143 packages uninstalled)
-  - Created `pushNotifications.js` helper with Expo SDK integration
-  - Implemented receipt polling to detect invalid/expired device tokens
-  - Enhanced `/prayFor` to automatically remove invalid Expo tokens from database
-  - `/registerFCMToken` endpoint now accepts Expo tokens (endpoint name kept for backward compatibility)
-  - Database columns unchanged: `user.fcm_token` stores Expo tokens, `settings.push_notifications` still respected
-  - Push notification flow: send → wait 1s → poll receipt → cleanup invalid tokens
-  - Added email updating capability to `/updateUser` endpoint with uniqueness validation
-
-- **November 11, 2025**: Initial push notification system
-  - Created `/registerFCMToken` endpoint for mobile apps to register device tokens
-  - Enhanced `/prayFor` endpoint to send push notifications when someone prays for a request
-  - Added database columns: `user.fcm_token`, `user.fcm_token_updated`, `settings.push_notifications`
-  - Respects user privacy settings for push notification preferences
-  - Implemented admin notification email for new prayer request creation
-
-- **October 17, 2025**: Fixed broadcast email rate limiting to comply with MailerSend's 120 requests/min limit
-  - Changed from batch-based delays to per-email delays (600ms between each email = 100 emails/min)
-  - Fixed duplicate email address issue in TO/CC fields by making CC list dynamic
-  - Added progress logging every 10 emails for better monitoring
-
-- **Previous updates**: Created broadcast email system with personalization, added blog articles, added Career Day workshop entry, fixed getCommunityWall endpoint, removed all user_family table references
-
 # System Architecture
 
 ## API Server Architecture
 
-**Framework Choice**: Express.js provides a lightweight, flexible Node.js web server ideal for RESTful APIs. The server binds to `0.0.0.0:5000` to ensure public accessibility in the Replit environment.
-
-**Database Integration**: PostgreSQL database with connection pooling via `pg` library. Environment variable `DATABASE_URL` manages connection configuration for both development and production environments.
-
-**Authentication System**: User authentication with bcrypt password hashing, session management, and secure endpoints for user registration and login.
+**Framework Choice**: Express.js for a lightweight, flexible Node.js RESTful API.
+**Database Integration**: PostgreSQL with `pg` library for connection pooling, configured via `DATABASE_URL`.
+**Authentication System**: Bcrypt for password hashing, session management, user registration, and login.
 
 ## Core Features
 
 ### Prayer Request System
-- **Community Prayer Wall**: Users can view prayer requests from other community members (excluding their own requests)
-- **Personal Requests**: Users can submit, view, and manage their own prayer requests
-- **Prayer Response**: Community members can "pray for" requests, with tracking of who has prayed
-- **Push Notifications**: Mobile users receive instant push notifications when someone prays for their requests
-- **Admin Notifications**: Paul receives email alerts whenever a new prayer request is created
+- **Community Interaction**: Users can view and "pray for" community prayer requests (excluding their own).
+- **Personal Management**: Users can submit, view, and edit their own prayer requests.
+- **Notifications**: Push notifications are sent when someone prays for a request; admin receives email alerts for new requests.
+- **Content Validation**: Prayer requests prevent submissions with email addresses or URLs.
+- **Church Filtering**: Supports client-side filtering of prayer requests by `church_id`.
 
 ### Blog CMS
-- **Static Content**: Blog articles stored as HTML files with associated images in `blog_articles/` directory
-- **Image Management**: Blog images stored in `blog_articles/img/` for organized content delivery
-- **Article Endpoints**: RESTful API endpoints serve blog content and metadata
+- **Static Content**: Blog articles and images are stored as HTML files in `blog_articles/`.
+- **API Endpoints**: RESTful endpoints serve blog content and metadata.
 
 ### Email Notification System
-- **Service Provider**: MailerSend API for professional email delivery
-- **Rate Limiting Strategy**: 600ms delay between each email (100 emails/min) to safely stay under the 120 requests/min API limit
-- **Personalization**: Emails use recipient's `real_name` field (fallback to `user_name` then "Friend") for personalized greetings
-- **CC Tracking**: Broadcasts CC both `paul@prayoverus.com` and `prayoverus@gmail.com` with dynamic duplicate prevention (avoids duplicating the TO recipient in CC list)
-- **Broadcast Capabilities**: 
-  - Test mode: Single email to `paul@prayoverus.com`
-  - Production mode: Individual emails to all users with personalized content
-  - Custom email templates with logo, personalized body, and call-to-action buttons
-- **Error Handling**: Individual email failure tracking with detailed error logging
+- **Service Provider**: MailerSend API for email delivery.
+- **Rate Limiting**: 600ms delay between emails to adhere to MailerSend's 120 requests/min limit.
+- **Personalization**: Emails use `real_name` (or `user_name`, then "Friend") for greetings.
+- **Broadcast Capabilities**: Supports test and production modes for sending personalized emails to all users with custom templates.
 
 ### Resume/Portfolio Data Endpoints
-- **Purpose**: Serve structured JSON data for the shouldcallpaul.com personal website
-- **Data Categories**: Workshops, conferences, speeches, projects, races, and patent information
-- **File Storage**: Static JSON files in `resume_data/` directory with associated images
-- **Recent Addition**: Career Day at Indian Hill workshop (May 30, 2025) with two images
+- **Purpose**: Provides structured JSON data for shouldcallpaul.com.
+- **Content**: Includes workshops, conferences, speeches, projects, races, and patent information.
+- **Storage**: Static JSON files and associated images in `resume_data/`.
+
+### Image Uploads
+- **Profile Pictures**: Users can upload profile pictures (JPG, PNG, WEBP) to Cloudinary.
+- **Prayer Request Images**: Prayer requests can include images uploaded to Cloudinary.
+- **Security**: Images are validated before storage; Cloudinary handles persistent storage and CDN delivery.
 
 ## Technical Design Decisions
 
-### Email Rate Limiting
-**Problem**: MailerSend enforces a 120 requests/min rate limit. Initial batch-based approach (100 emails instantly, 2s pause) exceeded this limit at ~50 emails/second.
-
-**Solution**: Per-email delay of 600ms ensures 100 emails/min sending rate, safely under the API limit. Delays are maintained even on individual email failures to prevent rate limit violations.
-
-### Email Duplicate Prevention
-**Problem**: MailerSend rejects emails with the same address in both TO and CC fields.
-
-**Solution**: Dynamic CC list construction checks the TO recipient and excludes them from the CC array, ensuring no duplicates while maintaining tracking requirements.
+### Email Management
+- **Rate Limiting**: Per-email delay strategy for MailerSend to prevent API rate limit breaches.
+- **Duplicate Prevention**: Dynamic CC list construction to avoid duplicate email addresses in TO/CC fields.
 
 ### Database Design
-- **ID Management**: Manual ID generation using `MAX(id)+1` pattern for tables without auto-increment
-- **User Fields**: `real_name` field for formal names, `user_name` for display/fallback
-- **Environment Separation**: Development database accessible via tools; production requires manual intervention
+- **ID Management**: Manual `MAX(id)+1` pattern for tables without auto-increment.
+- **User Fields**: `real_name` for formal names, `user_name` for display.
 
-## External Dependencies
+### Push Notification System
+- **Provider**: Expo Push Notifications for free and unlimited push notifications.
+- **Token Management**: Stores Expo push tokens in `user.fcm_token`; automatically cleans up invalid/expired tokens via receipt polling.
+- **Triggers**: Notifications sent when someone prays for a user's request.
+
+# External Dependencies
 
 ### Core Services
-- **PostgreSQL**: Primary database system (Neon-backed Replit database)
-- **MailerSend**: Email delivery service with API key management via environment secrets
-- **Expo Push Notifications**: Free, unlimited push notification service for mobile apps
+- **PostgreSQL**: Primary database system (Neon-backed Replit database).
+- **MailerSend**: Email delivery service.
+- **Expo Push Notifications**: Mobile push notification service.
+- **Cloudinary**: Cloud-based image management and CDN.
 
 ### Node.js Libraries
-- **express**: Web server framework
-- **pg**: PostgreSQL client for database operations
-- **bcrypt**: Password hashing for secure authentication
-- **dotenv**: Environment variable management
-- **cors**: Cross-origin resource sharing for API access
-- **mailersend**: Official MailerSend SDK for email delivery
-- **openai**: OpenAI API integration for AI features
-- **expo-server-sdk**: Expo Server SDK for push notifications
-- **multer**: Multipart/form-data handling for file uploads
+- **express**: Web server framework.
+- **pg**: PostgreSQL client.
+- **bcrypt**: Password hashing.
+- **dotenv**: Environment variable management.
+- **cors**: Cross-origin resource sharing.
+- **mailersend**: MailerSend SDK.
+- **expo-server-sdk**: Expo SDK for push notifications.
+- **multer**: Multipart/form-data handling.
 
 ### Environment Configuration
-- **DATABASE_URL**: PostgreSQL connection string (automatically configured by Replit)
-- **MAILERSEND_API_KEY**: API key for email service (stored in environment secrets)
-- **PORT**: Server port (defaults to 5000)
-
-### Static Assets
-- **profile_images/**: User profile images and platform logo (`pray_over_us_logo.jpg`)
-- **blog_articles/**: HTML blog content and images
-- **resume_data/**: JSON portfolio data and associated images
-
-## API Endpoint Categories
-
-1. **Authentication**: User registration, login, session management
-2. **Prayer Requests**: Create, read, update prayer requests; community wall access
-3. **Blog**: Retrieve blog articles and metadata
-4. **Email**: Broadcast notifications to user base
-5. **Push Notifications**: Expo token registration and mobile push notifications
-6. **Resume Data**: Public endpoints for portfolio information
-7. **Debug**: Database connectivity and health checks
-
-## Push Notification System
-
-### Architecture
-Expo Push Notifications provide free, unlimited push notifications to mobile devices. The system:
-- Stores Expo push tokens in the `user.fcm_token` column (kept for backward compatibility)
-- Respects user preferences via `settings.push_notifications`
-- Automatically cleans up invalid/expired tokens via receipt polling
-- Sends high-priority notifications for immediate delivery
-- Polls receipts 1 second after sending to verify delivery
-
-### Implementation
-- **pushNotifications.js**: Helper module with Expo SDK integration
-- **Receipt Polling**: Checks delivery status and detects DeviceNotRegistered errors
-- **Token Cleanup**: Automatically removes invalid tokens from database
-- **Error Handling**: Distinguishes between permanent failures and retryable errors
-
-### Endpoints
-- **POST /registerFCMToken**: Mobile apps register their Expo push token
-  - Parameters: `userId`, `fcmToken` (accepts Expo tokens despite name)
-  - Updates `user.fcm_token` and `user.fcm_token_updated`
-  - Note: Endpoint name kept for backward compatibility with existing mobile apps
-  
-### Notification Triggers
-- **Prayer Response**: When someone prays for a user's request
-  - Title: "Someone prayed for you 🙏"
-  - Body: "[Name] just prayed for your request"
-  - Includes request ID and user data for deep linking
-
-### Database Schema
-- `user.fcm_token` (VARCHAR 255): Expo push token (column name kept for backward compatibility)
-- `user.fcm_token_updated` (TIMESTAMP): Last token update time
-- `settings.push_notifications` (BOOLEAN): User preference for push notifications
-
-The architecture prioritizes reliability, security, and scalability while maintaining simplicity in deployment and maintenance within the Replit environment.
+- **DATABASE_URL**: PostgreSQL connection string.
+- **MAILERSEND_API_KEY**: MailerSend API key.
+- **CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET**: Cloudinary credentials.
+- **PORT**: Server port.
