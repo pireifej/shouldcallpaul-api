@@ -1894,7 +1894,7 @@ Instructions for Generating the Prayer:
         prayerId: prayerId,
         realName: realName,
         prayer: newPrayer,
-        message: "Request and prayer created successfully"
+        message: "Prayer shared with the community"
       });
 
       // Step 7: Send notification email to admin
