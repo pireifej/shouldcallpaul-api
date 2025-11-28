@@ -896,8 +896,8 @@ app.post('/updateUser', authenticate, async (req, res) => {
     }
     
     // Validate that at least one field is being updated
-    if (!params.user_about && !params.user_title && !params.church_id && !params.email) {
-      return res.json({ error: 1, result: "At least one field (user_about, user_title, church_id, or email) must be provided" });
+    if (!params.user_about && !params.user_title && !params.church_id && !params.email && !params.real_name && !params.last_name) {
+      return res.json({ error: 1, result: "At least one field (user_about, user_title, church_id, email, real_name, or last_name) must be provided" });
     }
     
     // If email is being updated, check for uniqueness
@@ -941,6 +941,18 @@ app.post('/updateUser', authenticate, async (req, res) => {
       paramIndex++;
     }
     
+    if (params.real_name !== undefined) {
+      updateFields.push(`real_name = $${paramIndex}`);
+      queryParams.push(params.real_name);
+      paramIndex++;
+    }
+    
+    if (params.last_name !== undefined) {
+      updateFields.push(`last_name = $${paramIndex}`);
+      queryParams.push(params.last_name);
+      paramIndex++;
+    }
+    
     // Add userId as the last parameter for WHERE clause
     queryParams.push(params.userId);
     
@@ -948,7 +960,7 @@ app.post('/updateUser', authenticate, async (req, res) => {
       UPDATE public."user" 
       SET ${updateFields.join(', ')}
       WHERE user_id = $${paramIndex}
-      RETURNING user_id, user_about, user_title, church_id, email
+      RETURNING user_id, user_about, user_title, church_id, email, real_name, last_name
     `;
     
     const result = await pool.query(query, queryParams);
