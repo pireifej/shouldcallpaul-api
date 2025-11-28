@@ -1687,13 +1687,14 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
       INSERT INTO public.request (
         user_id, request_text, request_title, fk_category_id, other_person, picture, fk_prayer_id,
         fk_user_id, other_person_gender, other_person_email, relationship,
-        for_me, for_all, active, timestamp, updated_timestamp
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
+        for_me, for_all, active, my_church_only, timestamp, updated_timestamp
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
       RETURNING request_id
     `;
 
     const forMe = (params.forMe === "false") ? 0 : 1;
     const forAll = (params.forAll === "false") ? 0 : 1;
+    const myChurchOnly = (params.myChurchOnly === true || params.myChurchOnly === "true") ? true : false;
     
     // Handle image upload if present (multipart/form-data)
     let pictureUrl = params.picture || null;
@@ -1719,7 +1720,8 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
       params.relationship || null,            // $11
       forMe,                                  // $12
       forAll,                                 // $13
-      1                                       // $14 - active (1 for true in smallint)
+      1,                                      // $14 - active (1 for true in smallint)
+      myChurchOnly                            // $15 - my_church_only flag
     ];
 
     const insertResult = await pool.query(insertQuery, queryParams);
@@ -2206,12 +2208,20 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
     const timezone = params.tz || 'UTC';
     const filterByChurch = params.filterByChurch === true || params.filterByChurch === 'true';
     
-    // Build the WHERE clause based on church filter
+    // Build the WHERE clause based on church filter and my_church_only flag
     let whereClause = 'WHERE request.active = 1';
     let queryParams = [params.userId, timezone];
     
+    // Always filter by my_church_only flag:
+    // If request.my_church_only = TRUE, only show to users in the same church as the request creator
+    // If request.my_church_only = FALSE, show to everyone
+    whereClause += ` AND (
+      COALESCE(request.my_church_only, FALSE) = FALSE
+      OR "user".church_id = (SELECT church_id FROM public."user" WHERE user_id = $1)
+    )`;
+    
     if (filterByChurch) {
-      // Add church filter - only show prayers from users in the same church
+      // Additional client-side filter - only show prayers from users in the same church
       // UNLESS the requesting user's church_id is 4 (None), which means "show all prayers"
       whereClause += ` AND (
         "user".church_id = (SELECT church_id FROM public."user" WHERE user_id = $1)
@@ -2231,6 +2241,7 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
         request.request_title,
         request.picture as request_picture,
         request.other_person,
+        COALESCE(request.my_church_only, FALSE) as my_church_only,
         category.category_name,
         settings.use_alias,
         settings.allow_comments,

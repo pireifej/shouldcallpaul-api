@@ -22,6 +22,7 @@ Preferred communication style: Simple, everyday language.
 - **Notifications**: Push notifications are sent when someone prays for a request; admin receives email alerts for new requests.
 - **Content Validation**: Prayer requests prevent submissions with email addresses or URLs.
 - **Church Filtering**: Supports client-side filtering of prayer requests by `church_id`.
+- **Privacy Option**: `my_church_only` flag allows users to restrict visibility of prayer requests to their own church members only.
 
 ### Blog CMS
 - **Static Content**: Blog articles and images are stored as HTML files in `blog_articles/`.
