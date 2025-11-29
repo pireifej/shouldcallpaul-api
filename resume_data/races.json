@@ -2,6 +2,20 @@
     "records": [
         {
             "image": "",
+            "label": "Matawan Borough 5K Turkey Trot & Fitness Walk",
+            "type": "race",
+            "details": {
+                "date": "11/29/25",
+                "distance": "3.1 miles",
+                "time": "25 min 20 sec",
+                "location": "Matawan, NJ"
+            },
+            "gallery": [],
+            "link": "https://runsignup.com/Race/Results/25014/FinishersCert?resultSetId=612837&resultId=208708576#certificate",
+            "desc": "<p>Annual Thanksgiving weekend Turkey Trot in Matawan, NJ.</p>"
+        },
+        {
+            "image": "",
             "label": "Fanwood 5K Pizza Run & Family Fun Run",
             "type": "race",
             "details": {
