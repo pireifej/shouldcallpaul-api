@@ -1276,10 +1276,54 @@ app.post('/prayFor', authenticate, async (req, res) => {
   }
 });
 
+// Spam detection function
+function isSpam(text) {
+  if (!text || typeof text !== 'string') return false;
+  
+  // Check for random gibberish strings (high consonant ratio, no real words)
+  const gibberishPattern = /[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]{6,}/;
+  if (gibberishPattern.test(text)) {
+    return { isSpam: true, reason: 'Contains random character strings' };
+  }
+  
+  // Check for excessive random uppercase/lowercase mixing within words
+  const mixedCaseGibberish = /[A-Z][a-z][A-Z][a-z][A-Z]/;
+  if (mixedCaseGibberish.test(text)) {
+    return { isSpam: true, reason: 'Suspicious text pattern detected' };
+  }
+  
+  // Check for strings that look like random IDs (letters + numbers in weird patterns)
+  const randomIdPattern = /[A-Za-z]{3,}[0-9]{2,}[A-Za-z]{2,}|[0-9]{2,}[A-Za-z]{3,}[0-9]{2,}/;
+  if (randomIdPattern.test(text)) {
+    return { isSpam: true, reason: 'Contains suspicious ID-like strings' };
+  }
+  
+  // Check ratio of consonants to vowels (gibberish tends to have very few vowels)
+  const vowels = (text.match(/[aeiouAEIOU]/g) || []).length;
+  const consonants = (text.match(/[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]/g) || []).length;
+  if (consonants > 0 && vowels > 0 && consonants / vowels > 4) {
+    return { isSpam: true, reason: 'Text has unusual character distribution' };
+  }
+  
+  // Check for very long "words" without spaces (likely gibberish)
+  const longWordPattern = /\S{25,}/;
+  if (longWordPattern.test(text)) {
+    return { isSpam: true, reason: 'Contains unusually long strings' };
+  }
+  
+  return { isSpam: false };
+}
+
 // POST /contact - Send contact email 
 app.post('/contact', authenticate, async (req, res) => {
   try {
     const params = req.body;
+    
+    // Honeypot field - if filled, it's a bot (frontend should have hidden field named 'website')
+    if (params.website && params.website.length > 0) {
+      console.log('🚫 Spam blocked: Honeypot triggered');
+      return res.json({ error: 0, result: "Contact message sent successfully" }); // Fake success
+    }
     
     // Validate required parameters
     const requiredParams = ["subject", "to", "content"];
@@ -1288,6 +1332,20 @@ app.post('/contact', authenticate, async (req, res) => {
       if (!params[requiredParam]) {
         return res.json({ error: "Required parameter '" + requiredParam + "' missing" });
       }
+    }
+    
+    // Check for spam in subject and content
+    const subjectSpamCheck = isSpam(params.subject);
+    const contentSpamCheck = isSpam(params.content);
+    
+    if (subjectSpamCheck.isSpam) {
+      console.log(`🚫 Spam blocked in subject: ${subjectSpamCheck.reason}`);
+      return res.json({ error: 0, result: "Contact message sent successfully" }); // Fake success to not alert bots
+    }
+    
+    if (contentSpamCheck.isSpam) {
+      console.log(`🚫 Spam blocked in content: ${contentSpamCheck.reason}`);
+      return res.json({ error: 0, result: "Contact message sent successfully" }); // Fake success to not alert bots
     }
     
     // Define sender (same as prayer notifications)
