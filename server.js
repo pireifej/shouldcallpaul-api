@@ -798,6 +798,7 @@ app.post('/getRequestById', authenticate, async (req, res) => {
     const timezone = params.tz || 'UTC';
     
     // Get the request with all details
+    // Use LEFT JOINs for optional tables to ensure request is found even if related data is missing
     const query = `
       SELECT 
         request.request_id,
@@ -826,10 +827,10 @@ app.post('/getRequestById', authenticate, async (req, res) => {
         prayers.prayer_title,
         prayers.prayer_text
       FROM public.request
-      INNER JOIN public.category ON category.category_id = request.fk_category_id
-      INNER JOIN public."user" ON "user".user_id = request.user_id
-      INNER JOIN public.settings ON settings.user_id = "user".user_id
-      INNER JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
+      LEFT JOIN public.category ON category.category_id = request.fk_category_id
+      LEFT JOIN public."user" ON "user".user_id = request.user_id
+      LEFT JOIN public.settings ON settings.user_id = "user".user_id
+      LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
       WHERE request.request_id = $2
     `;
     
