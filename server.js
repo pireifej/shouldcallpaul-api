@@ -812,7 +812,6 @@ app.post('/getRequestById', authenticate, async (req, res) => {
         request.active,
         request.fk_prayer_id,
         request.fk_user_id,
-        request.other_person_user_id,
         request.other_person_gender,
         request.other_person_email,
         request.relationship,
