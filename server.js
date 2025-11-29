@@ -785,6 +785,102 @@ app.post('/getRequestFeed', authenticate, async (req, res) => {
   }
 });
 
+// POST /getRequestById - Get a single prayer request by ID with all details
+app.post('/getRequestById', authenticate, async (req, res) => {
+  try {
+    const params = req.body;
+    
+    if (!params.requestId) {
+      return res.json({ error: 1, result: "Required param 'requestId' missing" });
+    }
+    
+    const requestId = params.requestId;
+    const timezone = params.tz || 'UTC';
+    
+    // Get the request with all details
+    const query = `
+      SELECT 
+        request.request_id,
+        request.user_id,
+        request.request_text,
+        request.request_title,
+        request.picture as request_picture,
+        request.other_person,
+        request.for_me,
+        request.for_all,
+        request.my_church_only,
+        request.active,
+        request.fk_prayer_id,
+        request.fk_user_id,
+        request.other_person_user_id,
+        request.other_person_gender,
+        request.other_person_email,
+        request.relationship,
+        category.category_name,
+        settings.use_alias,
+        settings.allow_comments,
+        (request.timestamp AT TIME ZONE 'UTC' AT TIME ZONE $1) as timestamp,
+        "user".user_name,
+        "user".real_name,
+        "user".picture as user_picture,
+        "user".church_id,
+        prayers.prayer_title,
+        prayers.prayer_text
+      FROM public.request
+      INNER JOIN public.category ON category.category_id = request.fk_category_id
+      INNER JOIN public."user" ON "user".user_id = request.user_id
+      INNER JOIN public.settings ON settings.user_id = "user".user_id
+      INNER JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
+      WHERE request.request_id = $2
+    `;
+    
+    const result = await pool.query(query, [timezone, requestId]);
+    
+    if (result.rows.length === 0) {
+      return res.json({ error: 1, result: "Request not found" });
+    }
+    
+    const request = result.rows[0];
+    
+    // Get prayed_by_names (who prayed for this request)
+    const prayedByQuery = `
+      SELECT 
+        u.user_id,
+        COALESCE(u.real_name, u.user_name, 'Anonymous') as name,
+        COUNT(*) as pray_count
+      FROM public.user_request ur
+      INNER JOIN public."user" u ON u.user_id = ur.user_id
+      WHERE ur.request_id = $1
+      GROUP BY u.user_id, u.real_name, u.user_name
+      ORDER BY pray_count DESC
+    `;
+    
+    const prayedByResult = await pool.query(prayedByQuery, [requestId]);
+    
+    // Format prayed_by_names like getCommunityWall
+    const prayedByNames = prayedByResult.rows.map(row => {
+      const count = parseInt(row.pray_count);
+      if (count === 1) {
+        return row.name;
+      } else if (count === 2) {
+        return `${row.name} prayed twice`;
+      } else {
+        return `${row.name} prayed ${count} times`;
+      }
+    });
+    
+    // Add prayed_by_names to the response
+    request.prayed_by_names = prayedByNames;
+    request.prayer_count = prayedByResult.rows.reduce((sum, row) => sum + parseInt(row.pray_count), 0);
+    
+    res.json({ error: 0, request: request });
+    
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ error: 1, result: 'Internal server error' });
+  }
+});
+
 // POST /getUser - Get user profile with stats
 app.post('/getUser', authenticate, async (req, res) => {
   try {
