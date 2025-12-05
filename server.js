@@ -2395,6 +2395,9 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
       )`;
     }
     
+    // Only show prayer requests from the last 6 months to keep the community wall fresh
+    whereClause += ` AND request.timestamp >= NOW() - INTERVAL '6 months'`;
+    
     // PostgreSQL query to get all active requests with prayer information
     const query = `
       SELECT DISTINCT 
