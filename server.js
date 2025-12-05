@@ -726,17 +726,10 @@ app.post('/getRequestById', authenticate, async (req, res) => {
         request.request_text,
         request.request_title,
         request.picture as request_picture,
-        request.other_person,
-        request.for_me,
-        request.for_all,
         request.my_church_only,
         request.active,
         request.fk_prayer_id,
-        request.fk_user_id,
-        request.other_person_gender,
         request.other_person_email,
-        request.relationship,
-        category.category_name,
         settings.use_alias,
         settings.allow_comments,
         (request.timestamp AT TIME ZONE 'UTC' AT TIME ZONE $1) as timestamp,
@@ -747,7 +740,6 @@ app.post('/getRequestById', authenticate, async (req, res) => {
         prayers.prayer_title,
         prayers.prayer_text
       FROM public.request
-      LEFT JOIN public.category ON category.category_id = request.fk_category_id
       LEFT JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
@@ -1771,15 +1763,12 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
     // Step 1: Insert the request into the database (simplified approach)
     const insertQuery = `
       INSERT INTO public.request (
-        user_id, request_text, request_title, fk_category_id, other_person, picture, fk_prayer_id,
-        fk_user_id, other_person_gender, other_person_email, relationship,
-        for_me, for_all, active, my_church_only, timestamp, updated_timestamp
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
+        user_id, request_text, request_title, picture, fk_prayer_id,
+        other_person_email, active, my_church_only, timestamp, updated_timestamp
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
       RETURNING request_id
     `;
 
-    const forMe = (params.forMe === "false") ? 0 : 1;
-    const forAll = (params.forAll === "false") ? 0 : 1;
     const myChurchOnly = (params.myChurchOnly === true || params.myChurchOnly === "true") ? true : false;
     
     // Handle image upload if present (multipart/form-data)
@@ -1796,18 +1785,11 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
       params.userId,                          // $1
       params.requestText,                     // $2
       params.requestTitle,                    // $3
-      8,                                      // $4 - fk_category_id
-      params.otherPerson || null,             // $5
-      pictureUrl,                             // $6
-      params.prayerId || null,                // $7
-      params.otherPersonUserId || null,       // $8
-      params.otherPersonGender || null,       // $9
-      params.otherPersonEmail || null,        // $10
-      params.relationship || null,            // $11
-      forMe,                                  // $12
-      forAll,                                 // $13
-      1,                                      // $14 - active (1 for true in smallint)
-      myChurchOnly                            // $15 - my_church_only flag
+      pictureUrl,                             // $4
+      params.prayerId || null,                // $5
+      params.otherPersonEmail || null,        // $6
+      1,                                      // $7 - active (1 for true in smallint)
+      myChurchOnly                            // $8 - my_church_only flag
     ];
 
     const insertResult = await pool.query(insertQuery, queryParams);
@@ -2189,12 +2171,9 @@ app.post('/getMyRequests', authenticate, async (req, res) => {
         request.user_id,
         request.request_text,
         request.fk_prayer_id,
-        request.fk_user_id,
         prayers.prayer_title,
         request.request_title,
         request.picture as request_picture,
-        request.other_person,
-        category.category_name,
         settings.use_alias,
         settings.allow_comments,
         (request.timestamp AT TIME ZONE 'UTC' AT TIME ZONE $2) as timestamp,
@@ -2204,7 +2183,6 @@ app.post('/getMyRequests', authenticate, async (req, res) => {
         "user".picture,
         "user".church_id
       FROM public.request
-      LEFT JOIN public.category ON category.category_id = request.fk_category_id
       INNER JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
@@ -2270,13 +2248,10 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
         request.user_id,
         request.request_text,
         request.fk_prayer_id,
-        request.fk_user_id,
         prayers.prayer_title,
         request.request_title,
         request.picture as request_picture,
-        request.other_person,
         COALESCE(request.my_church_only, FALSE) as my_church_only,
-        category.category_name,
         settings.use_alias,
         settings.allow_comments,
         (request.timestamp AT TIME ZONE 'UTC' AT TIME ZONE $2) as timestamp,
@@ -2289,7 +2264,6 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
         COALESCE(prayer_info.prayed_by_names, ARRAY[]::text[]) as prayed_by_names,
         CASE WHEN prayer_info.user_has_prayed THEN true ELSE false END as user_has_prayed
       FROM public.request
-      LEFT JOIN public.category ON category.category_id = request.fk_category_id
       INNER JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
