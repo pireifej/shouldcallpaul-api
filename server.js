@@ -1708,37 +1708,25 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
     // Now you have the key and can use it for your checks
     console.log(`Received idempotency key: ${idempotencyKey}`);
 
-    // Check if idempotency key already exists in database (prevents duplicate submissions)
+    const newRequestCheck = path.join(__dirname, idempotencyKey + ".txt");
+
+    // Check if the file already exists
+    if (fs.existsSync(newRequestCheck)) {
+        res.json({ error: `File for key ID ${idempotencyKey} already exists.` });
+        return; // Quit and do not continue
+    }
+
+    console.log(newRequestCheck);
+
+    // Write the new file
     try {
-        // First, clean up old idempotency keys (older than 1 hour) to prevent table bloat
-        await pool.query(`DELETE FROM public.idempotency_keys WHERE created_at < NOW() - INTERVAL '1 hour'`);
-        
-        // Check if this key already exists
-        const keyCheck = await pool.query(
-            'SELECT idempotency_key FROM public.idempotency_keys WHERE idempotency_key = $1',
-            [idempotencyKey]
-        );
-        
-        if (keyCheck.rows.length > 0) {
-            console.log(`Idempotency key ${idempotencyKey} already exists in database`);
-            return res.json({ error: 1, result: "This prayer request has already been submitted. Please wait a moment and try again if needed." });
-        }
-        
-        // Insert the new idempotency key
-        await pool.query(
-            'INSERT INTO public.idempotency_keys (idempotency_key) VALUES ($1)',
-            [idempotencyKey]
-        );
-        console.log(`Successfully recorded idempotency key ${idempotencyKey} in database`);
-        
+        const fileContent = JSON.stringify(params, null, 2);
+        fs.writeFileSync(newRequestCheck, idempotencyKey);
+        console.log(`Successfully created file for key ${idempotencyKey}.`);
     } catch (err) {
-        // If it's a unique constraint violation, the key already exists
-        if (err.code === '23505') {
-            console.log(`Idempotency key ${idempotencyKey} already exists (constraint violation)`);
-            return res.json({ error: 1, result: "This prayer request has already been submitted. Please wait a moment and try again if needed." });
-        }
-        console.error(`Error checking/inserting idempotency key ${idempotencyKey}:`, err);
-        return res.status(500).json({ error: 1, result: "Could not process request. Please try again." });
+        console.error(`Error writing file for key ${idempotencyKey}:`, err);
+        res.status(500).json({ error: "Could not create request file." });
+        return;
     }
 
     // Validate required parameters
