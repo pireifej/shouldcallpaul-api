@@ -53,6 +53,7 @@ Preferred communication style: Simple, everyday language.
 ### Database Design
 - **ID Management**: Manual `MAX(id)+1` pattern for tables without auto-increment.
 - **User Fields**: `real_name` for formal names, `user_name` for display.
+- **Idempotency Keys**: Database table `idempotency_keys` prevents duplicate prayer request submissions. Keys auto-expire after 1 hour.
 
 ### Push Notification System
 - **Provider**: Expo Push Notifications for free and unlimited push notifications.
