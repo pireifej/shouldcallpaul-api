@@ -2,6 +2,20 @@
     "records": [
         {
             "image": "",
+            "label": "Jingle Bell Half Marathon",
+            "type": "race",
+            "details": {
+                "date": "12/08/25",
+                "distance": "13.1 miles",
+                "time": "2 hours 5 min 20 sec",
+                "location": "Haverhill, MA"
+            },
+            "gallery": [],
+            "link": "https://runsignup.com/Race/Results/170339/IndividualResult/hZFk?resultSetId=613916#U2638680",
+            "desc": "<p>A holly jolly adventure along a picturesque figure-eight loop course beside the Merrimack River.</p>"
+        },
+        {
+            "image": "",
             "label": "Matawan Borough 5K Turkey Trot & Fitness Walk",
             "type": "race",
             "details": {
