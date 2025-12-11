@@ -14,6 +14,20 @@
             "desc": "<p>Find Your Voice. Be Heard. Learn how to boost your communication and leadership skills through vocal exercises, interactive activities, and more. Practical tools you can use immediately. Walk away with techniques to speak with confidence, command attention, and make your message memorable.</p>"
         },
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/think_feet_main.jpg",
+            "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/think_feet_audience.jpg", "https://shouldcallpaul.replit.app/resume_data/img/think_feet_activity.jpg"],
+            "label": "Think on Your Feet",
+            "type": "workshops",
+            "link": "https://monmouthcountylib.libcal.com/event/15454751",
+            "details": {
+                "date": "November 3, 2025",
+                "location": "Hazlet Township Branch Library",
+                "attendees": "10",
+                "duration": "1 hour"
+            },
+            "desc": "<p>An improv workshop.</p>"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/storytelling_main.jpg",
             "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/storytelling_presentation.jpg"],
             "label": "Telling Tales: The Art of Storytelling",
