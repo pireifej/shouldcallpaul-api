@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>It's A Wonderful Life: A Live Radio Play at Shakespeare Theatre of New Jersey</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>It's A Wonderful Life: A Live Radio Play at Shakespeare Theatre of New Jersey</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/wonderful.jpg" alt="The cast of It's a Wonderful Life: A Live Radio Play">
+        <div class="image-caption">The cast of It's a Wonderful Life: A Live Radio Play - Photo by Avery Brunkus</div>
+    </div>
+
+    <p>It's truly the most wonderful time of the year, and this show, "It's a Wonderful Life: A Radio Play" ups the game of Frank Capra's classic movie, the first one he made after World War II. Adapted by Joe Landry and directed by the brilliant Paul Mullins, this all-star cast will make your Holidays hum!</p>
+
+    <p>You've got an ensemble of brilliant artists including (alphabetically): RJ Foster as Freddie Fillmore/Mr. Potter (booo! HISSSS!), Paul Henry doubling as the Foley Artist/Uncle Billy, Andy Paterson as Harry "Jazzbo" Heywood/Clarence, Tony Roach as Jake Laurents/George, Tina Stafford as Lana Sherwood/Violet and Tiffany Topol as Sally Applewhite/Mary. Each of the actors also plays multiple other "characters" and Ms. Stafford is especially dashing when playing the accordion.</p>
+
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/wonderful2.jpg" alt="Tina Stafford, Paul Henry, Andy Paterson, and RJ Foster">
+        <div class="image-caption">Tina Stafford, Paul Henry, Andy Paterson, and RJ Foster - Photo by Avery Brunkus</div>
+    </div>
+
+    <div class="highlight">
+        <p>This team dazzles, each actor is a gem in the tiara that is the play and it is lovely from beginning to end, and the end comes all too soon. We are wrapped and rapt in the rosy glow of nostalgia. Sarah Beth Hall's set is intimate and warmed by the wood tones of the set, the glow of ON-AIR and APPLAUSE signs and Kevin Gartley's expert lighting.</p>
+    </div>
+
+    <p>Remember the story - in the 1940s, there were many hard candy Christmases during and immediately after the War. When George is contemplating taking his own life, his crisis of conscience strikes close to home. That he can find his way through the maze gives us all hope and whatever your belief, Hope is what it's all about.</p>
+
+    <div class="call-to-action">
+        <p><strong>Get your tickets to this Radio Play and all that Shakespeare Theatre has in store. Happy Merry, and a healthy New Year!</strong></p>
+        <p><a href="https://ticketing.shakespearenj.org/Events" target="_blank">https://ticketing.shakespearenj.org/Events</a></p>
+    </div>
+
+</body>
+</html>
