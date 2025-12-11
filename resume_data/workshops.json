@@ -1,6 +1,19 @@
 {
     "records": [
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/speak_princeton_main.jpg",
+            "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/speak_princeton_audience.jpg"],
+            "label": "Speak So Others Will Listen",
+            "type": "workshops",
+            "details": {
+                "date": "November 14, 2025",
+                "location": "Princeton Fitness & Wellness",
+                "attendees": "20+",
+                "duration": "1 hour"
+            },
+            "desc": "<p>Find Your Voice. Be Heard. Learn how to boost your communication and leadership skills through vocal exercises, interactive activities, and more. Practical tools you can use immediately. Walk away with techniques to speak with confidence, command attention, and make your message memorable.</p>"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/storytelling_main.jpg",
             "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/storytelling_presentation.jpg"],
             "label": "Telling Tales: The Art of Storytelling",
