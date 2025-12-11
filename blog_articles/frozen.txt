@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frozen at Paper Mill Playhouse</title>
+    <title>Frozen - Now At Paper Mill</title>
     <style>
         body {
             font-family: Georgia, serif;
@@ -65,7 +65,7 @@
     </style>
 </head>
 <body>
-    <h1>Frozen at Paper Mill Playhouse</h1>
+    <h1>Frozen - Now At Paper Mill</h1>
     <p class="byline">by Sherri Rase</p>
     
     <div class="image-container">

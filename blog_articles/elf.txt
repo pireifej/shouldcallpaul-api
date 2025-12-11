@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elf in Concert with YOUR New Jersey Symphony</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Elf in Concert with YOUR New Jersey Symphony</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/elf.jpg" alt="Elf in Concert at NJPAC with the New Jersey Symphony">
+        <div class="image-caption">Elf in Concert at NJPAC - Photo by Sherri Rase for Urban Telegraph</div>
+    </div>
+
+    <p>If you're a fan of all things Christmas, whether or not it's a Holiday of your family tradition, there's nothing like kicking off December with a fun Holiday film. Over the past several years, New Jersey Symphony has brought the joy of those movies to next-level enjoyment by doing them in concert with the orchestra providing the soundtrack LIVE! Films from the original Home Alone to the Muppet Christmas Carol have received this star treatment and this year, the selection was Elf!</p>
+
+    <p>Connor Gray Covington expertly conducted the New Jersey Symphony through one of the funniest films of the season. While the film came out in 2003, it became an instant Holiday classic! All around where we were seated, you could hear the combined laughter of youth through experience and there were several times where I laughed loud and long over the foibles of Buddy, the Elf who came to dinner.</p>
+
+    <div class="highlight">
+        <p>There's so much absurdity in everyday life that stepping into someone else's (elf)shoes is refreshing. The NJ Symphony plays films to a click-track, something originally developed in the middle of the last century by composers who wanted to introduce youth to Classical music. During intermission, the wildly popular "Ask a Musician" had a long and lively line.</p>
+    </div>
+
+    <p>By the time we left the beautifully decorated NJPAC building to brave the wintry winds, the police were smiling at the antics of the children of all ages. That's when you know, well and truly, that the Holiday season has begun to work its magic.</p>
+
+    <div class="call-to-action">
+        <p><strong>There's so much more to see with NJ Symphony before the year comes to a close - tickets are still available for Messiah the weekend before Christmas!</strong></p>
+        <p><a href="https://www.njsymphony.org/concerts-and-events" target="_blank">https://www.njsymphony.org/concerts-and-events</a></p>
+    </div>
+
+</body>
+</html>
