@@ -28,6 +28,19 @@
             "desc": "<p>An improv workshop.</p>"
         },
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/bbbs_group.jpg",
+            "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/bbbs_materials.jpg"],
+            "label": "Big Brothers Big Sisters",
+            "type": "workshops",
+            "details": {
+                "date": "October 10, 2025",
+                "location": "Morristown, NJ",
+                "attendees": "20",
+                "duration": "1.5 hours"
+            },
+            "desc": "<p>A public speaking and communication workshop designed to help Big Brothers Big Sisters staff effectively promote their mentoring program and services. Participants learned practical techniques to craft compelling messages, speak with confidence, and connect with potential mentors and community partners.</p>"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/storytelling_main.jpg",
             "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/storytelling_presentation.jpg"],
             "label": "Telling Tales: The Art of Storytelling",
