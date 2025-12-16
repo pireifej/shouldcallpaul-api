@@ -1053,7 +1053,7 @@ app.post('/prayFor', authenticate, async (req, res) => {
           settings.push_notifications 
         FROM public.request 
         INNER JOIN public."user" ON "user".user_id = request.user_id 
-        INNER JOIN public.settings ON settings.user_id = request.user_id 
+        LEFT JOIN public.settings ON settings.user_id = request.user_id 
         WHERE request.request_id = $1
       `;
       
@@ -2007,6 +2007,54 @@ Instructions for Generating the Prayer:
       ).catch(emailError => {
         console.error('Admin notification email failed:', emailError);
       });
+
+      // Send push notifications to all users (except the poster)
+      try {
+        const allUsersQuery = `
+          SELECT user_id, fcm_token, real_name
+          FROM public."user"
+          WHERE fcm_token IS NOT NULL
+            AND user_id != $1
+        `;
+        const allUsersResult = await pool.query(allUsersQuery, [params.userId]);
+        
+        if (allUsersResult.rows.length > 0) {
+          console.log(`📢 Sending new request notifications to ${allUsersResult.rows.length} users`);
+          
+          const notificationTitle = "New Prayer Request 🙏";
+          const notificationBody = `${realName} shared a prayer request`;
+          const notificationData = {
+            type: 'new_request',
+            requestId: requestId.toString(),
+            posterName: realName
+          };
+          
+          // Send notifications to each user (could batch for large numbers)
+          for (const user of allUsersResult.rows) {
+            try {
+              const pushResult = await sendPushNotification(
+                user.fcm_token,
+                notificationTitle,
+                notificationBody,
+                notificationData
+              );
+              
+              // Remove invalid tokens
+              if (pushResult.shouldRemoveToken) {
+                await pool.query(
+                  'UPDATE public."user" SET fcm_token = NULL WHERE user_id = $1',
+                  [user.user_id]
+                );
+                console.log(`🗑️ Removed invalid token for user ${user.user_id}`);
+              }
+            } catch (pushError) {
+              console.error(`Failed to send notification to user ${user.user_id}:`, pushError);
+            }
+          }
+        }
+      } catch (notifyError) {
+        console.error('Error sending new request notifications:', notifyError);
+      }
 
       // Clean up idempotency file
       if (fs.existsSync(newRequestCheck)) {
