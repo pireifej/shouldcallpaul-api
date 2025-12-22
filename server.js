@@ -3076,7 +3076,7 @@ app.post('/sendBroadcastNotification', async (req, res) => {
     
     // Get all users with valid Expo push tokens
     const tokenQuery = `
-      SELECT id, fcm_token, real_name, user_name 
+      SELECT user_id, fcm_token, real_name, user_name 
       FROM public.user 
       WHERE fcm_token IS NOT NULL 
         AND fcm_token != '' 
@@ -3114,7 +3114,7 @@ app.post('/sendBroadcastNotification', async (req, res) => {
       } else {
         failedCount++;
         if (result.shouldRemoveToken) {
-          tokensToRemove.push(user.id);
+          tokensToRemove.push(user.user_id);
         }
       }
     }
@@ -3124,7 +3124,7 @@ app.post('/sendBroadcastNotification', async (req, res) => {
       const cleanupQuery = `
         UPDATE public.user 
         SET fcm_token = NULL 
-        WHERE id = ANY($1)
+        WHERE user_id = ANY($1)
       `;
       await pool.query(cleanupQuery, [tokensToRemove]);
       console.log(`🗑️  Removed ${tokensToRemove.length} invalid tokens`);
