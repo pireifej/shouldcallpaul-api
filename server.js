@@ -3054,6 +3054,98 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
 
 // Migration endpoint removed for security after successful data import
 
+// POST /sendBroadcastNotification - Send push notification to all users with valid tokens
+app.post('/sendBroadcastNotification', async (req, res) => {
+  try {
+    const { adminKey, title, message } = req.body;
+    
+    // Validate required fields
+    if (!adminKey) {
+      return res.status(401).json({ error: 1, result: 'adminKey is required' });
+    }
+    
+    if (!message) {
+      return res.status(400).json({ error: 1, result: 'message is required' });
+    }
+    
+    // Verify admin key
+    const validAdminKey = process.env.ADMIN_BROADCAST_KEY;
+    if (!validAdminKey || adminKey !== validAdminKey) {
+      return res.status(403).json({ error: 1, result: 'Invalid admin key' });
+    }
+    
+    // Get all users with valid Expo push tokens
+    const tokenQuery = `
+      SELECT id, fcm_token, real_name, user_name 
+      FROM public.user 
+      WHERE fcm_token IS NOT NULL 
+        AND fcm_token != '' 
+        AND fcm_token LIKE 'ExponentPushToken%'
+    `;
+    const tokenResult = await pool.query(tokenQuery);
+    
+    if (tokenResult.rows.length === 0) {
+      return res.json({ 
+        error: 0, 
+        result: 'No users with valid push tokens found',
+        sent: 0,
+        failed: 0
+      });
+    }
+    
+    console.log(`📢 Broadcasting notification to ${tokenResult.rows.length} users`);
+    
+    const notificationTitle = title || 'Pray Over Us';
+    let successCount = 0;
+    let failedCount = 0;
+    const tokensToRemove = [];
+    
+    // Send notifications to all users
+    for (const user of tokenResult.rows) {
+      const result = await sendPushNotification(
+        user.fcm_token,
+        notificationTitle,
+        message,
+        { type: 'broadcast' }
+      );
+      
+      if (result.success) {
+        successCount++;
+      } else {
+        failedCount++;
+        if (result.shouldRemoveToken) {
+          tokensToRemove.push(user.id);
+        }
+      }
+    }
+    
+    // Clean up invalid tokens
+    if (tokensToRemove.length > 0) {
+      const cleanupQuery = `
+        UPDATE public.user 
+        SET fcm_token = NULL 
+        WHERE id = ANY($1)
+      `;
+      await pool.query(cleanupQuery, [tokensToRemove]);
+      console.log(`🗑️  Removed ${tokensToRemove.length} invalid tokens`);
+    }
+    
+    console.log(`✅ Broadcast complete: ${successCount} sent, ${failedCount} failed`);
+    
+    res.json({
+      error: 0,
+      result: 'Broadcast notification sent',
+      sent: successCount,
+      failed: failedCount,
+      tokensRemoved: tokensToRemove.length
+    });
+    
+  } catch (error) {
+    console.error('Error sending broadcast notification:', error);
+    res.status(500).json({ error: 1, result: error.message });
+  }
+});
+
 // Start server on 0.0.0.0 for public accessibility
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
