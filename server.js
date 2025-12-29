@@ -2310,6 +2310,7 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
         "user".church_id,
         COALESCE(prayer_info.prayer_count, 0) as prayer_count,
         COALESCE(prayer_info.prayed_by_names, ARRAY[]::text[]) as prayed_by_names,
+        COALESCE(prayer_info.prayed_by_people, '[]'::json) as prayed_by_people,
         CASE WHEN prayer_info.user_has_prayed THEN true ELSE false END as user_has_prayed
       FROM public.request
       INNER JOIN public."user" ON "user".user_id = request.user_id
@@ -2326,16 +2327,29 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
             END
             ORDER BY user_prayer_count DESC, user_real_name
           ) FILTER (WHERE user_real_name IS NOT NULL) as prayed_by_names,
+          JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'name', CASE 
+                WHEN user_prayer_count = 1 THEN user_real_name
+                WHEN user_prayer_count = 2 THEN user_real_name || ' prayed twice'
+                ELSE user_real_name || ' prayed ' || user_prayer_count || ' times'
+              END,
+              'picture', COALESCE(user_profile_picture_url, user_picture)
+            )
+            ORDER BY user_prayer_count DESC, user_real_name
+          ) FILTER (WHERE user_real_name IS NOT NULL) as prayed_by_people,
           BOOL_OR(praying_user_id = $1) as user_has_prayed
         FROM (
           SELECT 
             praying_user.user_id as praying_user_id,
             praying_user.real_name as user_real_name,
+            praying_user.profile_picture_url as user_profile_picture_url,
+            praying_user.picture as user_picture,
             COUNT(*)::int as user_prayer_count
           FROM public.user_request
           INNER JOIN public."user" as praying_user ON praying_user.user_id = user_request.user_id
           WHERE user_request.request_id = request.request_id
-          GROUP BY praying_user.user_id, praying_user.real_name
+          GROUP BY praying_user.user_id, praying_user.real_name, praying_user.profile_picture_url, praying_user.picture
         ) as per_user_counts
       ) as prayer_info ON true
       ${whereClause}
