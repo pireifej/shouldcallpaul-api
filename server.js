@@ -2310,7 +2310,7 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
         "user".church_id,
         COALESCE(prayer_info.prayer_count, 0) as prayer_count,
         COALESCE(prayer_info.prayed_by_names, ARRAY[]::text[]) as prayed_by_names,
-        COALESCE(prayer_info.prayed_by_people, '[]'::json) as prayed_by_people,
+        COALESCE(prayer_info.prayed_by_people, '[]'::jsonb) as prayed_by_people,
         CASE WHEN prayer_info.user_has_prayed THEN true ELSE false END as user_has_prayed
       FROM public.request
       INNER JOIN public."user" ON "user".user_id = request.user_id
@@ -2327,8 +2327,8 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
             END
             ORDER BY user_prayer_count DESC, user_real_name
           ) FILTER (WHERE user_real_name IS NOT NULL) as prayed_by_names,
-          JSON_AGG(
-            JSON_BUILD_OBJECT(
+          JSONB_AGG(
+            JSONB_BUILD_OBJECT(
               'name', CASE 
                 WHEN user_prayer_count = 1 THEN user_real_name
                 WHEN user_prayer_count = 2 THEN user_real_name || ' prayed twice'
