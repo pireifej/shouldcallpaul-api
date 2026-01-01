@@ -1974,6 +1974,12 @@ Instructions for Generating the Prayer:
               ${params.requestText}
             </p>
           </div>
+          <div style="margin: 30px 0; text-align: center;">
+            <a href="https://prayoverus.com/index.html?requestId=${requestId}" 
+               style="display: inline-block; background-color: #3498db; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              View Request
+            </a>
+          </div>
           <hr style="border: 1px solid #eee; margin: 20px 0;">
           <p style="color: #7f8c8d; font-size: 12px;">
             This is an automated notification from PrayOverUs.com
