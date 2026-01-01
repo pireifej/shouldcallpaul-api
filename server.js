@@ -1969,12 +1969,6 @@ Instructions for Generating the Prayer:
             </p>
           </div>
           <div style="margin: 20px 0;">
-            <h3 style="color: #2c3e50;">Request Text:</h3>
-            <p style="background-color: #fff3e0; padding: 15px; border-left: 4px solid #ff9800; margin: 10px 0;">
-              ${params.requestText}
-            </p>
-          </div>
-          <div style="margin: 20px 0;">
             <h3 style="color: #2c3e50;">Generated Prayer:</h3>
             <div style="background-color: #f3e5f5; padding: 15px; border-left: 4px solid #9c27b0; margin: 10px 0; line-height: 1.6;">
               ${newPrayer}
