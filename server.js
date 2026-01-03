@@ -759,11 +759,12 @@ app.post('/getRequestById', authenticate, async (req, res) => {
       SELECT 
         u.user_id,
         COALESCE(u.real_name, u.user_name, 'Anonymous') as name,
+        COALESCE(u.profile_picture_url, u.picture) as picture,
         COUNT(*) as pray_count
       FROM public.user_request ur
       INNER JOIN public."user" u ON u.user_id = ur.user_id
       WHERE ur.request_id = $1
-      GROUP BY u.user_id, u.real_name, u.user_name
+      GROUP BY u.user_id, u.real_name, u.user_name, u.profile_picture_url, u.picture
       ORDER BY pray_count DESC
     `;
     
@@ -781,8 +782,26 @@ app.post('/getRequestById', authenticate, async (req, res) => {
       }
     });
     
-    // Add prayed_by_names to the response
+    // Format prayed_by_people with name and picture
+    const prayedByPeople = prayedByResult.rows.map(row => {
+      const count = parseInt(row.pray_count);
+      let displayName;
+      if (count === 1) {
+        displayName = row.name;
+      } else if (count === 2) {
+        displayName = `${row.name} prayed twice`;
+      } else {
+        displayName = `${row.name} prayed ${count} times`;
+      }
+      return {
+        name: displayName,
+        picture: row.picture
+      };
+    });
+    
+    // Add prayed_by_names and prayed_by_people to the response
     request.prayed_by_names = prayedByNames;
+    request.prayed_by_people = prayedByPeople;
     request.prayer_count = prayedByResult.rows.reduce((sum, row) => sum + parseInt(row.pray_count), 0);
     
     res.json({ error: 0, request: request });
