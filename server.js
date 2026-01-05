@@ -799,10 +799,22 @@ app.post('/getRequestById', authenticate, async (req, res) => {
       };
     });
     
+    // Check if logged-in user has prayed for this request
+    const loggedInUserId = req.user.user_id;
+    const userHasPrayedQuery = `
+      SELECT EXISTS(
+        SELECT 1 FROM public.user_request 
+        WHERE user_id = $1 AND request_id = $2
+      ) as has_prayed
+    `;
+    const userHasPrayedResult = await pool.query(userHasPrayedQuery, [loggedInUserId, requestId]);
+    const userHasPrayed = userHasPrayedResult.rows[0]?.has_prayed || false;
+    
     // Add prayed_by_names and prayed_by_people to the response
     request.prayed_by_names = prayedByNames;
     request.prayed_by_people = prayedByPeople;
     request.prayer_count = prayedByResult.rows.reduce((sum, row) => sum + parseInt(row.pray_count), 0);
+    request.user_has_prayed = userHasPrayed;
     
     res.json({ error: 0, request: request });
     
