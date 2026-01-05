@@ -800,15 +800,18 @@ app.post('/getRequestById', authenticate, async (req, res) => {
     });
     
     // Check if logged-in user has prayed for this request
-    const loggedInUserId = req.user.user_id;
-    const userHasPrayedQuery = `
-      SELECT EXISTS(
-        SELECT 1 FROM public.user_request 
-        WHERE user_id = $1 AND request_id = $2
-      ) as has_prayed
-    `;
-    const userHasPrayedResult = await pool.query(userHasPrayedQuery, [loggedInUserId, requestId]);
-    const userHasPrayed = userHasPrayedResult.rows[0]?.has_prayed || false;
+    const loggedInUserId = params.userId;
+    let userHasPrayed = false;
+    if (loggedInUserId) {
+      const userHasPrayedQuery = `
+        SELECT EXISTS(
+          SELECT 1 FROM public.user_request 
+          WHERE user_id = $1 AND request_id = $2
+        ) as has_prayed
+      `;
+      const userHasPrayedResult = await pool.query(userHasPrayedQuery, [loggedInUserId, requestId]);
+      userHasPrayed = userHasPrayedResult.rows[0]?.has_prayed || false;
+    }
     
     // Add prayed_by_names and prayed_by_people to the response
     request.prayed_by_names = prayedByNames;
