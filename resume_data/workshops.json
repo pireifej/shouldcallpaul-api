@@ -94,6 +94,18 @@
             "desc": "<p>Gave a total of seven presentations to 4, 5 and 6 grade classes at Indian Hill School during their Career Day to showcase having a job in Software Engineering and Computer Programming. This was my second year in a row doing it.</p>"
         },
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/rpi_workshop.jpg",
+            "label": "Find Your Voice with Paul Ireifej '07",
+            "type": "workshops",
+            "link": "https://www.alumni.rpi.edu/s/1225/alumni/index.aspx?sid=1225&gid=1&pgid=10367&cid=23580&ecid=23580&crid=0&calpgid=364&calcid=14131",
+            "details": {
+                "date": "March 26, 2025",
+                "location": "RPI Alumni Event",
+                "duration": "1 hour"
+            },
+            "desc": "<p>\"The human brain starts working the moment you are born and never stops until you stand up to speak in public.\" – George Jessel</p><p>Join us for a night of dinner and gain some public speaking skills! This workshop combines interactive activities, practical exercises, and real-time feedback to help you build skills and confidence in a supportive environment of fellow alumni and friends. Whether you're a beginner or looking to refine your speaking abilities, this workshop is your first step to becoming a more dynamic speaker!</p>"
+        },
+        {
             "image": "img/redbankaione.jpg",
             "gallery": ["img/airedbanktwo.jpg"],
             "label": "AI for Beginners Workshop - Red Bank",
