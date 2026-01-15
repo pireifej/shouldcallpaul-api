@@ -1973,7 +1973,9 @@ Instructions for Generating the Prayer:
 
 6. CRITICAL - NO "AMEN" ENDING: Do NOT end the prayer with "Amen" or any variation (Amen., AMEN, etc.). The app has its own "Amen" button. The prayer MUST end with the final petition or doxology WITHOUT "Amen". This is extremely important.
 
-7. Important: Do NOT use asterisks, markdown formatting, or \\n newlines. Only use HTML tags (<strong> and <br>).`;
+7. Important: Do NOT use asterisks, markdown formatting, or \\n newlines. Only use HTML tags (<strong> and <br>).
+
+8. Length: The prayer should be 50-80 words (similar to The Lord's Prayer at ~65 words). Be concise yet complete - address the specific request meaningfully without padding. Avoid repeating the same petition in different words. Quality and sincerity matter more than length.`;
 
     
     try {
