@@ -1155,6 +1155,149 @@ Instructions for Generating the Prayer:
   }
 });
 
+// POST /regeneratePrayer - Regenerate prayer for an existing request and update the database
+app.post('/regeneratePrayer', authenticate, async (req, res) => {
+  try {
+    const params = req.body;
+    
+    // Validate required parameters
+    if (!params.requestId) {
+      return res.json({ error: "Required param 'requestId' missing" });
+    }
+    
+    const requestId = params.requestId;
+    
+    // Step 1: Get the request details from database
+    const requestQuery = `
+      SELECT r.request_text, r.fk_user_id, u.real_name, u.user_name
+      FROM public.request r
+      JOIN public.user u ON r.fk_user_id = u.user_id
+      WHERE r.request_id = $1
+    `;
+    
+    const requestResult = await pool.query(requestQuery, [requestId]);
+    
+    if (requestResult.rows.length === 0) {
+      return res.json({ error: "Request not found" });
+    }
+    
+    const requestText = requestResult.rows[0].request_text;
+    const realName = requestResult.rows[0].real_name || requestResult.rows[0].user_name || "Someone";
+    
+    // Step 2: Build the SAME prompt used in submitPrayerRequest
+    const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.
+
+User Request: ${requestText}
+Author of Request: ${realName}
+
+IMPORTANT - Identify the Correct Prayer Subject:
+The "Author of Request" is the person MAKING the request, but NOT necessarily the person to pray for. You must carefully read the request text to determine the correct subject:
+
+- If the request mentions another person (e.g., "my husband", "my mother", "my friend John"), pray for THAT person (use their specific name if provided)
+  Example: "Pray for my husband Jiri for good health" → Pray for Jiri, NOT ${realName}
+  
+- If the request says "pray for me", "I need...", "help me...", then pray for the author: ${realName}
+  Example: "Pray for me to find strength" → Pray for ${realName}
+
+CRITICAL - DO NOT INVENT NAMES:
+- NEVER make up or invent names that are not explicitly provided in the request text
+- If specific names are NOT provided, use possessive phrases instead
+  Example: "Pray for my dad" → Use "${realName}'s father" NOT "Paul Sr." or invented names
+  Example: "Pray for my coworkers" → Use "${realName}'s coworkers" NOT "Grace, Michael, and Sarah"
+  Example: "Pray for my family" → Use "${realName}'s family" NOT invented family member names
+- ONLY use a specific name if it appears verbatim in the request text
+- When no name is given, use relationship terms with possessive: "his father", "her mother", "${realName}'s children", etc.
+
+Instructions for Generating the Prayer:
+
+1. Format: The prayer should be suitable for reading aloud and follow a typical structure (e.g., address to God/Jesus/Mary/Saint, statement of need, intercession, concluding doxology).
+
+2. Personalization: Write the prayer in the first person plural (e.g., "We pray for...") or the second person singular (e.g., "Look upon...") to intercede for the prayer subject you identified above.
+
+3. Gender Pronoun Rule: Use a gender pronoun (he/him/his or she/her/hers) only when referring to the prayer subject. Make an educated guess about the appropriate gender based on the common usage of the provided name. If the name is ambiguous or gender-neutral (e.g., Alex, Jordan), use the name itself instead of a pronoun to maintain reverence and accuracy.
+
+4. Integration: Seamlessly weave the correct person's name and the specific request into the body of the prayer.
+
+5. Text Formatting: Use markdown-style bold (**text**) to emphasize:
+   - All person names mentioned in the prayer
+   - Divine names: God, Lord, Jesus, Christ, Holy Spirit, Father, Mary, Saint, Savior, Redeemer, Creator
+   - Key intercession words: heal, healing, protect, protection, guide, guidance, bless, blessing, comfort, strengthen, peace, grace, mercy, love, hope, faith, wisdom, courage, patience
+
+6. CRITICAL - NO "AMEN" ENDING: Do NOT end the prayer with "Amen" or any variation. The app has its own "Amen" button. The prayer MUST end with the final petition or doxology WITHOUT "Amen".
+
+7. Length: The prayer should be 50-80 words (similar to The Lord's Prayer at ~65 words). Be concise yet complete - address the specific request meaningfully without padding.
+
+8. Output plain text with line breaks between paragraphs. Do NOT use HTML tags.`;
+
+    // Step 3: Call OpenAI via getChatCompletion
+    const chatResponse = await fetch(`http://localhost:${PORT}/getChatCompletion`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': req.headers.authorization
+      },
+      body: JSON.stringify({ content: promptToGeneratePrayer })
+    });
+
+    const chatResult = await chatResponse.json();
+
+    if (!chatResult.choices || chatResult.choices.length === 0) {
+      return res.json({ error: "Failed to get a prayer from OpenAI" });
+    }
+
+    let newPrayer = chatResult.choices[0].message.content;
+    
+    // Apply the SAME post-processing as submitPrayerRequest
+    newPrayer = newPrayer.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    newPrayer = newPrayer.replace(/\n/g, '<br>');
+    newPrayer = newPrayer.replace(/<br>\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
+    newPrayer = newPrayer.replace(/<br>\s*Amen\.?\s*$/i, '');
+    newPrayer = newPrayer.replace(/\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
+    newPrayer = newPrayer.replace(/\s*Amen\.?\s*$/i, '');
+
+    // Step 4: Insert the new prayer into prayers table
+    const prayerInsertQuery = `
+      INSERT INTO public.prayers (prayer_title, prayer_text, prayer_text_me, tags, active, prayer_file_name) 
+      VALUES ($1, $2, $3, $4, $5, $6) 
+      RETURNING prayer_id
+    `;
+
+    const prayerResult = await pool.query(prayerInsertQuery, [
+      'openAI-generated',
+      newPrayer,
+      newPrayer,
+      'openAI',
+      1,
+      'openAI'
+    ]);
+
+    const prayerId = prayerResult.rows[0].prayer_id;
+
+    // Step 5: Update the request with the new prayer ID
+    const updateQuery = `
+      UPDATE public.request 
+      SET fk_prayer_id = $1 
+      WHERE request_id = $2
+    `;
+
+    await pool.query(updateQuery, [prayerId, requestId]);
+
+    // Step 6: Return success response
+    res.json({
+      success: true,
+      requestId: requestId,
+      prayerId: prayerId,
+      authorName: realName,
+      requestText: requestText,
+      prayer: newPrayer
+    });
+
+  } catch (error) {
+    console.error('Regenerate prayer error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // POST /prayFor - Record when someone prays for a request
 app.post('/prayFor', authenticate, async (req, res) => {
   try {
