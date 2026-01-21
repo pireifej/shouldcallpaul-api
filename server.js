@@ -113,6 +113,96 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY 
 });
 
+// ============================================
+// PRAYER GENERATION HELPER FUNCTION
+// Single source of truth for prayer generation prompt and processing
+// ============================================
+async function generatePrayer(requestText, authorName, authHeader) {
+  const realName = authorName || "Someone";
+  
+  const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.
+
+User Request: ${requestText}
+Author of Request: ${realName}
+
+IMPORTANT - Identify the Correct Prayer Subject:
+The "Author of Request" is the person MAKING the request, but NOT necessarily the person to pray for. You must carefully read the request text to determine the correct subject:
+
+- If the request mentions another person (e.g., "my husband", "my mother", "my friend John"), pray for THAT person (use their specific name if provided)
+  Example: "Pray for my husband Jiri for good health" → Pray for Jiri, NOT ${realName}
+  
+- If the request says "pray for me", "I need...", "help me...", then pray for the author: ${realName}
+  Example: "Pray for me to find strength" → Pray for ${realName}
+
+CRITICAL - DO NOT INVENT NAMES:
+- NEVER make up or invent names that are not explicitly provided in the request text
+- If specific names are NOT provided, use possessive phrases instead
+  Example: "Pray for my dad" → Use "${realName}'s father" NOT "Paul Sr." or invented names
+  Example: "Pray for my coworkers" → Use "${realName}'s coworkers" NOT "Grace, Michael, and Sarah"
+  Example: "Pray for my family" → Use "${realName}'s family" NOT invented family member names
+- ONLY use a specific name if it appears verbatim in the request text
+- When no name is given, use relationship terms with possessive: "his father", "her mother", "${realName}'s children", etc.
+
+Instructions for Generating the Prayer:
+
+1. Format: The prayer should be suitable for reading aloud and follow a typical structure (e.g., address to God/Jesus/Mary/Saint, statement of need, intercession, concluding doxology).
+
+2. Personalization: Write the prayer in the first person plural (e.g., "We pray for...") or the second person singular (e.g., "Look upon...") to intercede for the prayer subject you identified above.
+
+3. Gender Pronoun Rule: Use a gender pronoun (he/him/his or she/her/hers) only when referring to the prayer subject. Make an educated guess about the appropriate gender based on the common usage of the provided name. If the name is ambiguous or gender-neutral (e.g., Alex, Jordan), use the name itself instead of a pronoun to maintain reverence and accuracy.
+
+4. Integration: Seamlessly weave the correct person's name and the specific request into the body of the prayer.
+
+5. Text Formatting: Use markdown-style bold (**text**) to emphasize:
+   - All person names mentioned in the prayer
+   - Divine names: God, Lord, Jesus, Christ, Holy Spirit, Father, Mary, Saint, Savior, Redeemer, Creator
+   - Key intercession words: heal, healing, protect, protection, guide, guidance, bless, blessing, comfort, strengthen, peace, grace, mercy, love, hope, faith, wisdom, courage, patience
+
+6. CRITICAL - NO "AMEN" ENDING: Do NOT end the prayer with "Amen" or any variation. The app has its own "Amen" button. The prayer MUST end with the final petition or doxology WITHOUT "Amen".
+
+7. Length: The prayer should be 50-80 words (similar to The Lord's Prayer at ~65 words). Be concise yet complete - address the specific request meaningfully without padding.
+
+8. Output plain text with line breaks between paragraphs. Do NOT use HTML tags.`;
+
+  // Call OpenAI via getChatCompletion endpoint
+  const chatResponse = await fetch(`http://localhost:${PORT}/getChatCompletion`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': authHeader
+    },
+    body: JSON.stringify({ content: promptToGeneratePrayer })
+  });
+
+  const chatResult = await chatResponse.json();
+
+  if (!chatResult.choices || chatResult.choices.length === 0) {
+    return { error: "Failed to get a prayer from OpenAI" };
+  }
+
+  let rawPrayer = chatResult.choices[0].message.content;
+  let processedPrayer = rawPrayer;
+  
+  // Convert markdown-style bold (**text**) to HTML <strong> tags
+  processedPrayer = processedPrayer.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  
+  // Convert any remaining newlines to HTML line breaks
+  processedPrayer = processedPrayer.replace(/\n/g, '<br>');
+  
+  // Safety net: Remove "Amen" from the end if AI added it anyway
+  processedPrayer = processedPrayer.replace(/<br>\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
+  processedPrayer = processedPrayer.replace(/<br>\s*Amen\.?\s*$/i, '');
+  processedPrayer = processedPrayer.replace(/\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
+  processedPrayer = processedPrayer.replace(/\s*Amen\.?\s*$/i, '');
+
+  return {
+    success: true,
+    rawPrayer: rawPrayer,
+    processedPrayer: processedPrayer,
+    authorName: realName
+  };
+}
+
 // Email sending function using MailerSend
 async function mailerSendSingle(template, fromPerson, toPerson, subject, extraResult, res) {
     const mailerSend = new MailerSend({
@@ -1061,92 +1151,20 @@ app.post('/testGeneratePrayer', authenticate, async (req, res) => {
       return res.json({ error: "Required param 'requestText' missing" });
     }
     
-    // Use provided authorName or default to "Someone"
-    const realName = params.authorName || "Someone";
+    // Use the shared generatePrayer function
+    const result = await generatePrayer(params.requestText, params.authorName, req.headers.authorization);
     
-    // Build the SAME prompt used in submitPrayerRequest
-    const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.
-
-User Request: ${params.requestText}
-Author of Request: ${realName}
-
-IMPORTANT - Identify the Correct Prayer Subject:
-The "Author of Request" is the person MAKING the request, but NOT necessarily the person to pray for. You must carefully read the request text to determine the correct subject:
-
-- If the request mentions another person (e.g., "my husband", "my mother", "my friend John"), pray for THAT person (use their specific name if provided)
-  Example: "Pray for my husband Jiri for good health" → Pray for Jiri, NOT ${realName}
-  
-- If the request says "pray for me", "I need...", "help me...", then pray for the author: ${realName}
-  Example: "Pray for me to find strength" → Pray for ${realName}
-
-CRITICAL - DO NOT INVENT NAMES:
-- NEVER make up or invent names that are not explicitly provided in the request text
-- If specific names are NOT provided, use possessive phrases instead
-  Example: "Pray for my dad" → Use "${realName}'s father" NOT "Paul Sr." or invented names
-  Example: "Pray for my coworkers" → Use "${realName}'s coworkers" NOT "Grace, Michael, and Sarah"
-  Example: "Pray for my family" → Use "${realName}'s family" NOT invented family member names
-- ONLY use a specific name if it appears verbatim in the request text
-- When no name is given, use relationship terms with possessive: "his father", "her mother", "${realName}'s children", etc.
-
-Instructions for Generating the Prayer:
-
-1. Format: The prayer should be suitable for reading aloud and follow a typical structure (e.g., address to God/Jesus/Mary/Saint, statement of need, intercession, concluding doxology).
-
-2. Personalization: Write the prayer in the first person plural (e.g., "We pray for...") or the second person singular (e.g., "Look upon...") to intercede for the prayer subject you identified above.
-
-3. Gender Pronoun Rule: Use a gender pronoun (he/him/his or she/her/hers) only when referring to the prayer subject. Make an educated guess about the appropriate gender based on the common usage of the provided name. If the name is ambiguous or gender-neutral (e.g., Alex, Jordan), use the name itself instead of a pronoun to maintain reverence and accuracy.
-
-4. Integration: Seamlessly weave the correct person's name and the specific request into the body of the prayer.
-
-5. Text Formatting: Use markdown-style bold (**text**) to emphasize:
-   - All person names mentioned in the prayer
-   - Divine names: God, Lord, Jesus, Christ, Holy Spirit, Father, Mary, Saint, Savior, Redeemer, Creator
-   - Key intercession words: heal, healing, protect, protection, guide, guidance, bless, blessing, comfort, strengthen, peace, grace, mercy, love, hope, faith, wisdom, courage, patience
-
-6. CRITICAL - NO "AMEN" ENDING: Do NOT end the prayer with "Amen" or any variation. The app has its own "Amen" button. The prayer MUST end with the final petition or doxology WITHOUT "Amen".
-
-7. Length: The prayer should be 50-80 words (similar to The Lord's Prayer at ~65 words). Be concise yet complete - address the specific request meaningfully without padding.
-
-8. Output plain text with line breaks between paragraphs. Do NOT use HTML tags.`;
-
-    // Call OpenAI via getChatCompletion
-    const chatResponse = await fetch(`http://localhost:${PORT}/getChatCompletion`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': req.headers.authorization
-      },
-      body: JSON.stringify({ content: promptToGeneratePrayer })
-    });
-
-    const chatResult = await chatResponse.json();
-
-    if (!chatResult.choices || chatResult.choices.length === 0) {
-      return res.json({ error: "Failed to get a prayer from OpenAI" });
+    if (result.error) {
+      return res.json({ error: result.error });
     }
-
-    let generatedPrayer = chatResult.choices[0].message.content;
-    
-    // Apply the SAME post-processing as submitPrayerRequest
-    // Convert markdown-style bold (**text**) to HTML <strong> tags
-    generatedPrayer = generatedPrayer.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    
-    // Convert any remaining newlines to HTML line breaks for proper HTML formatting
-    generatedPrayer = generatedPrayer.replace(/\n/g, '<br>');
-    
-    // Safety net: Remove "Amen" from the end if AI added it anyway (case-insensitive)
-    generatedPrayer = generatedPrayer.replace(/<br>\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
-    generatedPrayer = generatedPrayer.replace(/<br>\s*Amen\.?\s*$/i, '');
-    generatedPrayer = generatedPrayer.replace(/\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
-    generatedPrayer = generatedPrayer.replace(/\s*Amen\.?\s*$/i, '');
 
     // Return the generated prayer without storing to database
     res.json({
       success: true,
       requestText: params.requestText,
-      authorName: realName,
-      generatedPrayer: generatedPrayer,
-      rawPrayer: chatResult.choices[0].message.content
+      authorName: result.authorName,
+      generatedPrayer: result.processedPrayer,
+      rawPrayer: result.rawPrayer
     });
 
   } catch (error) {
@@ -1184,85 +1202,23 @@ app.post('/regeneratePrayer', authenticate, async (req, res) => {
     const requestText = requestResult.rows[0].request_text;
     const realName = requestResult.rows[0].real_name || requestResult.rows[0].user_name || "Someone";
     
-    // Step 2: Build the SAME prompt used in submitPrayerRequest
-    const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.
-
-User Request: ${requestText}
-Author of Request: ${realName}
-
-IMPORTANT - Identify the Correct Prayer Subject:
-The "Author of Request" is the person MAKING the request, but NOT necessarily the person to pray for. You must carefully read the request text to determine the correct subject:
-
-- If the request mentions another person (e.g., "my husband", "my mother", "my friend John"), pray for THAT person (use their specific name if provided)
-  Example: "Pray for my husband Jiri for good health" → Pray for Jiri, NOT ${realName}
-  
-- If the request says "pray for me", "I need...", "help me...", then pray for the author: ${realName}
-  Example: "Pray for me to find strength" → Pray for ${realName}
-
-CRITICAL - DO NOT INVENT NAMES:
-- NEVER make up or invent names that are not explicitly provided in the request text
-- If specific names are NOT provided, use possessive phrases instead
-  Example: "Pray for my dad" → Use "${realName}'s father" NOT "Paul Sr." or invented names
-  Example: "Pray for my coworkers" → Use "${realName}'s coworkers" NOT "Grace, Michael, and Sarah"
-  Example: "Pray for my family" → Use "${realName}'s family" NOT invented family member names
-- ONLY use a specific name if it appears verbatim in the request text
-- When no name is given, use relationship terms with possessive: "his father", "her mother", "${realName}'s children", etc.
-
-Instructions for Generating the Prayer:
-
-1. Format: The prayer should be suitable for reading aloud and follow a typical structure (e.g., address to God/Jesus/Mary/Saint, statement of need, intercession, concluding doxology).
-
-2. Personalization: Write the prayer in the first person plural (e.g., "We pray for...") or the second person singular (e.g., "Look upon...") to intercede for the prayer subject you identified above.
-
-3. Gender Pronoun Rule: Use a gender pronoun (he/him/his or she/her/hers) only when referring to the prayer subject. Make an educated guess about the appropriate gender based on the common usage of the provided name. If the name is ambiguous or gender-neutral (e.g., Alex, Jordan), use the name itself instead of a pronoun to maintain reverence and accuracy.
-
-4. Integration: Seamlessly weave the correct person's name and the specific request into the body of the prayer.
-
-5. Text Formatting: Use markdown-style bold (**text**) to emphasize:
-   - All person names mentioned in the prayer
-   - Divine names: God, Lord, Jesus, Christ, Holy Spirit, Father, Mary, Saint, Savior, Redeemer, Creator
-   - Key intercession words: heal, healing, protect, protection, guide, guidance, bless, blessing, comfort, strengthen, peace, grace, mercy, love, hope, faith, wisdom, courage, patience
-
-6. CRITICAL - NO "AMEN" ENDING: Do NOT end the prayer with "Amen" or any variation. The app has its own "Amen" button. The prayer MUST end with the final petition or doxology WITHOUT "Amen".
-
-7. Length: The prayer should be 50-80 words (similar to The Lord's Prayer at ~65 words). Be concise yet complete - address the specific request meaningfully without padding.
-
-8. Output plain text with line breaks between paragraphs. Do NOT use HTML tags.`;
-
-    // Step 3: Call OpenAI via getChatCompletion
-    const chatResponse = await fetch(`http://localhost:${PORT}/getChatCompletion`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': req.headers.authorization
-      },
-      body: JSON.stringify({ content: promptToGeneratePrayer })
-    });
-
-    const chatResult = await chatResponse.json();
-
-    if (!chatResult.choices || chatResult.choices.length === 0) {
-      return res.json({ error: "Failed to get a prayer from OpenAI" });
+    // Step 2: Generate prayer using shared function
+    const prayerGenResult = await generatePrayer(requestText, realName, req.headers.authorization);
+    
+    if (prayerGenResult.error) {
+      return res.json({ error: prayerGenResult.error });
     }
 
-    let newPrayer = chatResult.choices[0].message.content;
-    
-    // Apply the SAME post-processing as submitPrayerRequest
-    newPrayer = newPrayer.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    newPrayer = newPrayer.replace(/\n/g, '<br>');
-    newPrayer = newPrayer.replace(/<br>\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
-    newPrayer = newPrayer.replace(/<br>\s*Amen\.?\s*$/i, '');
-    newPrayer = newPrayer.replace(/\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
-    newPrayer = newPrayer.replace(/\s*Amen\.?\s*$/i, '');
+    const newPrayer = prayerGenResult.processedPrayer;
 
-    // Step 4: Insert the new prayer into prayers table
+    // Step 3: Insert the new prayer into prayers table
     const prayerInsertQuery = `
       INSERT INTO public.prayers (prayer_title, prayer_text, prayer_text_me, tags, active, prayer_file_name) 
       VALUES ($1, $2, $3, $4, $5, $6) 
       RETURNING prayer_id
     `;
 
-    const prayerResult = await pool.query(prayerInsertQuery, [
+    const dbInsertResult = await pool.query(prayerInsertQuery, [
       'openAI-generated',
       newPrayer,
       newPrayer,
@@ -1271,7 +1227,7 @@ Instructions for Generating the Prayer:
       'openAI'
     ]);
 
-    const prayerId = prayerResult.rows[0].prayer_id;
+    const prayerId = dbInsertResult.rows[0].prayer_id;
 
     // Step 5: Update the request with the new prayer ID
     const updateQuery = `
@@ -2177,83 +2133,16 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
     const realName = userResult.rows[0].real_name;
     const userPicture = userResult.rows[0].picture;
 
-    // Step 3: Generate prayer using our getChatCompletion endpoint
-    const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.
-
-User Request: ${params.requestText}
-Author of Request: ${realName}
-
-IMPORTANT - Identify the Correct Prayer Subject:
-The "Author of Request" is the person MAKING the request, but NOT necessarily the person to pray for. You must carefully read the request text to determine the correct subject:
-
-- If the request mentions another person (e.g., "my husband", "my mother", "my friend John"), pray for THAT person (use their specific name if provided)
-  Example: "Pray for my husband Jiri for good health" → Pray for Jiri, NOT ${realName}
-  
-- If the request says "pray for me", "I need...", "help me...", then pray for the author: ${realName}
-  Example: "Pray for me to find strength" → Pray for ${realName}
-
-CRITICAL - DO NOT INVENT NAMES:
-- NEVER make up or invent names that are not explicitly provided in the request text
-- If specific names are NOT provided, use possessive phrases instead
-  Example: "Pray for my dad" → Use "${realName}'s father" NOT "Paul Sr." or invented names
-  Example: "Pray for my coworkers" → Use "${realName}'s coworkers" NOT "Grace, Michael, and Sarah"
-  Example: "Pray for my family" → Use "${realName}'s family" NOT invented family member names
-- ONLY use a specific name if it appears verbatim in the request text
-- When no name is given, use relationship terms with possessive: "his father", "her mother", "${realName}'s children", etc.
-
-Instructions for Generating the Prayer:
-
-1. Format: The prayer should be suitable for reading aloud and follow a typical structure (e.g., address to God/Jesus/Mary/Saint, statement of need, intercession, concluding doxology).
-
-2. Personalization: Write the prayer in the first person plural (e.g., "We pray for...") or the second person singular (e.g., "Look upon...") to intercede for the prayer subject you identified above.
-
-3. Gender Pronoun Rule: Use a gender pronoun (he/him/his or she/her/hers) only when referring to the prayer subject. Make an educated guess about the appropriate gender based on the common usage of the provided name. If the name is ambiguous or gender-neutral (e.g., Alex, Jordan), use the name itself instead of a pronoun to maintain reverence and accuracy.
-
-4. Integration: Seamlessly weave the correct person's name and the specific request into the body of the prayer.
-
-5. Text Formatting: Use markdown-style bold (**text**) to emphasize:
-   - All person names mentioned in the prayer
-   - Divine names: God, Lord, Jesus, Christ, Holy Spirit, Father, Mary, Saint, Savior, Redeemer, Creator
-   - Key intercession words: heal, healing, protect, protection, guide, guidance, bless, blessing, comfort, strengthen, peace, grace, mercy, love, hope, faith, wisdom, courage, patience
-
-6. CRITICAL - NO "AMEN" ENDING: Do NOT end the prayer with "Amen" or any variation. The app has its own "Amen" button. The prayer MUST end with the final petition or doxology WITHOUT "Amen".
-
-7. Length: The prayer should be 50-80 words (similar to The Lord's Prayer at ~65 words). Be concise yet complete - address the specific request meaningfully without padding.
-
-8. Output plain text with line breaks between paragraphs. Do NOT use HTML tags.`;
-
-    
+    // Step 3: Generate prayer using shared function
     try {
-      // Make internal call to our getChatCompletion endpoint
-      const chatResponse = await fetch(`http://localhost:${PORT}/getChatCompletion`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': req.headers.authorization
-        },
-        body: JSON.stringify({ content: promptToGeneratePrayer })
-      });
-
-      const chatResult = await chatResponse.json();
-
-      if (!chatResult.choices || chatResult.choices.length === 0) {
-        res.json({ error: "Failed to get a prayer from OpenAI" });
+      const prayerGenResult = await generatePrayer(params.requestText, realName, req.headers.authorization);
+      
+      if (prayerGenResult.error) {
+        res.json({ error: prayerGenResult.error });
         return;
       }
 
-      let newPrayer = chatResult.choices[0].message.content;
-      
-      // Convert markdown-style bold (**text**) to HTML <strong> tags
-      newPrayer = newPrayer.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      
-      // Convert any remaining newlines to HTML line breaks for proper HTML formatting
-      newPrayer = newPrayer.replace(/\n/g, '<br>');
-      
-      // Safety net: Remove "Amen" from the end if AI added it anyway (case-insensitive)
-      newPrayer = newPrayer.replace(/<br>\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
-      newPrayer = newPrayer.replace(/<br>\s*Amen\.?\s*$/i, '');
-      newPrayer = newPrayer.replace(/\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
-      newPrayer = newPrayer.replace(/\s*Amen\.?\s*$/i, '');
+      const newPrayer = prayerGenResult.processedPrayer;
 
       // Step 4: Insert the generated prayer
       const prayerInsertQuery = `
@@ -2262,7 +2151,7 @@ Instructions for Generating the Prayer:
         RETURNING prayer_id
       `;
 
-      const prayerResult = await pool.query(prayerInsertQuery, [
+      const dbInsertResult = await pool.query(prayerInsertQuery, [
         'openAI-generated',
         newPrayer,
         newPrayer,
@@ -2271,7 +2160,7 @@ Instructions for Generating the Prayer:
         'openAI'
       ]);
 
-      const prayerId = prayerResult.rows[0].prayer_id;
+      const prayerId = dbInsertResult.rows[0].prayer_id;
 
       // Step 5: Update the request with the prayer ID
       const updateQuery = `
