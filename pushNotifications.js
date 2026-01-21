@@ -86,6 +86,17 @@ async function sendPushNotification(pushToken, title, body, data = {}) {
             };
           }
           
+          // Check for DeveloperError - FCM credentials issue
+          if (receipt.details?.error === 'DeveloperError') {
+            console.error('⚠️  FCM CREDENTIALS ERROR: Your Firebase Cloud Messaging credentials need to be updated in Expo.');
+            console.error('    Go to: https://expo.dev → Your Project → Credentials → Update FCM Server Key');
+            return { 
+              success: false, 
+              shouldRemoveToken: false, 
+              error: 'FCM credentials expired or invalid - update in Expo dashboard' 
+            };
+          }
+          
           // Other receipt errors (MessageTooBig, MessageRateExceeded, etc.)
           return { 
             success: false, 
