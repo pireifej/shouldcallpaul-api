@@ -1185,11 +1185,11 @@ app.post('/regeneratePrayer', authenticate, async (req, res) => {
     
     const requestId = params.requestId;
     
-    // Step 1: Get the request details from database
+    // Step 1: Get the request details from database (LEFT JOIN to handle requests without users)
     const requestQuery = `
       SELECT r.request_text, r.fk_user_id, u.real_name, u.user_name
       FROM public.request r
-      JOIN public.user u ON r.fk_user_id = u.user_id
+      LEFT JOIN public.user u ON r.fk_user_id = u.user_id
       WHERE r.request_id = $1
     `;
     
