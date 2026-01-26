@@ -1,6 +1,18 @@
 {
     "records": [
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/bbbs_asbury_park.jpg",
+            "label": "Big Brothers Big Sisters",
+            "type": "workshops",
+            "details": {
+                "date": "January 16, 2026",
+                "location": "Asbury Park, NJ",
+                "attendees": "20+",
+                "duration": "1.5 hours"
+            },
+            "desc": "<p>A public speaking and communication workshop designed to help Big Brothers Big Sisters staff craft and deliver their message effectively. Participants learned practical techniques to communicate confidently in front of a crowd, on the phone, and in one-on-one settings to continue fostering relationships with mentors and community partners.</p>"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/speak_princeton_main.jpg",
             "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/speak_princeton_audience.jpg"],
             "label": "Speak So Others Will Listen",
