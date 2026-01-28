@@ -194,6 +194,10 @@ Instructions for Generating the Prayer:
   processedPrayer = processedPrayer.replace(/<br>\s*Amen\.?\s*$/i, '');
   processedPrayer = processedPrayer.replace(/\s*<strong>\s*Amen\.?\s*<\/strong>\s*$/i, '');
   processedPrayer = processedPrayer.replace(/\s*Amen\.?\s*$/i, '');
+  
+  // Remove horizontal rule/dashes that ChatGPT sometimes adds
+  processedPrayer = processedPrayer.replace(/<br>\s*[-—–]{3,}\s*(<br>)?$/i, '');
+  processedPrayer = processedPrayer.replace(/\s*[-—–]{3,}\s*$/i, '');
 
   return {
     success: true,
