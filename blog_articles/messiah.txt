@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messiah at the Cathedral</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Messiah at the Cathedral</h1>
+    <p class="byline">by Sherri Rase</p>
+    
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/messiah.jpg" alt="Messiah at the Cathedral with the New Jersey Symphony">
+        <div class="image-caption">Messiah at the Cathedral - Photo by Sherri Rase for Urban Telegraph</div>
+    </div>
+
+    <p>Picture it! Philadelphia, 1979! Mr. Braman tells the Frankford High School Chorus that we are going to sing Handel's Hallelujah Chorus in the Holiday Concert! There was much inner wailing, and gnashing of teeth as those of us who knew the work wondered how we as high school singers could manage it! That was when my love affair with the entire oratorio began!</p>
+
+    <p>Mr. Braman was right, of course. It was work but he knew we needed a challenge! I was a tenor back then, but later grew to love the work more. A different high school, now I'm a senior rather than a lowly sophomore. I was offered the mezzo part in the duet with soprano on "He shall feed his flock" and I was over the moon. College brought four full performances of Messiah with a college/civic symphonette, and now bringing my own score to sing along when different community orchestras and choruses performed the work.</p>
+
+    <div class="highlight">
+        <p>If you're like me, you're curious what a new conductor brings to a favorite work. Mr. Parnther has conducted all flavors of symphonic music along with movie scores, popular music and the newer frontiers like video games. He brings those influences to Messiah, and brought me to the edge of my seat. I was excited to see Mr. Parnther set the orchestra on a pace reflecting the joy of the season. The dynamics and verve let us know that light brought by the Annunciation that would change the world.</p>
+    </div>
+
+    <p>And the soloists! Hitting the highlights, the tenor Mr. Orson Van Gay II was strong and sure, tone flows, effortless ornamentation and rich color shining especially in Part II Thou shalt break them. Bass-Baritone Mr. Shyheim Selvan Hinnant had nuanced interpretation, and his Part II Why Do the Nations and Part III The Trumpet Shall Sound were brilliant. Ms. Maria Dominique Lopez has a mezzo soprano voice like golden hour light, illuminating the richness of the music. My favorite piece was Part I He shall feed His flock, in which she starts the piece and is joined by soprano Dr. Cheryse McLeod Lewis for the second verse.</p>
+
+    <p>The NJ Symphony was supported as well by the glorious voices of the Montclair State University Singers under the expert direction of Heather J. Buchanan. The caliber of instruments at Mr. Parnther's command were formidable, as was the glorious product. Walking out of the Cathedral that evening, it was well and truly Christmas time.</p>
+
+    <div class="call-to-action">
+        <p><strong>Next year, when Messiah rolls around, join me at the Cathedral with your New Jersey Symphony. Next up, Randall Goosby and Romeo and Juliet.</strong></p>
+        <p><a href="https://www.njsymphony.org" target="_blank">Tickets are available at njsymphony.org</a></p>
+    </div>
+
+</body>
+</html>
