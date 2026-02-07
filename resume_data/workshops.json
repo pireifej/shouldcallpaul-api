@@ -1,6 +1,20 @@
 {
     "records": [
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_building_blocks_main.jpg",
+            "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/ai_building_blocks_audience1.jpg", "https://shouldcallpaul.replit.app/resume_data/img/ai_building_blocks_audience2.jpg"],
+            "label": "The Building Blocks of AI",
+            "type": "workshops",
+            "link": "https://mapl.events.mylibrary.digital/event?id=292592",
+            "details": {
+                "date": "February 2, 2026",
+                "location": "Matawan-Aberdeen Library",
+                "attendees": "30+",
+                "duration": "1 hour"
+            },
+            "desc": "<p>Session 1: The Building Blocks of AI - Define Artificial Intelligence, Machine Learning, and Neural Networks with simple, real-world examples. The group exercise involved categorizing various common tools as examples of AI, Machine Learning, or simple Automation.</p>"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/bbbs_asbury_park.jpg",
             "label": "Big Brothers Big Sisters",
             "type": "workshops",
