@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Randall Goosby and New Jersey Symphony</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Randall Goosby and New Jersey Symphony</h1>
+    <p class="byline">by Sherri Rase</p>
+
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/goosby.jpg" alt="Randall Goosby Returns - New Jersey Symphony">
+        <div class="image-caption">Randall Goosby Returns - photo by Sherri Rase</div>
+    </div>
+
+    <p>New Jersey Symphony presented a brilliant program the second full weekend of January that sets the stage and whets the appetite for an excellent beginning to 2026. Violinist Randall Goosby made a triumphant return to play the Barber Violin Concerto in a beautiful program under the baton of Xian Zhang.</p>
+
+    <p>Whenever possible, make it a point to attend the pre-concert lecture, when one is scheduled. Prior to the Sunday afternoon concert at the Mayo Performing Arts Center in Morristown, the Colton Conducting Fellow Gregory D. McDaniel and Randall Goosby had a most excellent fireside chat. We learned that Mr. Goosby began playing violin at 7 as a Suzuki kid then went on to study with Philippe Quint. He had strict training from Russian teachers and he found that the best teachers were in New York. The family flew from Memphis, Tennessee to NYC every month during most of his childhood. Then he began to study with Itzhak Perlman starting with Perlman's summer camp, then for the next ten years through Juilliard. Mr. Goosby will be teaching in the pre-college Juilliard program in the Fall.</p>
+
+    <p>He enjoys going into schools and playing for and working with students where they are. He especially enjoys going where kids are not regularly exposed to orchestra music. It adds to the richness of the program when you spend time with the soloist - it feels like watching a friend perform something they love.</p>
+
+    <div class="highlight">
+        <p>Barber's Violin Concerto is a staple of the violin repertoire. Why do this now? Mr. Goosby says he will always return to the Barber. Whether high speed or romance, there is something here for everyone. One of the attractions, he says, is that this could easily be used as a film score. It's easy to imagine nature and the outdoors while listening to it, and he's absolutely correct. The virtuosity required is as fascinating as the story behind its genesis.</p>
+    </div>
+
+    <p>The piece was commissioned by Samuel Fels, a wealthy Philadelphia industrialist who was also the sponsor of a young violinist named Iso Briselli, who had studied at Curtis Institute. The first two movements were submitted two months late due to Barber's return from Switzerland during the beginning of WWII. The violinist loved the first two, there was controversy over the third that makes for interesting reading. The third movement is a pyrotechnic gem entitled moto perpetuo and challenges the violinist throughout. The Barber Violin Concerto has become a favorite worldwide as a result.</p>
+
+    <p>The Concert began with "Finlandia" and Mr. McDaniel had given us a bit of history. Holding a nationalist flair, "Finlandia" was a piece for independence, as in 1899 Finland was a Russian territory. Sibelius wrote it as the final piece of a series called Finland Awakes to celebrate that independence. The middle section theme is so popular that while it is Sibelius' own original melody, it became a folk melody on its own.</p>
+
+    <p>Finlandia begins with very serious ponderous brass moving into heraldic major followed by woodwinds then strings bringing light and the sense of change. Big opening for the New Year. Xian Zhang conducting with her signature verve and energy exhorting and guiding the orchestra through the contrasting velvet sweep of lushness that builds to a glorious martial flourish of exultant brass, strings and orchestral flex.</p>
+
+    <div class="highlight">
+        <p>Then Mr. Goosby joined us for the Barber - first movement is mannered, lyrically romantic and Goosby has the violin singing with dynamics as fluid and warm as a lover's whisper. Then the melody gambols in pure joy. Second movement was a conversation with the agreements and differences dear friends have.</p>
+
+        <p>The third movement is literally fire - playing with and like he's on fire, Goosby brings as much pyrotechnic virtuosity as he brought delicacy to the first movement. Truly a satisfying first act, warming us on a bitter day.</p>
+
+        <p>Mr. Goosby treated us to the Largo movement from Bach C major Sonata as an encore. It was pure graceful mastery, showing us that fire and manners can live within a single soul.</p>
+    </div>
+
+    <p>The second act was all Tchaikovsky! Mr. McDaniel had told us that the Tchaikovsky 2nd Symphony is rarely performed live and while Tchaikovsky was not a nationalist, not consciously producing Russian-esque music, he incorporates many Ukrainian folk melodies in this piece. He keeps the melodies pure and creates settings for them. We hear the melodies that appear later in Swan Lake and other later works.</p>
+
+    <p>Tchaikovsky - First - dramatic orchestral note followed by horn solo, segueing into thematic movement among the voices, gathering energy in a modal folk display dressed in its festive best. Xian Zhang again makes conducting a whole body workout - at times straight as a reed then lunging forward left, forward right. The music then returns to the initial statement in the horn to close. Second - playfully martial start leads to a sense of gentle forward motion. Lush and beautiful, bright like a purposeful walk on a sunny day, the joy is palpable. Third - off like a shot with a sense of knowing where it's going and come follow. Fourth movement starts huge, with stately fervor and deep drums with a swirl of motion and sound moving joyously among the voices of the orchestra in a maelstrom of energy, first loud then soft and back. Always moving and building and sharing the motifs that harken future greatness in works to come like Swan Lake, 1812 Overture and more, foretelling Pictures at an Exhibition and other works of other Russian composers.</p>
+
+    <div class="call-to-action">
+        <p><strong>Sound like fun? Oh, it IS! Join me!</strong></p>
+        <p><a href="https://www.njsymphony.org" target="_blank">Tickets are available at njsymphony.org</a></p>
+    </div>
+
+</body>
+</html>
