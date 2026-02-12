@@ -68,10 +68,7 @@
     <h1>Randall Goosby and New Jersey Symphony</h1>
     <p class="byline">by Sherri Rase</p>
 
-    <div class="image-container">
-        <img src="https://shouldcallpaul.replit.app/img/goosby.jpg" alt="Randall Goosby Returns - New Jersey Symphony">
-        <div class="image-caption">Randall Goosby Returns - photo by Sherri Rase</div>
-    </div>
+    <p class="image-caption">Randall Goosby Returns - photo by Sherri Rase</p>
 
     <p>New Jersey Symphony presented a brilliant program the second full weekend of January that sets the stage and whets the appetite for an excellent beginning to 2026. Violinist Randall Goosby made a triumphant return to play the Barber Violin Concerto in a beautiful program under the baton of Xian Zhang.</p>
 

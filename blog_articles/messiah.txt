@@ -68,10 +68,7 @@
     <h1>Messiah at the Cathedral</h1>
     <p class="byline">by Sherri Rase</p>
 
-    <div class="image-container">
-        <img src="https://shouldcallpaul.replit.app/img/messiah.jpg" alt="Messiah at the Cathedral with the New Jersey Symphony">
-        <div class="image-caption">L to R Ms Gotimer, Ms Lopez, Ms Buchanan, Mr Parnther, Mr Van Gay and Mr Hinnant - photo by Sherri Rase</div>
-    </div>
+    <p class="image-caption">L to R Ms Gotimer, Ms Lopez, Ms Buchanan, Mr Parnther, Mr Van Gay and Mr Hinnant - photo by Sherri Rase</p>
 
     <p>Picture it! Philadelphia, 1979! Mr. Braman tells the Frankford High School Chorus that we are going to sing Handel's Hallelujah Chorus in the Holiday Concert! There was much inner wailing, and gnashing of teeth as those of us who knew the work wondered how we as high school singers could manage it! That was when my love affair with the entire oratorio began!</p>
 
