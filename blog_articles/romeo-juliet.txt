@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeless Romeo and Juliet at Shakespeare Theatre of NJ</title>
+    <title>NJS + Shakespeare Theatre of NJ + R&amp;J = Magic</title>
     <style>
         body {
             font-family: Georgia, serif;
@@ -55,22 +55,37 @@
         a:hover {
             text-decoration: underline;
         }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <h1>Timeless Romeo and Juliet at Shakespeare Theatre of NJ</h1>
-    <p class="byline">By Sherri Rase</p>
-    
-    <p style="display: inline-block;margin: 20px;text-align: center;"><img src="https://shouldcallpaul.replit.app/img/romeo-juliet.jpg" alt="Romeo and Juliet at Shakespeare Theatre of NJ"><span style="font-style: italic;"><br></span></p>
-    <p style="display: inline-block;margin: 20px;text-align: center;"><span style="font-style: italic;">Billie Wyatt and Isaac Hickox-Young as Romeo and Juliet. Photo by Avery Brunkus</span></p>
+    <h1>NJS + Shakespeare Theatre of NJ + R&amp;J = Magic</h1>
+    <p class="byline">by Sherri Rase</p>
 
-    <p>When we are young, we think we invented everything - feelings, deep love and (GASP!) sex. When we begin to gain more experience, we begin to see that the world moves in cycles of varying orbits and few knew this better than Shakespeare. Shakespeare Theatre of New Jersey's production of the Bard's classic "Romeo and Juliet" under the masterful direction of Artistic Director Emerita Bonnie Monte ably demonstrates that there is still new territory for a centuries-old classic. Designing costumes and sound as well, Monte is in her 35th season with the company and her watchful eye reflects on everything. Casting real-life couple Billie Wyatt and Isaac Hickox-Young as the most tragic of lovers is pure magic. Why do a show that's been around for hundreds of years? Because a cast such as this comes along to breathe new life into this play we think we know. Sarah Beth Hall's Set Designs augmented by Andrew Hungerford's Lighting Design, spiced with Rod Kinter's Fight Direction makes this a lean, mean tragedy in five acts. Yup, and there is laughter and love, drama and angst and sword fights - it's Shakespeare, right?</p>
+    <p class="image-caption">NJ Symphony Romeo and Juliet - credit Rob Davidson</p>
 
-    <p>The social roles of men and women were very different from our times, yet people knew how to get what they needed and wanted, one way or another. Guile and wiles were the order of the day, and you see them both at work in this show. Fundamentally, communication is at the literal and figurative heart of love and feuds and when it misses, there are consequences.</p>
+    <p>What's better than a weekend with NJ Symphony? A two-fer with NJS and Shakespeare Theatre of New Jersey! An entire program of Romeo and Juliet, just in time for celebrating love or looking for a Valentine!</p>
 
-    <p>See this show for the chemistry between Juliet and her Romeo. See it for Quentin McCuiston's louche rapscallion of a Mercutio, the best I've ever seen – he's Romeo's bestie and you're bound to need bail money when you're out with M. See it for the scene where Juliet tells her parents Lord and Lady Capulet (Anthony Marble and Aurea Tomeski) and more that she's not marrying Paris and it feels like a Mozart quintet. Get your tickets, bring your friends and settle in for a brilliant evening of theatre but do it soon – this show is only happening until October 5, 2025.</p>
+    <div class="highlight">
+        <p>How exciting that one of Shakespeare's most memorable, and most quotable, plays is of course the subject for the Romantic composers and Tchaikovsky is the Romantic king of the quotable melody! This program was without an intermission, yet it fell neatly into two acts thanks to two different works with very different treatments.</p>
+    </div>
 
-    <p>This season is already halfway through and there are still more violent delights to come. Visit <a href="https://ShakepeareNJ.org">ShakepeareNJ.org</a> now for the best selection.</p>
+    <p>Act 1 was purely symphonic. Tchaikovsky's Romeo and Juliet Fantasy Overture is rife with familiar melodies, lush and beautifully realized with swelling dynamics. Afterward NJS Music Director Xian Zhang fist-bumps Concert Master Eric Wyrick and Associate Concertmaster Brennan Sweet, it was THAT beautifully performed, and truly an overture to what was to come.</p>
+
+    <p>After a brief changeover, Act 2 became a micro performance of Romeo and Juliet highlights, condensing nearly three hours of drama, tragedy and love to a 21st-century hour-long highlight featuring many favorite Shakespeare Theatre actors many of whom had just performed this very play in the Fall! Our Romeo and Juliet, Isaac Hickox-Yount and Billie Wyatt returned as our star-crossed lovers, Earl Baker was our Lord Montague, Jesmille Darbouze and David Shih our Lady and Lord Capulet, Alison Weller as the Nurse, Hassiem Muhammad as fiery Tybault, Dino Curia as Benvolio and Clark Carmichael as Mercutio and many of these actors doubled roles.</p>
+
+    <p>They were everywhere - amongst the musicians, entering and leaving through the Prudential Theatre house and even coming from the boxes in the audience and the baffles nearly backstage, all illuminated from following Prokofiev's composition. There were sword fights, masked balls, street fights and poison and what more could one ask for in a sweeping heartfelt show about what love truly means.</p>
+
+    <div class="call-to-action">
+        <p><strong>What's next? If you're hungry for more, the Lunar New Year is nigh! Time to gallop for the Year of the Horse!</strong></p>
+        <p><a href="https://www.njsymphony.org" target="_blank">Tickets are available at njsymphony.org</a></p>
+    </div>
 
 </body>
 </html>
