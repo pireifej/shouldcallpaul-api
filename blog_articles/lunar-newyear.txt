@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NJ Symphony Lunar New Year Celebration – Year of the Horse</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>NJ Symphony Lunar New Year Celebration – Year of the Horse</h1>
+    <p class="byline">by Sherri Rase</p>
+
+    <p>2026 marks the Year of the Horse for our friends who celebrate the Lunar New Year and this year at NJPAC, the celebration was at full gallop on Saturday, February 7. The abundance of Asian culture was on full display in the Cultural Exchange Festival held in the atrium of Prudential Hall immediately prior to the concert. Every year there is a sister city and this year the Shanghai Museum provided cultural displays, calligraphy, virtual tours, creating a red pocket for abundance in the New Year and creating a good luck charm, should you need one. Singers and performers graced the gem of a stage in the atrium, whetting our appetites for what was to come.</p>
+
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/lunar-newyear-atrium.jpg" alt="Cultural Exchange Festival in the NJPAC atrium">
+        <div class="image-caption">The Cultural Exchange Festival in the NJPAC atrium - photo by Sherri Rase for Urban Telegraph</div>
+    </div>
+
+    <p>The evening concert is all one glorious set with the classical music of East and West. This year, Sunny Xia made her NJ Symphony debut. The orchestra attended as the Edison Chinese Lion School of Dance brought all of the audience attention to the stage with their classic and antic dance moves. Lions of all sizes batted their eye lashes at us, tumbled, rolled and roared to our delight. The verve and energy of these young dancers put us in a Spring mood on a frigid Winter evening, and shared their promise of Spring.</p>
+
+    <p>Ms. Xia started the concert with the Spring Festival Overture by Li Huanzhi – the much loved opening since the first Lunar New Year celebration. The modal pentatonic journey took us to warmer climes, much needed on a subzero night.</p>
+
+    <div class="highlight">
+        <p>Haochen Zhang, a rising star among piano soloists, also made his NJ Symphony debut with the Liszt Piano Concerto No 1. Mr. Zhang took on the challenge of the Liszt, a pianist himself. Liszt gives this piece all the floral show of skill that scintillates across the keys, starting with the Allegro maestoso. This is a huge opening, with bravura piano frissons of bombast with emotive shimmers of virtuosity. Mr. Zhang's sure touch and subtle phrasing sent Liszt's melodies like a Valentine. The solo passages were thrilling. The swirl of the manual glissando swept through me like a rush.</p>
+    </div>
+
+    <p>During the Quasi adagio - Allegretto vivace the opening is like a meditation. Mr. Zhang's phrases are a conversation, where the anticipation of the resolution at times is breathtaking. The Vivace is lively indeed with meticulously gamboling electric passages that had me looking up the score for that portion - such a dynamic section with vigor, play and passion in abundance. I had to see how it is notated!</p>
+
+    <p>The aptly named Allegro marziale animato closes the piece. Mr. Zhang may have been channeling Liszt. Drama, dynamic passages and virtuosic flair are hallmarks of this performance.</p>
+
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/lunar-newyear-cultural.jpg" alt="Shanghai Museum cultural display at NJPAC">
+        <div class="image-caption">Shanghai Museum cultural display at NJPAC - photo by Sherri Rase for Urban Telegraph</div>
+    </div>
+
+    <p>Choi Sunghwan's Arirang Fantasy - takes its melody from a 600 year old folk song. It was written in 1976 and all the promise, sounds and warmth of Spring are distilled into this powerful music. I felt my heart lift and noticed I was breathing in rhythm with the phrases. Ms. Xia's grace as she led NJ Symphony through this idyll gave us the full majesty of this fantasy with its thrilling finale resolving to a gentle sundown mirroring the morning of the beginning of the piece.</p>
+
+    <p>The Peking University Alumni Chorus then joined the Symphony for Hulunbuir Grassland in a glorious rendition of this unofficial National Anthem of Korea arranged by Anqi Wang. While the country may appear to be divided, the people share a culture and love of their home. I had tears in my eyes for a land I've never seen.</p>
+
+    <p>"Farewell at Long Pavilion" by Li Shutong and Nicholas Hersh is a classically arranged choral piece that paints a picture of longing and love. Evocative and beautiful, it closed out the East section of the set.</p>
+
+    <p>Johann Strauss, Jr.'s "Voices of Spring" demonstrated there's nothing like a Strauss waltz to bring us halfway across the world for a more Western version of Spring. The joy and vigor of the waltz brings the energy back in a rush.</p>
+
+    <p>All too soon, it was time for the closing pieces and Georges Bizet's "Farandole" from L'Arlésienne is stirring music from Bizet brought us into a more different mind set than did the waltz. The sense of motion is back to grandly martial, always forward, rather than the spiral of the waltz.</p>
+
+    <p>"Choeur des gamines" - the grand finale brought the Starry Arts Group Children's Chorus to the stage and the fresh faces and voices of youth were brilliant! There was a bit of choral-ography that was amazing considering how young the chorus is – coordinated singing and movement in a venue like NJPAC means these youngsters are on their way to great things.</p>
+
+    <p>The Peking University Alumni Chorus and the Starry Arts Group Children's Chorus combined at the end for the traditional Gǒng xi gǒng xi. While usually this is a sing along, and many of us were singing along lightly, it was a lovely finale for a gift of an evening that has become an annual high point in many calendars.</p>
+
+    <div class="call-to-action">
+        <p><strong>Anyone for the Fifth of Beethoven, the Supreme Architect of Music?</strong></p>
+        <p><a href="https://www.njsymphony.org" target="_blank">Tickets are available now at njsymphony.org</a></p>
+    </div>
+
+</body>
+</html>
