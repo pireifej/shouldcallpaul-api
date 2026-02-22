@@ -2,6 +2,62 @@
     "records": [
         {
             "image": "",
+            "label": "Tampa's Gasparilla Distance Classic 8K",
+            "type": "race",
+            "details": {
+                "date": "02/22/26",
+                "distance": "4.97 miles",
+                "time": "TBD",
+                "location": "Tampa, FL"
+            },
+            "gallery": ["img/running/gasparilla_8k_2026.jpg"],
+            "link": "https://www.rungasparilla.com/8k-general-information/",
+            "desc": "<p>The 8K leg of the 49th Publix Gasparilla Distance Classic, part of the Michelob Ultra Challenge (15K, 5K, Half Marathon, and 8K). This flat and fast out-and-back course runs along Tampa's beautiful Bayshore Boulevard.</p>"
+        },
+        {
+            "image": "",
+            "label": "Tampa's Publix Gasparilla Half Marathon",
+            "type": "race",
+            "details": {
+                "date": "02/22/26",
+                "distance": "13.1 miles",
+                "time": "TBD",
+                "location": "Tampa, FL"
+            },
+            "gallery": ["img/running/gasparilla_half_marathon_2026.jpg"],
+            "link": "https://www.rungasparilla.com/half-marathon/",
+            "desc": "<p>The Half Marathon leg of the 49th Publix Gasparilla Distance Classic, part of the Michelob Ultra Challenge (15K, 5K, Half Marathon, and 8K). This flat and fast out-and-back course runs along Tampa's beautiful Bayshore Boulevard.</p>"
+        },
+        {
+            "image": "",
+            "label": "Tampa's Publix Gasparilla Distance Classic 5K",
+            "type": "race",
+            "details": {
+                "date": "02/21/26",
+                "distance": "3.1 miles",
+                "time": "TBD",
+                "location": "Tampa, FL"
+            },
+            "gallery": ["img/running/gasparilla_5k_2026.jpg"],
+            "link": "https://www.rungasparilla.com/5k-general-information/",
+            "desc": "<p>The 5K leg of the 49th Publix Gasparilla Distance Classic, part of the Michelob Ultra Challenge (15K, 5K, Half Marathon, and 8K). This flat and fast out-and-back course runs along Tampa's beautiful Bayshore Boulevard.</p>"
+        },
+        {
+            "image": "",
+            "label": "Tampa's Publix Gasparilla Distance Classic 15K",
+            "type": "race",
+            "details": {
+                "date": "02/21/26",
+                "distance": "9.3 miles",
+                "time": "TBD",
+                "location": "Tampa, FL"
+            },
+            "gallery": ["img/running/gasparilla_15k_2026.jpg"],
+            "link": "https://www.rungasparilla.com/15k-general-information/",
+            "desc": "<p>The 15K leg of the 49th Publix Gasparilla Distance Classic, part of the Michelob Ultra Challenge (15K, 5K, Half Marathon, and 8K). This flat and fast out-and-back course runs along Tampa's beautiful Bayshore Boulevard.</p>"
+        },
+        {
+            "image": "",
             "label": "Jingle Bell Half Marathon",
             "type": "race",
             "details": {
