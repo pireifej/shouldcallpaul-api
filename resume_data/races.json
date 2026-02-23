@@ -127,7 +127,7 @@
             "desc": "<p>Celebrating my birthday by running with my son for his first ever 5K! Enjoy a mixed terrain course with dirt, grass, gravel, and some hills. Enter via the North Cottage Road entrance of MCP.</p>"
         },
         {
-            "image": "",
+            "image": "img/running/turkeytrotresults.png",
             "label": "2024 PPTC Turkey Trot: Race for Reconciliation 5 Miler",
             "type": "race",
             "details": {
@@ -136,7 +136,7 @@
                 "time": "52 min 13 sec",
                 "location": "NYC"
             },
-            "gallery": ["img/running/turkeytrotresults.png"],
+            "gallery": [],
             "link": "https://runsignup.com/Race/Results/135512/IndividualResult/BBhS?resultSetId=512067#U2638680",
             "desc": "<p>One of Brooklyn's most popular races, this spectacular 5-miler is the perfect way to kick off your holiday season!</p>"
         },
