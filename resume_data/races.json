@@ -85,7 +85,7 @@
             "desc": "<p>Annual Thanksgiving weekend Turkey Trot in Matawan, NJ.</p>"
         },
         {
-            "image": "",
+            "image": "img/running/fanwood_pizza_photo.jpg",
             "label": "Fanwood 5K Pizza Run & Family Fun Run",
             "type": "race",
             "details": {
@@ -94,7 +94,7 @@
                 "time": "25 min 24 sec",
                 "location": "Fanwood, NJ"
             },
-            "gallery": ["img/running/fanwood_pizza_results.png", "img/running/fanwood_pizza_photo.jpg"],
+            "gallery": ["img/running/fanwood_pizza_results.png"],
             "link": "https://runsignup.com/Race/Results/61792/IndividualResult/TSQP?resultSetId=597726#U2638680",
             "desc": "<p>Join us for a fun-filled morning of fitness, community, and—yes, a free slice of pizza for all finishers! The 5K features a USATF Certified Course.</p>"
         },
