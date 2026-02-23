@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>"Come From Away" is PMP's Sea of Calm</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>"Come From Away" is PMP's Sea of Calm</h1>
+    <p class="byline">by Sherri Rase</p>
+
+    <p class="image-caption">Cast - Opening Night of Come From Away: photo credit Rebecca J. Michelson</p>
+
+    <p>September 11, 2001 is a day that is indelibly etched into the minds of several generations as our very own Day That Shall Live in Infamy. Each of us can say with a supreme degree of exactitude what we experienced that day. Yet in the darkest circumstances, the decency, love and humanity we share shines through. Nowhere is this more evident than in Paper Mill Playhouse's re-imagined "Come From Away".</p>
+
+    <p>"Come From Away" is a tongue-in-cheek look at Gander, a small town in Nova Scotia that used to be the fuel-up crossroads of the world before the jet engine came into existence. Since that time, they have been a town of 7,000 souls and while that sounds like a lot, their lives move along as closely aligned as the clockworks of a Swiss movement. Irene Sankoff and David Hein interviewed a handful of the townspeople to create their award-winning show where they have written the book, music and lyrics.</p>
+
+    <div class="highlight">
+        <p>Vividly directed and choreographed by Richard J. Hinds, who has been involved with the show from its original production in La Jolla, has assembled a brilliant team of actors and designers to create a vignette that is part fantasy and all reality that will sing in your heart during this cold, dark winter.</p>
+    </div>
+
+    <p>The cast are all multi-hyphenate singers-dancers-actors-musicians and more and they are memorable in the multiple roles they play — stars every one. They include Jeannette Bayardelle, Andra Burns, John El-Jor, Nick Gaswirth, Lisa Howard, Lisa Helmi Johanson, Kent M. Lewis, James Moye, Jason Tyler Smith, David Socolar, Erica Spyres and Rema Webb.</p>
+
+    <p>They all begin as denizens of the town who limn their characters with a lean, spare and direct way of speaking that seems characteristic of a people who live in a climate that challenges all but the hearty. We see them morph into completely different characters like chameleons make their changes — fully-formed airline passengers, many of whom are not the better parts of themselves on a good day, much less a brilliantly sunny day that became darker than night could make it.</p>
+
+    <p>Then they become the core group of passengers with whom we watch the compressed events of several days play out in less than two hours. You WILL laugh and you WILL cry and when you leave, you will evangelize for all of your friends to have this beautiful experience of the true milk of human kindness. Perhaps if this is how we can be in extremis, we could all muster a bit more in our daily lives.</p>
+
+    <div class="call-to-action">
+        <p><strong>Get out to <a href="https://papermill.org/cfa/" target="_blank">papermill.org</a> to get your tickets now.</strong></p>
+        <p>Currently the show ends March 1, so march forth and get those tickets.</p>
+    </div>
+
+</body>
+</html>
