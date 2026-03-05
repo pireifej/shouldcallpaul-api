@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>"Samantha Inside Out" – Now at NJ Rep</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>"Samantha Inside Out" – Now at NJ Rep</h1>
+    <p class="byline">by Sherri Rase</p>
+
+    <p class="image-caption">Elizabeth Heflin - photo courtesy of NJ Rep</p>
+
+    <p>Marisa Smith's "Samantha Inside Out" is a raw slice of real.  Truly, explicitly real.  When we meet Samantha, introduced to the world by the dazzling Elizabeth Heflin, she's en pointe in crisis.  It is said that men marry women hoping they will remain the same, while women marry men hoping that they'll change.  Elliot, Sam's leopard, will clearly never change his spots.  He's made his last insensitive remark, though it will be a bit before he realizes it.  He's been a philandering toad since, probably, before he met Sam.  Now it's two kids later and he's a cliché – the professor that bangs the co-eds.  Sam has had it and takes refuge in the perfectly rendered bedroom of the hosts' daughter.  And the merriment ensues.</p>
+
+    <div class="highlight">
+        <p>Directed expertly by Theresa Rebeck, this show is exactly what's needed right now.  Women over 50 speak their minds and with Samantha, in Ms. Heflin's brilliant hands, we get both barrels.  This one-hander is breathtaking and seemingly effortless.  Though a one-hander is never without effort. Her internal/external monologue is being shared with (a theater full of) her closest and most dear, and like a chameleon she gradually changes the colors of what-was, to begin to consider what-will-be.</p>
+    </div>
+
+    <p>Jessica Parks' scenic design is spot-on for a young woman's bedroom that could exist anywhere in the most recent 50 years, with a few touches that put it in the present day.  Patrica E. Doherty's costume design let's us fully see that Sam's joie de vivre is thrumming just beneath the surface.  Jill Nagel's lights and Nick Simone's sound design combine for a most memorable experience and at the heart of it all is Ms. Heflin.  Exposing Sam's travails, pain and triumph as the butterfly, strong and beautiful, emerges from the chrysalis to take on her next chapter.  And the World.</p>
+
+    <div class="call-to-action">
+        <p><strong>This is the latest World Premiere at New Jersey Repertory Company, and it closes March 15.</strong></p>
+        <p>Get your tickets now at <a href="https://njrep.org/show/samantha-inside-out/" target="_blank">njrep.org</a> and buckle up!</p>
+    </div>
+
+</body>
+</html>
