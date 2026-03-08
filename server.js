@@ -1027,6 +1027,41 @@ app.post('/getUser', authenticate, async (req, res) => {
   }
 });
 
+// POST /getUsersByChurch - Get all users belonging to a specific church
+app.post('/getUsersByChurch', authenticate, async (req, res) => {
+  try {
+    const params = req.body;
+
+    if (!params.churchId) {
+      return res.json({ error: "Required param 'churchId' missing" });
+    }
+
+    const query = `
+      SELECT 
+        "user".user_id as id,
+        COALESCE("user".real_name, "user".user_name) as first_name,
+        "user".last_name,
+        COALESCE("user".profile_picture_url, "user".picture) as picture,
+        COALESCE("user".faith_points, 0) as faith_points,
+        "user".user_title as title,
+        "user".user_about as about,
+        church.church_name
+      FROM public."user"
+      LEFT JOIN public.church ON church.church_id = "user".church_id
+      WHERE "user".church_id = $1
+        AND "user".active = 1
+      ORDER BY first_name ASC
+    `;
+
+    const result = await pool.query(query, [params.churchId]);
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // POST /updateUser - Update user profile (About, Title, Church, Email)
 app.post('/updateUser', authenticate, async (req, res) => {
   try {
