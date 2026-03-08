@@ -1,8 +1,8 @@
 {
     "records": [
         {
-            "image": "",
-            "gallery": [],
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_daily_life_main.jpg",
+            "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/ai_daily_life_audience.jpg", "https://shouldcallpaul.replit.app/resume_data/img/ai_daily_life_group.jpg"],
             "label": "AI in Your Daily Life",
             "type": "workshops",
             "link": "https://mapl.events.mylibrary.digital/event?id=292857",
