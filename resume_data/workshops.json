@@ -1,6 +1,20 @@
 {
     "records": [
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/macoc_chamber_main.jpg",
+            "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/macoc_chamber_speaking.jpg"],
+            "label": "Guest Speaker at Matawan-Aberdeen Chamber of Commerce",
+            "type": "workshops",
+            "link": "https://macocnj.com/event-6562096",
+            "details": {
+                "date": "March 3, 2026",
+                "location": "Ginkaku Japanese Bistro",
+                "attendees": "",
+                "duration": ""
+            },
+            "desc": "<p>AI expert, Paul Ireifej of Should Call Paul, will present on how businesses can effectively use AI and help clear up some of the \"fog\" surrounding this rapidly evolving technology.</p>"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_daily_life_main.jpg",
             "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/ai_daily_life_audience.jpg", "https://shouldcallpaul.replit.app/resume_data/img/ai_daily_life_group.jpg"],
             "label": "AI in Your Daily Life",
