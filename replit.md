@@ -23,7 +23,9 @@ Preferred communication style: Simple, everyday language.
 - **Content Validation**: Prayer requests prevent submissions with email addresses or URLs.
 - **Church Filtering**: Supports client-side filtering of prayer requests by `church_id`.
 - **Privacy Option**: `my_church_only` flag allows users to restrict visibility of prayer requests to their own church members only.
-- **Faith Points System**: Gamified point system stored in `user.faith_points`. Points awarded: 1 for praying for someone, 3 for posting a prayer request, 5 for posting a request with an image. Returned in login, getUser, getUserByEmail responses and in `prayed_by_people` objects. Frontend handles rank title/level calculation from points.
+- **Faith Points System**: Gamified point system stored in `user.faith_points`. Points awarded: 1 for praying for someone, 3 for posting a prayer request, 5 for posting a request with an image. Returned in login, getUser, getUserByEmail, getUsersByChurch responses and in `prayed_by_people` objects.
+- **Faith Rank System**: Server-side rank computation via `faith_ranks` table and `computeRank()` helper. Ranks cached in memory. A `faith_rank` object (level, title, icon, points, next_rank, progress) is included wherever `faith_points` is returned. `GET /getFaithRanks` returns the full rank ladder. 11 ranks from Newcomer (0 pts) to Prayer Warrior (1000 pts).
+- **Church Member Directory**: `POST /getUsersByChurch` returns all active users for a given `churchId` with profile info and faith rank.
 
 ### Blog CMS
 - **Static Content**: Blog articles and images are stored as HTML files in `blog_articles/`.

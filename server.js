@@ -114,6 +114,49 @@ const openai = new OpenAI({
 });
 
 // ============================================
+// FAITH RANK HELPER FUNCTION
+// Computes rank info from faith_points using cached rank data
+// ============================================
+let cachedFaithRanks = null;
+
+async function loadFaithRanks() {
+  if (!cachedFaithRanks) {
+    const result = await pool.query('SELECT level, title, min_points, icon FROM public.faith_ranks ORDER BY min_points ASC');
+    cachedFaithRanks = result.rows;
+  }
+  return cachedFaithRanks;
+}
+
+function computeRank(faithPoints, ranks) {
+  const points = faithPoints || 0;
+  let currentRank = ranks[0];
+  let nextRank = null;
+
+  for (let i = 0; i < ranks.length; i++) {
+    if (points >= ranks[i].min_points) {
+      currentRank = ranks[i];
+      nextRank = i + 1 < ranks.length ? ranks[i + 1] : null;
+    }
+  }
+
+  let progress = 1;
+  if (nextRank) {
+    const range = nextRank.min_points - currentRank.min_points;
+    progress = range > 0 ? (points - currentRank.min_points) / range : 1;
+  }
+
+  return {
+    level: currentRank.level,
+    title: currentRank.title,
+    icon: currentRank.icon,
+    min_points: currentRank.min_points,
+    points: points,
+    next_rank: nextRank ? { level: nextRank.level, title: nextRank.title, icon: nextRank.icon, min_points: nextRank.min_points } : null,
+    progress: Math.round(progress * 100) / 100
+  };
+}
+
+// ============================================
 // PRAYER GENERATION HELPER FUNCTION
 // Single source of truth for prayer generation prompt and processing
 // ============================================
@@ -380,7 +423,12 @@ app.post('/getUserByEmail', authenticate, async (req, res) => {
     `;
     
     const result = await pool.query(query, [params.email]);
-    res.json(result.rows);
+    const ranks = await loadFaithRanks();
+    const rows = result.rows.map(row => {
+      row.faith_rank = computeRank(row.faith_points, ranks);
+      return row;
+    });
+    res.json(rows);
     
   } catch (error) {
     console.error('Database query error:', error);
@@ -616,7 +664,7 @@ app.post('/login', authenticate, async (req, res) => {
     delete user.password; // Remove password from response
     
     // Compare password with bcrypt
-    bcrypt.compare(params.password, hash, function(err, passwordMatch) {
+    bcrypt.compare(params.password, hash, async function(err, passwordMatch) {
       if (err) {
         return res.json({error: 1, result: "Authentication error occurred."});
       }
@@ -625,7 +673,9 @@ app.post('/login', authenticate, async (req, res) => {
         return res.json({error: 1, result: "We have your email address! Maybe you forgot your password?"});
       }
       
-      // Successful login - return user data
+      // Successful login - return user data with faith rank
+      const ranks = await loadFaithRanks();
+      user.faith_rank = computeRank(user.faith_points, ranks);
       res.json({error: 0, result: [user]});
     });
     
@@ -867,6 +917,9 @@ app.post('/getRequestById', authenticate, async (req, res) => {
     
     const prayedByResult = await pool.query(prayedByQuery, [requestId]);
     
+    // Load faith ranks for prayed_by_people
+    const ranks = await loadFaithRanks();
+    
     // Format prayed_by_names like getCommunityWall
     const prayedByNames = prayedByResult.rows.map(row => {
       const count = parseInt(row.pray_count);
@@ -893,7 +946,8 @@ app.post('/getRequestById', authenticate, async (req, res) => {
       return {
         name: displayName,
         picture: row.picture,
-        faith_points: row.faith_points || 0
+        faith_points: row.faith_points || 0,
+        faith_rank: computeRank(row.faith_points, ranks)
       };
     });
     
@@ -1019,7 +1073,12 @@ app.post('/getUser', authenticate, async (req, res) => {
     }
     
     const result = await pool.query(query, queryParams);
-    res.json(result.rows);
+    const ranks = await loadFaithRanks();
+    const rows = result.rows.map(row => {
+      row.faith_rank = computeRank(row.faith_points, ranks);
+      return row;
+    });
+    res.json(rows);
     
   } catch (error) {
     console.error('Database query error:', error);
@@ -1054,7 +1113,12 @@ app.post('/getUsersByChurch', authenticate, async (req, res) => {
     `;
 
     const result = await pool.query(query, [params.churchId]);
-    res.json(result.rows);
+    const ranks = await loadFaithRanks();
+    const rows = result.rows.map(row => {
+      row.faith_rank = computeRank(row.faith_points, ranks);
+      return row;
+    });
+    res.json(rows);
 
   } catch (error) {
     console.error('Database query error:', error);
@@ -2378,6 +2442,17 @@ app.get('/health', (req, res) => {
 });
 
 // GET /getAllChurches - Get all churches (no authentication required)
+// GET /getFaithRanks - Get all faith rank levels
+app.get('/getFaithRanks', async (req, res) => {
+  try {
+    const ranks = await loadFaithRanks();
+    res.json({ ranks });
+  } catch (err) {
+    console.error('Error fetching faith ranks:', err);
+    res.status(500).json({ error: 'Database error: ' + err.message });
+  }
+});
+
 app.get('/getAllChurches', async (req, res) => {
   try {
     const query = `
@@ -2640,7 +2715,17 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
     `;
 
     const result = await pool.query(query, queryParams);
-    res.json(result.rows);
+    const ranks = await loadFaithRanks();
+    const rows = result.rows.map(row => {
+      if (row.prayed_by_people && Array.isArray(row.prayed_by_people)) {
+        row.prayed_by_people = row.prayed_by_people.map(person => {
+          person.faith_rank = computeRank(person.faith_points, ranks);
+          return person;
+        });
+      }
+      return row;
+    });
+    res.json(rows);
 
   } catch (err) {
     console.error('Database query error:', err);
