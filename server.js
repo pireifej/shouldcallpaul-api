@@ -372,7 +372,8 @@ app.post('/getUserByEmail', authenticate, async (req, res) => {
         active,
         timestamp,
         user_id,
-        picture
+        picture,
+        COALESCE(faith_points, 0) as faith_points
       FROM public."user" 
       WHERE LOWER(email) = LOWER($1)
       LIMIT 1
@@ -590,7 +591,8 @@ app.post('/login', authenticate, async (req, res) => {
         timestamp,
         user_id,
         picture,
-        church_id
+        church_id,
+        COALESCE(faith_points, 0) as faith_points
       FROM public."user" 
       WHERE LOWER(email) LIKE LOWER($1)
       LIMIT 1
@@ -854,11 +856,12 @@ app.post('/getRequestById', authenticate, async (req, res) => {
         u.user_id,
         COALESCE(u.real_name, u.user_name, 'Anonymous') as name,
         COALESCE(u.profile_picture_url, u.picture) as picture,
+        u.faith_points,
         COUNT(*) as pray_count
       FROM public.user_request ur
       INNER JOIN public."user" u ON u.user_id = ur.user_id
       WHERE ur.request_id = $1
-      GROUP BY u.user_id, u.real_name, u.user_name, u.profile_picture_url, u.picture
+      GROUP BY u.user_id, u.real_name, u.user_name, u.profile_picture_url, u.picture, u.faith_points
       ORDER BY pray_count DESC
     `;
     
@@ -889,7 +892,8 @@ app.post('/getRequestById', authenticate, async (req, res) => {
       }
       return {
         name: displayName,
-        picture: row.picture
+        picture: row.picture,
+        faith_points: row.faith_points || 0
       };
     });
     
@@ -961,6 +965,7 @@ app.post('/getUser', authenticate, async (req, res) => {
           "user".picture,
           "user".profile_picture_url,
           "user".church_id,
+          "user".faith_points,
           church.church_name,
           settings.use_alias,
           settings.request_emails,
@@ -994,6 +999,7 @@ app.post('/getUser', authenticate, async (req, res) => {
           "user".picture,
           "user".profile_picture_url,
           "user".church_id,
+          "user".faith_points,
           church.church_name,
           settings.use_alias,
           settings.request_emails,
@@ -1281,6 +1287,9 @@ app.post('/prayFor', authenticate, async (req, res) => {
     const insertResult = await pool.query(insertQuery, [params.requestId, params.userId]);
     
     if (insertResult.rowCount === 1) {
+      // Award 1 faith point to the user who prayed
+      await pool.query('UPDATE public."user" SET faith_points = faith_points + 1 WHERE user_id = $1', [params.userId]);
+      
       // Step 2: Get request owner information
       const requestOwnerQuery = `
         SELECT 
@@ -2121,6 +2130,11 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
       }
     }
 
+    // Award faith points: 5 if request has a picture, 3 if no picture
+    const hasImage = pictureUrl && pictureUrl !== null && pictureUrl !== 'PENDING_IMAGE_UPLOAD';
+    const faithPointsToAward = hasImage ? 5 : 3;
+    await pool.query('UPDATE public."user" SET faith_points = faith_points + $1 WHERE user_id = $2', [faithPointsToAward, params.userId]);
+
     // Step 2: Get user details for prayer generation
     const userQuery = `
       SELECT "user".real_name, "user".picture 
@@ -2566,7 +2580,8 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
                 WHEN user_prayer_count = 2 THEN user_real_name || ' prayed twice'
                 ELSE user_real_name || ' prayed ' || user_prayer_count || ' times'
               END,
-              'picture', COALESCE(user_profile_picture_url, user_picture)
+              'picture', COALESCE(user_profile_picture_url, user_picture),
+              'faith_points', COALESCE(user_faith_points, 0)
             )
             ORDER BY user_prayer_count DESC, user_real_name
           ) FILTER (WHERE user_real_name IS NOT NULL) as prayed_by_people,
@@ -2577,11 +2592,12 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
             praying_user.real_name as user_real_name,
             praying_user.profile_picture_url as user_profile_picture_url,
             praying_user.picture as user_picture,
+            praying_user.faith_points as user_faith_points,
             COUNT(*)::int as user_prayer_count
           FROM public.user_request
           INNER JOIN public."user" as praying_user ON praying_user.user_id = user_request.user_id
           WHERE user_request.request_id = request.request_id
-          GROUP BY praying_user.user_id, praying_user.real_name, praying_user.profile_picture_url, praying_user.picture
+          GROUP BY praying_user.user_id, praying_user.real_name, praying_user.profile_picture_url, praying_user.picture, praying_user.faith_points
         ) as per_user_counts
       ) as prayer_info ON true
       ${whereClause}

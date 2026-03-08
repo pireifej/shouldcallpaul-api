@@ -23,6 +23,7 @@ Preferred communication style: Simple, everyday language.
 - **Content Validation**: Prayer requests prevent submissions with email addresses or URLs.
 - **Church Filtering**: Supports client-side filtering of prayer requests by `church_id`.
 - **Privacy Option**: `my_church_only` flag allows users to restrict visibility of prayer requests to their own church members only.
+- **Faith Points System**: Gamified point system stored in `user.faith_points`. Points awarded: 1 for praying for someone, 3 for posting a prayer request, 5 for posting a request with an image. Returned in login, getUser, getUserByEmail responses and in `prayed_by_people` objects. Frontend handles rank title/level calculation from points.
 
 ### Blog CMS
 - **Static Content**: Blog articles and images are stored as HTML files in `blog_articles/`.
