@@ -1,6 +1,20 @@
 {
     "records": [
         {
+            "image": "",
+            "gallery": [],
+            "label": "AI in Your Daily Life",
+            "type": "workshops",
+            "link": "https://mapl.events.mylibrary.digital/event?id=292857",
+            "details": {
+                "date": "March 2, 2026",
+                "location": "Matawan-Aberdeen Public Library",
+                "attendees": "30+",
+                "duration": "1 hour"
+            },
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 2: AI in Your Daily Life - Explore current, practical applications of AI, from recommendation systems to tools like ChatGPT, and discuss the associated ethical considerations. The group exercise included a small prompt contest where teams tried to get an AI to generate the most creative or useful result.</p>"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_building_blocks_main.jpg",
             "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/ai_building_blocks_audience1.jpg", "https://shouldcallpaul.replit.app/resume_data/img/ai_building_blocks_audience2.jpg"],
             "label": "The Building Blocks of AI",
@@ -8,11 +22,11 @@
             "link": "https://mapl.events.mylibrary.digital/event?id=292592",
             "details": {
                 "date": "February 2, 2026",
-                "location": "Matawan-Aberdeen Library",
+                "location": "Matawan-Aberdeen Public Library",
                 "attendees": "30+",
                 "duration": "1 hour"
             },
-            "desc": "<p>Session 1: The Building Blocks of AI - Define Artificial Intelligence, Machine Learning, and Neural Networks with simple, real-world examples. The group exercise involved categorizing various common tools as examples of AI, Machine Learning, or simple Automation.</p>"
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 1: The Building Blocks of AI - Define Artificial Intelligence, Machine Learning, and Neural Networks with simple, real-world examples. The group exercise involved categorizing various common tools as examples of AI, Machine Learning, or simple Automation.</p>"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/bbbs_asbury_park.jpg",
