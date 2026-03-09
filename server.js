@@ -1108,7 +1108,9 @@ app.post('/getUsersByChurch', authenticate, async (req, res) => {
         COALESCE("user".faith_points, 0) as faith_points,
         "user".user_title as title,
         "user".user_about as about,
-        church.church_name
+        church.church_name,
+        (SELECT COUNT(*) FROM public.request WHERE request.user_id = "user".user_id) as request_count,
+        (SELECT COUNT(*) FROM public.user_request WHERE user_request.user_id = "user".user_id) as prayer_count
       FROM public."user"
       LEFT JOIN public.church ON church.church_id = "user".church_id
       WHERE "user".church_id = $1
