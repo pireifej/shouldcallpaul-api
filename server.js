@@ -128,7 +128,11 @@ async function loadFaithRanks() {
 }
 
 function computeRank(faithPoints, ranks) {
-  const points = faithPoints || 0;
+  const points = parseInt(faithPoints) || 0;
+  if (!ranks || ranks.length === 0) {
+    return { level: 0, title: 'Newcomer', icon: '🌱', min_points: 0, points: points, next_rank: null, progress: 0 };
+  }
+
   let currentRank = ranks[0];
   let nextRank = null;
 
@@ -2719,9 +2723,11 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
     const rows = result.rows.map(row => {
       if (row.prayed_by_people && Array.isArray(row.prayed_by_people)) {
         row.prayed_by_people = row.prayed_by_people.map(person => {
-          person.faith_rank = computeRank(person.faith_points, ranks);
+          if (person) {
+            person.faith_rank = computeRank(person.faith_points, ranks);
+          }
           return person;
-        });
+        }).filter(Boolean);
       }
       return row;
     });
