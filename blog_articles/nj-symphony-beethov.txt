@@ -76,6 +76,11 @@
         <p>Then, it was Time for Three (TF3) with a piece that composer Kevin Puts wrote expressly for them during COVID. The work, "Contact" has four movements and is equally evocative of the time. TF3 is a Grammy and Emmy award winning ensemble featuring Ranaan Meyer on double bass, Nick Kendall and Charles Yang on violin and they are incendiary! They are all multi-hyphenate musicians, all of them diamonds and the entire audience had one word – "MORE".</p>
     </div>
 
+    <div class="image-container">
+        <img src="/img/nj-symphony-tf3-closeup.jpg" alt="Time for Three performing with NJ Symphony">
+        <p class="image-caption">Time for Three: Charles Yang, Ranaan Meyer, and Nick Kendall - Photo credit: Rob Davidson for NJ Symphony</p>
+    </div>
+
     <p>The first movement, "The Call" - starts with acapella harmonic vocal that segues to a duet then a trio with the woodwinds where the music scintillates like sunlight on the first leaves of Spring. The music lifts TF3 to tiptoes as they sway with the power of Terpsichore. Hand plucked bass resonates while first one violin then the other join to twine to a grapevine of joy. The vocals return at the end.</p>
 
     <p>"Codes" begins with strummed violin and viola in a double time, no time to waste energy brimming with verve and spice. And spikes. Percussive punctuation. Jagged lines. Add heart-racing meter. All are energizing and enervating. Very much like the time it was written.</p>
@@ -86,11 +91,21 @@
 
     <p>TF3s encore had Charles Yang lead us in singing "I Love You Baby" in honor of his girlfriend's birthday then they brought out the NJ Symphony Youth Orchestra to play along with TF3's first song they ever wrote. It includes an Easter egg with a quote from Ludwig's Ode to Joy. They created turnkey parts for young orchestras to develop their craft and the song is called "Joy". Truly well named, it included vocals, NJ Symphony and the Youth Orchestra, rounding out their set in the most uplifting way.</p>
 
+    <div class="image-container">
+        <img src="/img/nj-symphony-standing-ovation.jpg" alt="Time for Three and NJ Symphony standing ovation at Prudential Hall">
+        <p class="image-caption">TF3 and NJ Symphony receive a standing ovation at Prudential Hall - Photo credit: Rob Davidson for NJ Symphony</p>
+    </div>
+
     <div class="highlight">
         <p>We needed the intermission to catch our collective breath, for certain! Then, guest conductor Markus Stenz conducted the towering Beethoven Symphony No. 5 in C minor, Op. 67 sans score. What a gift when a maestro is so very familiar with a work, that the score is unnecessary.</p>
     </div>
 
     <p>From the most famous opening of all time, the music continues to a movement of great energy and evocative sweep. Stenz combines grace and strength as he leads the orchestra, exhorting phrases and dynamic nuance. The progress through the movements was glorious in everything from the tempo through dynamics and the way each part of the orchestra has moments. The Andante con moto movement is as gentle as an April breeze, with the warmth and grace punctuated by a royal motif that alternates with a whisper of strings. Then a river of melody bears us onward. Always energy is thrumming in this con moto. In the final two movements, both Allegro, from a soft beginning to the triumph of the end, these movements are grand. Stenz' enjoyment of the work was infectious and it is evident in his approach and execution. It is certainly possible that John Williams may have gotten some inspiration for his medal scene at the end of the historic Star Wars from Beethoven's Fifth.</p>
+
+    <div class="image-container">
+        <img src="/img/nj-symphony-program.jpg" alt="Beethoven's Fifth Symphony program">
+        <p class="image-caption">Beethoven's Fifth Symphony - 2025-26 Season - Sherri Rase for Urban Telegraph</p>
+    </div>
 
     <p>When the final notes had ceased ringing in Prudential Hall, Maestro Stenz slowly brought his hands down as he conducted us as audience, letting us know when we should applaud. And we did. Maestro Stenz beamed at each part of the orchestra in turn, and we all went out into the windy, watercolor sunshine with full hearts.</p>
 
