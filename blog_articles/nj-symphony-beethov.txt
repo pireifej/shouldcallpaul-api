@@ -77,7 +77,7 @@
     </div>
 
     <div class="image-container">
-        <img src="/img/nj-symphony-tf3-closeup.jpg" alt="Time for Three performing with NJ Symphony">
+        <img src="https://shouldcallpaul.replit.app/img/nj-symphony-tf3-closeup.jpg" alt="Time for Three performing with NJ Symphony">
         <p class="image-caption">Time for Three: Charles Yang, Ranaan Meyer, and Nick Kendall - Photo credit: Rob Davidson for NJ Symphony</p>
     </div>
 
@@ -92,7 +92,7 @@
     <p>TF3s encore had Charles Yang lead us in singing "I Love You Baby" in honor of his girlfriend's birthday then they brought out the NJ Symphony Youth Orchestra to play along with TF3's first song they ever wrote. It includes an Easter egg with a quote from Ludwig's Ode to Joy. They created turnkey parts for young orchestras to develop their craft and the song is called "Joy". Truly well named, it included vocals, NJ Symphony and the Youth Orchestra, rounding out their set in the most uplifting way.</p>
 
     <div class="image-container">
-        <img src="/img/nj-symphony-standing-ovation.jpg" alt="Time for Three and NJ Symphony standing ovation at Prudential Hall">
+        <img src="https://shouldcallpaul.replit.app/img/nj-symphony-standing-ovation.jpg" alt="Time for Three and NJ Symphony standing ovation at Prudential Hall">
         <p class="image-caption">TF3 and NJ Symphony receive a standing ovation at Prudential Hall - Photo credit: Rob Davidson for NJ Symphony</p>
     </div>
 
@@ -103,7 +103,7 @@
     <p>From the most famous opening of all time, the music continues to a movement of great energy and evocative sweep. Stenz combines grace and strength as he leads the orchestra, exhorting phrases and dynamic nuance. The progress through the movements was glorious in everything from the tempo through dynamics and the way each part of the orchestra has moments. The Andante con moto movement is as gentle as an April breeze, with the warmth and grace punctuated by a royal motif that alternates with a whisper of strings. Then a river of melody bears us onward. Always energy is thrumming in this con moto. In the final two movements, both Allegro, from a soft beginning to the triumph of the end, these movements are grand. Stenz' enjoyment of the work was infectious and it is evident in his approach and execution. It is certainly possible that John Williams may have gotten some inspiration for his medal scene at the end of the historic Star Wars from Beethoven's Fifth.</p>
 
     <div class="image-container">
-        <img src="/img/nj-symphony-program.jpg" alt="Beethoven's Fifth Symphony program">
+        <img src="https://shouldcallpaul.replit.app/img/nj-symphony-program.jpg" alt="Beethoven's Fifth Symphony program">
         <p class="image-caption">Beethoven's Fifth Symphony - 2025-26 Season - Sherri Rase for Urban Telegraph</p>
     </div>
 
