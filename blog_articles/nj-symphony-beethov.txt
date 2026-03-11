@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NJ Symphony Plays Beethoven and Time For Three</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>NJ Symphony Plays Beethoven and Time For Three</h1>
+    <p class="byline">by Sherri Rase for Urban Telegraph</p>
+
+    <p class="image-caption">Photo credit: Rob Davidson for NJ Symphony</p>
+
+    <p>March was known as "In like a Lion and out like a Lamb" for the weather, but NJ Symphony rang in March very leonine with a Wagner, Puts, Beethoven program rich in everything they do best. Kicking off the first act was Richard Wagner's Prelude to Act 1 of Lohengrin - Elsa of Brabant is accused of her brother's murder 1,000 years ago. A knight comes to her defense, on a boat powered by swans. They marry, and he asks that she never inquire of his history prior and we know what happens next. The grandeur of this piece is clearly the inspiration for cinema long before cinema existed. You can hear the building in the strings to the grand brass reveal. Imagine a knight emerging in the glow of a golden hour Maxfield Parrish sunset. Truly a setting for a tragic romance.</p>
+
+    <div class="highlight">
+        <p>Then, it was Time for Three (TF3) with a piece that composer Kevin Puts wrote expressly for them during COVID. The work, "Contact" has four movements and is equally evocative of the time. TF3 is a Grammy and Emmy award winning ensemble featuring Ranaan Meyer on double bass, Nick Kendall and Charles Yang on violin and they are incendiary! They are all multi-hyphenate musicians, all of them diamonds and the entire audience had one word – "MORE".</p>
+    </div>
+
+    <p>The first movement, "The Call" - starts with acapella harmonic vocal that segues to a duet then a trio with the woodwinds where the music scintillates like sunlight on the first leaves of Spring. The music lifts TF3 to tiptoes as they sway with the power of Terpsichore. Hand plucked bass resonates while first one violin then the other join to twine to a grapevine of joy. The vocals return at the end.</p>
+
+    <p>"Codes" begins with strummed violin and viola in a double time, no time to waste energy brimming with verve and spice. And spikes. Percussive punctuation. Jagged lines. Add heart-racing meter. All are energizing and enervating. Very much like the time it was written.</p>
+
+    <p>"Contact" starts with portents in viola, cello and bass that herald a plaintive woodwind figure. The haunting feel is picked up by the orchestra then TF3 joins with a Bach-esque, measured sense of regularity, graceful passage of time and a nascent return to a new normal. Then fraught sevenths remind us that the new may not really be normal. Yet, like our hearts beat, we strive and survive.</p>
+
+    <p>"Convivium" sees the bass begin a figure that the violins pick up with a modal melody that feels like it comes from halfway around the world, swirling like a scirocco through the orchestra always returning to TF3. The swirl of the melody flirts with major then dips its toe back to modal. A flourish of brass, some playful woodwinds and sonorous strings come back to TF3s treble strings with bass notes as grace notes. The energy lurks, emerges then peeks as it piques, rolling through dynamics as fluidly as through the melody. There's what feels like a false cadence, like entropy, that suddenly builds to an open classically broad major. Then it's back to modal with a big BIG finish!</p>
+
+    <p>TF3s encore had Charles Yang lead us in singing "I Love You Baby" in honor of his girlfriend's birthday then they brought out the NJ Symphony Youth Orchestra to play along with TF3's first song they ever wrote. It includes an Easter egg with a quote from Ludwig's Ode to Joy. They created turnkey parts for young orchestras to develop their craft and the song is called "Joy". Truly well named, it included vocals, NJ Symphony and the Youth Orchestra, rounding out their set in the most uplifting way.</p>
+
+    <div class="highlight">
+        <p>We needed the intermission to catch our collective breath, for certain! Then, guest conductor Markus Stenz conducted the towering Beethoven Symphony No. 5 in C minor, Op. 67 sans score. What a gift when a maestro is so very familiar with a work, that the score is unnecessary.</p>
+    </div>
+
+    <p>From the most famous opening of all time, the music continues to a movement of great energy and evocative sweep. Stenz combines grace and strength as he leads the orchestra, exhorting phrases and dynamic nuance. The progress through the movements was glorious in everything from the tempo through dynamics and the way each part of the orchestra has moments. The Andante con moto movement is as gentle as an April breeze, with the warmth and grace punctuated by a royal motif that alternates with a whisper of strings. Then a river of melody bears us onward. Always energy is thrumming in this con moto. In the final two movements, both Allegro, from a soft beginning to the triumph of the end, these movements are grand. Stenz' enjoyment of the work was infectious and it is evident in his approach and execution. It is certainly possible that John Williams may have gotten some inspiration for his medal scene at the end of the historic Star Wars from Beethoven's Fifth.</p>
+
+    <p>When the final notes had ceased ringing in Prudential Hall, Maestro Stenz slowly brought his hands down as he conducted us as audience, letting us know when we should applaud. And we did. Maestro Stenz beamed at each part of the orchestra in turn, and we all went out into the windy, watercolor sunshine with full hearts.</p>
+
+    <div class="call-to-action">
+        <p><strong>Hungry for more? There's Beethoven's Sixth later in March. Harry Potter on March 7 and lots more of YOUR NJ Symphony this Spring!</strong></p>
+        <p>Tickets are available now at <a href="https://njsymphony.org" target="_blank">njsymphony.org</a>.</p>
+    </div>
+
+</body>
+</html>
