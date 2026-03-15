@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harry Potter and NJ Symphony Make Beautiful Music Together</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #7b2d8b;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 28px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #f3e8ff;
+            padding: 15px;
+            border-left: 4px solid #7b2d8b;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Harry Potter and NJ Symphony Make Beautiful Music Together</h1>
+    <p class="byline">by Sherri Rase for Urban Telegraph</p>
+
+    <p>"Harry Potter and the Sorcerer's Stone" is the first of the now-iconic films of JK Rowling's series of books that have fired the imaginations of generations. After all, while the books are geared to the more youthful among us, those of us who were already adults remember well the feelings of being "othered" in school, at home and elsewhere. Harry speaks to all of us and never more so than March 7 when adults and youth alike were sporting their House colors!</p>
+
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/nj-symphony-harry-potter.jpg" alt="Harry Potter and NJ Symphony at NJPAC">
+        <p class="image-caption">Harry Potter and the Sorcerer's Stone with NJ Symphony at NJPAC — Sherri Rase for Urban Telegraph</p>
+    </div>
+
+    <p>Under the expert baton of maestro Constantine Kitsopoulos, who specializes in conducting live music perfectly synchronized with modern film, he encouraged the entire audience to boo for the villains and cheer for our favorites and it made for a lively afternoon of fun.</p>
+
+    <div class="highlight">
+        <p>First and foremost, why would you go to hear a live symphony orchestra play under a film you could stream anytime? Because however good your home sound system, there is a galvanic thrill in hearing that music live – the drama is more dramatic, the eerie is more so and the Quidditch is spectacular! Plus, there are people around you cheering and booing and having fun, while eating Bertie Bott's Beans and Chocolate Frogs along with the regular movie style fare.</p>
+    </div>
+
+    <p>Favorite films are also on the bill of fare – and seeing stellar actors like Richard Harris, Maggie Smith and Alan Rickman as they mentor Daniel Radcliffe, Emma Watson and Rupert Grint in Hogwarts as well as their craft as actors gives a sense of life as a true continuum. And Robbie Coltrane? Yes, please and THANK you, I will have seconds (and thirds and fourths).</p>
+
+    <div class="call-to-action">
+        <p><strong>What's next on deck for NJ Symphony? Bartok and Beethoven and MORE round out March!</strong></p>
+        <p>Tickets are available now at <a href="https://njsymphony.org" target="_blank">njsymphony.org</a>.</p>
+    </div>
+
+</body>
+</html>
