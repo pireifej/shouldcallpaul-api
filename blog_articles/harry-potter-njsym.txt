@@ -70,11 +70,6 @@
 
     <p>"Harry Potter and the Sorcerer's Stone" is the first of the now-iconic films of JK Rowling's series of books that have fired the imaginations of generations. After all, while the books are geared to the more youthful among us, those of us who were already adults remember well the feelings of being "othered" in school, at home and elsewhere. Harry speaks to all of us and never more so than March 7 when adults and youth alike were sporting their House colors!</p>
 
-    <div class="image-container">
-        <img src="https://shouldcallpaul.replit.app/img/nj-symphony-harry-potter.jpg" alt="Harry Potter and NJ Symphony at NJPAC">
-        <p class="image-caption">Harry Potter and the Sorcerer's Stone with NJ Symphony at NJPAC — Sherri Rase for Urban Telegraph</p>
-    </div>
-
     <p>Under the expert baton of maestro Constantine Kitsopoulos, who specializes in conducting live music perfectly synchronized with modern film, he encouraged the entire audience to boo for the villains and cheer for our favorites and it made for a lively afternoon of fun.</p>
 
     <div class="highlight">
