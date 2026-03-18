@@ -31,6 +31,10 @@ app.use('/profile-pictures', express.static('public/profile-pictures'));
 app.use('/prayer-images', express.static('public/prayer-images'));
 app.use('/img', express.static('blog_articles/img'));
 app.use('/resume_data', express.static('resume_data'));
+app.use('/audio', (req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    next();
+}, express.static('public/audio'));
 
 // Comprehensive request/response logging middleware
 app.use((req, res, next) => {
