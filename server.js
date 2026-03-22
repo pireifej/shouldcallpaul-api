@@ -3569,7 +3569,9 @@ function getRoomState(room) {
     hostId: room.hostId,
     currentStep: room.currentStep,
     mysteryType: room.mysteryType,
-    decadeAssignments: room.decadeAssignments
+    decadeAssignments: room.decadeAssignments,
+    currentLeaderId: room.currentLeaderId,
+    leaderIndex: room.leaderIndex
   };
 }
 
@@ -3615,7 +3617,9 @@ wss.on('connection', (ws) => {
         participants: [{ userId, userName: msg.userName || 'Host', ws }],
         currentStep: 0,
         mysteryType: null,
-        decadeAssignments: {}
+        decadeAssignments: {},
+        currentLeaderId: userId,
+        leaderIndex: 0
       };
       rooms.set(code, room);
       currentRoom = room;
@@ -3645,19 +3649,37 @@ wss.on('connection', (ws) => {
       if (!currentRoom || currentUserId !== currentRoom.hostId) return;
       currentRoom.mysteryType = msg.mysteryType || 'joyful';
       currentRoom.currentStep = 0;
+      currentRoom.leaderIndex = 0;
+      currentRoom.currentLeaderId = currentRoom.participants[0].userId;
       currentRoom.decadeAssignments = assignDecades(currentRoom);
       broadcastToRoom(currentRoom, {
         type: 'session_started',
         mysteryType: currentRoom.mysteryType,
         currentStep: 0,
-        decadeAssignments: currentRoom.decadeAssignments
+        decadeAssignments: currentRoom.decadeAssignments,
+        currentLeaderId: currentRoom.currentLeaderId,
+        leaderIndex: currentRoom.leaderIndex
       });
       console.log(`[Rosary] Room ${currentRoom.code} session started (${currentRoom.mysteryType})`);
     }
 
-    // ── ADVANCE STEP (host only) ──
+    // ── DECADE COMPLETE (current leader only) ──
+    else if (msg.type === 'decade_complete') {
+      if (!currentRoom || currentUserId !== currentRoom.currentLeaderId) return;
+      currentRoom.currentStep += 1;
+      currentRoom.leaderIndex = (currentRoom.leaderIndex + 1) % currentRoom.participants.length;
+      currentRoom.currentLeaderId = currentRoom.participants[currentRoom.leaderIndex].userId;
+      broadcastToRoom(currentRoom, {
+        type: 'decade_complete',
+        currentStep: currentRoom.currentStep,
+        currentLeaderId: currentRoom.currentLeaderId
+      });
+      console.log(`[Rosary] Room ${currentRoom.code} decade complete, step ${currentRoom.currentStep}, new leader ${currentRoom.currentLeaderId}`);
+    }
+
+    // ── ADVANCE STEP (current leader only) ──
     else if (msg.type === 'advance_step') {
-      if (!currentRoom || currentUserId !== currentRoom.hostId) return;
+      if (!currentRoom || currentUserId !== currentRoom.currentLeaderId) return;
       currentRoom.currentStep += 1;
       broadcastToRoom(currentRoom, { type: 'step_changed', currentStep: currentRoom.currentStep });
     }
@@ -3681,6 +3703,12 @@ wss.on('connection', (ws) => {
     if (currentRoom.hostId === currentUserId) {
       currentRoom.hostId = currentRoom.participants[0].userId;
       console.log(`[Rosary] Host transferred in room ${currentRoom.code}`);
+    }
+    // If the disconnected user was the current leader, pass leadership to next participant
+    if (currentRoom.currentLeaderId === currentUserId) {
+      currentRoom.leaderIndex = currentRoom.leaderIndex % currentRoom.participants.length;
+      currentRoom.currentLeaderId = currentRoom.participants[currentRoom.leaderIndex].userId;
+      console.log(`[Rosary] Leader transferred in room ${currentRoom.code}`);
     }
     broadcastToRoom(currentRoom, { type: 'room_updated', ...getRoomState(currentRoom) });
   });
