@@ -6,6 +6,8 @@ const crypto = require('crypto');
 const OpenAI = require('openai');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
+const { WebSocketServer } = require('ws');
 const { exec } = require('child_process');
 const { promisify } = require('util');
 const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
@@ -3540,10 +3542,155 @@ app.post('/sendBroadcastNotification', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────
+// GROUP ROSARY – In-Memory Room Management
+// ─────────────────────────────────────────────
+
+const rooms = new Map(); // code -> room object
+
+function generateRoomCode() {
+  let code;
+  do {
+    code = String(Math.floor(1000 + Math.random() * 9000));
+  } while (rooms.has(code));
+  return code;
+}
+
+function broadcastToRoom(room, message) {
+  const data = JSON.stringify(message);
+  room.participants.forEach(p => {
+    if (p.ws.readyState === 1) p.ws.send(data);
+  });
+}
+
+function getRoomState(room) {
+  return {
+    participants: room.participants.map(p => ({ userId: p.userId, userName: p.userName })),
+    hostId: room.hostId,
+    currentStep: room.currentStep,
+    mysteryType: room.mysteryType,
+    decadeAssignments: room.decadeAssignments
+  };
+}
+
+function assignDecades(room) {
+  const nonHosts = room.participants.filter(p => p.userId !== room.hostId);
+  const assignments = {};
+  for (let decade = 1; decade <= 5; decade++) {
+    const participant = nonHosts[(decade - 1) % nonHosts.length];
+    assignments[decade] = participant ? participant.userId : room.hostId;
+  }
+  return assignments;
+}
+
+// REST endpoint – reconnect/resync
+app.get('/rosary-room/:code', (req, res) => {
+  const room = rooms.get(req.params.code);
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  res.json(getRoomState(room));
+});
+
+// ─────────────────────────────────────────────
+// HTTP + WebSocket Server
+// ─────────────────────────────────────────────
+
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
+wss.on('connection', (ws) => {
+  let currentRoom = null;
+  let currentUserId = null;
+
+  ws.on('message', (raw) => {
+    let msg;
+    try { msg = JSON.parse(raw); } catch { return; }
+
+    // ── CREATE ROOM ──
+    if (msg.type === 'create_room') {
+      const userId = crypto.randomUUID();
+      const code = generateRoomCode();
+      const room = {
+        code,
+        hostId: userId,
+        participants: [{ userId, userName: msg.userName || 'Host', ws }],
+        currentStep: 0,
+        mysteryType: null,
+        decadeAssignments: {}
+      };
+      rooms.set(code, room);
+      currentRoom = room;
+      currentUserId = userId;
+      ws.send(JSON.stringify({ type: 'room_created', code, userId }));
+      console.log(`[Rosary] Room ${code} created by ${msg.userName}`);
+    }
+
+    // ── JOIN ROOM ──
+    else if (msg.type === 'join_room') {
+      const room = rooms.get(msg.code);
+      if (!room) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Room not found' }));
+        return;
+      }
+      const userId = crypto.randomUUID();
+      room.participants.push({ userId, userName: msg.userName || 'Guest', ws });
+      currentRoom = room;
+      currentUserId = userId;
+      ws.send(JSON.stringify({ type: 'joined_room', userId, code: msg.code }));
+      broadcastToRoom(room, { type: 'room_updated', ...getRoomState(room) });
+      console.log(`[Rosary] ${msg.userName} joined room ${msg.code}`);
+    }
+
+    // ── START SESSION (host only) ──
+    else if (msg.type === 'start_session') {
+      if (!currentRoom || currentUserId !== currentRoom.hostId) return;
+      currentRoom.mysteryType = msg.mysteryType || 'joyful';
+      currentRoom.currentStep = 0;
+      currentRoom.decadeAssignments = assignDecades(currentRoom);
+      broadcastToRoom(currentRoom, {
+        type: 'session_started',
+        mysteryType: currentRoom.mysteryType,
+        currentStep: 0,
+        decadeAssignments: currentRoom.decadeAssignments
+      });
+      console.log(`[Rosary] Room ${currentRoom.code} session started (${currentRoom.mysteryType})`);
+    }
+
+    // ── ADVANCE STEP (host only) ──
+    else if (msg.type === 'advance_step') {
+      if (!currentRoom || currentUserId !== currentRoom.hostId) return;
+      currentRoom.currentStep += 1;
+      broadcastToRoom(currentRoom, { type: 'step_changed', currentStep: currentRoom.currentStep });
+    }
+
+    // ── GO BACK (host only) ──
+    else if (msg.type === 'go_back') {
+      if (!currentRoom || currentUserId !== currentRoom.hostId) return;
+      if (currentRoom.currentStep > 0) currentRoom.currentStep -= 1;
+      broadcastToRoom(currentRoom, { type: 'step_changed', currentStep: currentRoom.currentStep });
+    }
+  });
+
+  ws.on('close', () => {
+    if (!currentRoom) return;
+    currentRoom.participants = currentRoom.participants.filter(p => p.userId !== currentUserId);
+    if (currentRoom.participants.length === 0) {
+      rooms.delete(currentRoom.code);
+      console.log(`[Rosary] Room ${currentRoom.code} deleted (empty)`);
+      return;
+    }
+    if (currentRoom.hostId === currentUserId) {
+      currentRoom.hostId = currentRoom.participants[0].userId;
+      console.log(`[Rosary] Host transferred in room ${currentRoom.code}`);
+    }
+    broadcastToRoom(currentRoom, { type: 'room_updated', ...getRoomState(currentRoom) });
+  });
+});
+
 // Start server on 0.0.0.0 for public accessibility
-app.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`API endpoint: http://0.0.0.0:${PORT}/api/requests`);
+  console.log(`WebSocket (Group Rosary) ready on ws://0.0.0.0:${PORT}`);
 });
 
 // Graceful shutdown
