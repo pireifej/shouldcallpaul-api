@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farrenc, Chopin and Bartok – A Moveable Feast</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 28px;
+            margin-bottom: 6px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .image-container {
+            text-align: center;
+            margin: 28px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .call-to-action {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-left: 4px solid #27ae60;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Farrenc, Chopin and Bartok – A Moveable Feast</h1>
+    <p class="byline">by Sherri Rase for Urban Telegraph</p>
+
+    <p>The weekend of March 12 through 15 was full of surprises! NJ Symphony hosted a brilliant program of Bartok and Chopin that raised the rafters from Red Bank to Newark, Princeton to New Brunswick. The Sunday performance included a Classical Conversation featuring Robert Wagner, the Principal Bassoonist of NJ Symphony with Jonathan Spitz, the Principal Cellist and the newest member of the orchestra, Luca Esposito the very recent Principal Percussionist all discussing aspects of the fare for the afternoon.</p>
+
+    <p>Mr. Wagner reminded us of the personnel and program changes that included the return of conductor Markus Stenz, who recently conducted Beethoven's Symphony No. 5 with New Jersey Symphony (Feb 26–Mar 1), for Bartok's Concerto for Orchestra. Opening the program will be Louise Dumont Farrenc's Overture No. 1 in place of Bartók's Romanian Dances. Also, due to visa processing delays, Eva Gevorgyan is unfortunately unable to travel to the US for these performances. Fortunately, Albert Cano Smit stepped in to play Chopin's Piano Concerto No. 2, as originally scheduled.</p>
+
+    <p>Mr. Spitz described the Bartok in rich musical detail including features for nearly every section. Mr. Wagner opined that while called a concerto it is actually a symphony. "Bartok seems to be affirming life", he said. There are two lighter movements that are almost comic. While Bartok had leukemia, that diagnosis was withheld from him for fear it would affect his work, yet he composed two of his greatest pieces before the inevitable happened.</p>
+
+    <p>Mr. Wagner introduced us to Luca Esposito the new Principal Percussionist for NJ Symphony. While brand new with the orchestra, Mr. Esposito reminded us to listen in the 2nd movement of the Bartok where a snare solo leads the instruments throughout, with a solo to finish the movement. And then the concert began and we were OFF!</p>
+
+    <h3>Louise Farrenc</h3>
+
+    <p>Louise Farrenc's career as a composer had a very rocky start. Born in 1804, she was encouraged to apply to attend classes at the Paris Conservatoire, among the best music schools of the time. While denied entry to study composition, she ultimately became the second female piano teacher there in 1842 and in 1850 made a successful petition to be paid the same as her male counterparts. Her genius, acumen and great skill shine in all of her works. Overture No. 1 in E Minor, Op. 23 starts very classically then moves into shimmering strings, then a graceful change of energy and sense of motion. From there, a playful meander builds to romantic drama and the end is huge, making this a perfect selection to open a nearly-Spring program.</p>
+
+    <h3>Frédéric Chopin</h3>
+
+    <p>Rounding out the first half was the Frédéric Chopin Concerto No. 2 in F Minor for Piano and Orchestra, Op. 21. In the first movement, Maestoso, this piece mirrors the passion of the young man who wrote it. Brimming with vigor then segueing to grace in the orchestra prepares the way for the piano's entrance. Mr. Smit is a master of Chopin's scintillating alternating glissandi and merry chase of fingers as the melody twined among the keys. The melody flirts in a nearly singular line, then hides among the flora of skillfully dynamic passages. Mr. Smit is truly a gifted artist.</p>
+
+    <p>The second movement has a more somber beginning. Mr. Smit brings forth the languid shimmering melody whose grace and strength range from delicate passages in the upper range through vibrant passionate superbly articulated dynamic presence. The Allegro vivace feels almost lighthearted yet seriously hinting at the pyrotechnics to come. And the wait is short — glissandissimi abound and Mr. Smit is swift and sure in the navigation through the beautifully roiling waters of this satisfying final movement that put us all in the land of "Ahs".</p>
+
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/nj-symphony-bartok-stenz.jpg" alt="Maestro Markus Stenz with NJ Symphony">
+        <p class="image-caption">Maestro Markus Stenz — Sherri Rase for Urban Telegraph</p>
+    </div>
+
+    <h3>Béla Bartók</h3>
+
+    <div class="highlight">
+        <p>After a brief intermission, we were ready for Béla Bartók's Concerto for Orchestra and this was truly something special.</p>
+    </div>
+
+    <p>The Introduzione: Andante non troppo – Allegro vivace opening movement appears to pose a question that starts in the lower register of the lower strings with a query coming from the flute. The questing continuo in the strings underpins the horns' thoughts then the swirling postmodern mayhem of the violins brings the turmoil forth in a froth of existential candor. Parts of this movement sound familiar and have clearly influenced film composers. The next movement, Giuocco delle coppie: Allegretto scherzando is known as the introduction of the couples where Bartok paired instruments in different parts of the orchestra in sonorous thirds and fourths as well as more frictive seconds, sevenths and more. This gives a very rich and textured aspect to the movement. How each section interacts is a master's class in music and Markus Stenz is clear and sure as he guides the orchestra through.</p>
+
+    <p>The Elegia: Andante non troppo begins with threads of mystery. Swirling strings and a question in the piccolo line lead to an orchestral voice of power further emphasizing the mystery. The harps fret in counter and the woodwinds continue the quest.</p>
+
+    <p>Then, the Intermezzo interrotto: Allegretto continued the initial modern theme. The melody swells to a more tuneful, contemplative passage featuring the oboe then a warm bucolic section punctuated by the braying and neighing you might expect. Then we're back to the folk flavor then back to the quest with final statements by flute with piccolo getting the last word. Bartok drew a great deal of inspiration from folk songs and melodies, sharing his personal history with the world.</p>
+
+    <p>And the glorious Finale: Pesante – Presto starts with a heraldic horn volley then away we go with the strings taking flight and we're back in mostly a major key with energy and full forward motion. We come full circle. Is our quest complete? Never! Such that is the joy of life, and Spring.</p>
+
+    <p>Notably, both Chopin and Bartok use instruments in unusual ways in their works. Chopin has the violins striking the strings in a sliding manner that is very different, even in compositions today. Bartok uses the harp almost percussively at times in his work and both have clearly influenced more modern composers.</p>
+
+    <div class="call-to-action">
+        <p><strong>What's next on deck for NJ Symphony? Beethoven is back to round out March!</strong></p>
+        <p>Tickets are available now at <a href="https://njsymphony.org" target="_blank">njsymphony.org</a>.</p>
+    </div>
+
+</body>
+</html>
