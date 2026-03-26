@@ -1,6 +1,8 @@
 {
     "records": [
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/ysa_finale_group.jpg",
+            "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/ysa_finale_certificates.jpg"],
             "label": "Young Speakers Academy — Session 8: Live Community Showcase",
             "type": "workshops",
             "link": "https://www.shouldcallpaul.com/speak.html",
@@ -12,6 +14,7 @@
             "desc": "<p>Young Speakers Academy — Grand Finale. A public speaking showcase for parents and community members at a local forum — culminating in a live presentation before the Holmdel Township Committee and the Holmdel Mayor. Students delivered prepared speeches demonstrating the confidence, structure, vocal variety, and storytelling skills developed throughout the 8-week program.</p>"
         },
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/ysa_session7_pizza.jpg",
             "label": "Young Speakers Academy — Session 7: Preparing for the Big Day",
             "type": "workshops",
             "link": "https://www.shouldcallpaul.com/speak.html",
