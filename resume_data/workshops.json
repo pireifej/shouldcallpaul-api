@@ -1,6 +1,87 @@
 {
     "records": [
         {
+            "label": "Young Speakers Academy — Session 8: Live Community Showcase",
+            "type": "workshops",
+            "link": "https://www.shouldcallpaul.com/speak.html",
+            "details": {
+                "date": "March 24, 2026",
+                "location": "Holmdel Township Committee — in front of the Holmdel Mayor",
+                "duration": "1 hour"
+            },
+            "desc": "<p>Young Speakers Academy — Grand Finale. A public speaking showcase for parents and community members at a local forum — culminating in a live presentation before the Holmdel Township Committee and the Holmdel Mayor. Students delivered prepared speeches demonstrating the confidence, structure, vocal variety, and storytelling skills developed throughout the 8-week program.</p>"
+        },
+        {
+            "label": "Young Speakers Academy — Session 7: Preparing for the Big Day",
+            "type": "workshops",
+            "link": "https://www.shouldcallpaul.com/speak.html",
+            "details": {
+                "date": "March 18, 2026",
+                "duration": "1 hour"
+            },
+            "desc": "<p>Young Speakers Academy — Session 7. Rehearsal and final polish of prepared presentations. Topics covered: professional rehearsal techniques and last-minute refinements to help students feel confident and fully prepared for the community showcase.</p>"
+        },
+        {
+            "label": "Young Speakers Academy — Session 6: Speech Evaluation & Feedback",
+            "type": "workshops",
+            "link": "https://www.shouldcallpaul.com/speak.html",
+            "details": {
+                "date": "March 11, 2026",
+                "duration": "1 hour"
+            },
+            "desc": "<p>Young Speakers Academy — Session 6. Learning to give and receive constructive, confidence-building criticism. Topics covered: effective feedback frameworks and growth mindset development to help speakers improve through peer and instructor evaluation.</p>"
+        },
+        {
+            "label": "Young Speakers Academy — Session 5: Storytelling & Personal Narratives",
+            "type": "workshops",
+            "link": "https://www.shouldcallpaul.com/speak.html",
+            "details": {
+                "date": "March 4, 2026",
+                "duration": "1 hour"
+            },
+            "desc": "<p>Young Speakers Academy — Session 5. Crafting and delivering a personal story that connects deeply with the audience. Topics covered: story structure elements and emotional connection techniques to help speakers find and share their authentic voice.</p>"
+        },
+        {
+            "label": "Young Speakers Academy — Session 4: Vocal Variety & Body Language",
+            "type": "workshops",
+            "link": "https://www.shouldcallpaul.com/speak.html",
+            "details": {
+                "date": "February 25, 2026",
+                "duration": "1 hour"
+            },
+            "desc": "<p>Young Speakers Academy — Session 4. Using tone, pace, volume, and non-verbal cues to enhance impact. Topics covered: voice modulation techniques and powerful gestures and posture to command attention and reinforce the spoken message.</p>"
+        },
+        {
+            "label": "Young Speakers Academy — Session 3: Speech Structure & Organization",
+            "type": "workshops",
+            "link": "https://www.shouldcallpaul.com/speak.html",
+            "details": {
+                "date": "February 18, 2026",
+                "duration": "1 hour"
+            },
+            "desc": "<p>Young Speakers Academy — Session 3. Mastering the art of writing compelling introductions, bodies, and conclusions. Topics covered: the power of strong openings and logical flow and transitions to keep the audience engaged from start to finish.</p>"
+        },
+        {
+            "label": "Young Speakers Academy — Session 2: Impromptu Speaking",
+            "type": "workshops",
+            "link": "https://www.shouldcallpaul.com/speak.html",
+            "details": {
+                "date": "February 11, 2026",
+                "duration": "1 hour"
+            },
+            "desc": "<p>Young Speakers Academy — Session 2. Developing the ability to think quickly and speak coherently off-the-cuff. Topics covered: quick thinking strategies and Table Topics practice to build confidence when speaking without preparation.</p>"
+        },
+        {
+            "label": "Young Speakers Academy — Session 1: Introduction to Confidence",
+            "type": "workshops",
+            "link": "https://www.shouldcallpaul.com/speak.html",
+            "details": {
+                "date": "February 4, 2026",
+                "duration": "1 hour"
+            },
+            "desc": "<p>Young Speakers Academy — Session 1. Overcoming fear, understanding the audience, and defining your message. Topics covered: techniques to manage stage fright and audience analysis fundamentals as the foundation for the full 8-week program.</p>"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/macoc_chamber_main.jpg",
             "gallery": ["https://shouldcallpaul.replit.app/resume_data/img/macoc_chamber_speaking.jpg"],
             "label": "Guest Speaker at Matawan-Aberdeen Chamber of Commerce",
