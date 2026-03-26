@@ -650,7 +650,8 @@ app.post('/login', authenticate, async (req, res) => {
         user_id,
         picture,
         church_id,
-        COALESCE(faith_points, 0) as faith_points
+        COALESCE(faith_points, 0) as faith_points,
+        COALESCE(rosary_count, 0) as rosary_count
       FROM public."user" 
       WHERE LOWER(email) LIKE LOWER($1)
       LIMIT 1
@@ -1030,6 +1031,7 @@ app.post('/getUser', authenticate, async (req, res) => {
           "user".profile_picture_url,
           "user".church_id,
           "user".faith_points,
+          COALESCE("user".rosary_count, 0) as rosary_count,
           church.church_name,
           settings.use_alias,
           settings.request_emails,
@@ -1064,6 +1066,7 @@ app.post('/getUser', authenticate, async (req, res) => {
           "user".profile_picture_url,
           "user".church_id,
           "user".faith_points,
+          COALESCE("user".rosary_count, 0) as rosary_count,
           church.church_name,
           settings.use_alias,
           settings.request_emails,
@@ -3538,6 +3541,31 @@ app.post('/sendBroadcastNotification', async (req, res) => {
     
   } catch (error) {
     console.error('Error sending broadcast notification:', error);
+    res.status(500).json({ error: 1, result: error.message });
+  }
+});
+
+// POST /rosary/complete - Increment rosary_count for a user
+app.post('/rosary/complete', authenticate, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return res.json({ error: 1, result: "userId is required" });
+
+    const result = await pool.query(
+      `UPDATE public."user"
+       SET rosary_count = COALESCE(rosary_count, 0) + 1
+       WHERE user_id = $1
+       RETURNING COALESCE(rosary_count, 0) as rosary_count`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 1, result: "User not found" });
+    }
+
+    res.json({ success: true, rosaryCount: result.rows[0].rosary_count });
+  } catch (error) {
+    console.error('Error completing rosary:', error);
     res.status(500).json({ error: 1, result: error.message });
   }
 });
