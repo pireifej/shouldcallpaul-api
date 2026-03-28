@@ -127,6 +127,24 @@
             "desc": "<p>Celebrating my birthday by running with my son for his first ever 5K! Enjoy a mixed terrain course with dirt, grass, gravel, and some hills. Enter via the North Cottage Road entrance of MCP.</p>"
         },
         {
+            "image": "img/running/hotchoc-philly-finish.jpg",
+            "label": "Hot Chocolate 15K Philadelphia",
+            "type": "race",
+            "details": {
+                "date": "04/05/25",
+                "distance": "9.3 miles",
+                "time": "1 hour 26 min",
+                "location": "Philadelphia, PA"
+            },
+            "gallery": [
+                "img/running/hotchoc-philly-podium.jpg",
+                "img/running/hotchoc-philly-medals.jpg",
+                "img/running/hotchoc-philly-chocolate.jpg"
+            ],
+            "link": "https://www.hotchocolate15k.com/philadelphia",
+            "desc": "<p>The USA Today Hot Chocolate Run 15K through Philadelphia, starting and finishing near the iconic Philadelphia Museum of Art on the Benjamin Franklin Parkway. Runners are rewarded at the finish with hot chocolate, chocolate fondue, and all the sweet treats you can handle — a delicious way to earn that medal!</p>"
+        },
+        {
             "image": "img/running/turkeytrotresults.png",
             "label": "2024 PPTC Turkey Trot: Race for Reconciliation 5 Miler",
             "type": "race",
