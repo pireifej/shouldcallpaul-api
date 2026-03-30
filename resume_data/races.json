@@ -137,9 +137,10 @@
                 "location": "Philadelphia, PA"
             },
             "gallery": [
-                "img/running/hotchoc-philly-podium.jpg",
-                "img/running/hotchoc-philly-medals.jpg",
-                "img/running/hotchoc-philly-chocolate.jpg"
+                "https://www.shouldcallpaul.com/img/running/hot_chocolate_15k_finish.jpg",
+                "https://www.shouldcallpaul.com/img/running/hot_chocolate_15k_podium.jpg",
+                "https://www.shouldcallpaul.com/img/running/hot_chocolate_15k_medals.jpg",
+                "https://www.shouldcallpaul.com/img/running/hot_chocolate_15k_banana.jpg"
             ],
             "link": "https://raceday.enmotive.com/#/events/2025-hot-chocolate-run-philadelphia/registrants/03ce83bc-d4df-4ca5-a47f-46928fc622b2",
             "desc": "<p>Join us on April 4th, 2026, for the SKECHERS Hot Chocolate Run, where fun meets flavor in the most delicious way possible. Choose your challenge — 5K, 10K, or 15K — and cross the finish line into a chocolate lover's paradise.</p>"
