@@ -68,11 +68,6 @@
     <h1>"What Became of Us" Now at George Street Playhouse</h1>
     <p class="byline">by Sherri Rase for Urban Telegraph</p>
 
-    <div class="image-container">
-        <img src="https://shouldcallpaul.replit.app/img/what-became-of-us.jpg" alt="What Became of Us – courtesy George Street Playhouse">
-        <p class="image-caption">Courtesy George Street Playhouse</p>
-    </div>
-
     <p>Shayan Lotfi has gifted us with the most family-savvy everyone experience of a lifetime in "What Became Of Us" now playing at George Street Playhouse through April 5. It is the bittersweet evolution of a family as a torch is passed from parents to children to their children and as most Americans come from immigrant families, this is a deep dive into the hearts of many of us.</p>
 
     <p>When Q, Christine Toy Johnson, begins to speak, she is on a spare stage with an Escher-esque series of stairs and balconies where lighting limns the spaces as needed. She transports us from The Old Country, where she and her parents' lives began and we come to the United States with them. When her brother Z, Francis Jue, is born, he essentially has a different set of parents as their mother and father have adapted to life in their new country using very different strategies. Over the decades, we see their devolution and evolution as people seeking happiness and finding it in ways that are very different from their parents' dreams.</p>
