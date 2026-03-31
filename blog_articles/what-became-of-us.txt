@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>"What Became of Us" Now at George Street Playhouse</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #8e44ad;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .image-container {
+            text-align: center;
+            margin: 28px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+        .highlight {
+            background-color: #f5eef8;
+            padding: 15px;
+            border-left: 4px solid #8e44ad;
+            margin: 20px 0;
+        }
+        .call-to-action {
+            background-color: #f5eef8;
+            padding: 15px;
+            border-left: 4px solid #8e44ad;
+            margin: 20px 0;
+            text-align: center;
+        }
+        a {
+            color: #8e44ad;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>"What Became of Us" Now at George Street Playhouse</h1>
+    <p class="byline">by Sherri Rase for Urban Telegraph</p>
+
+    <div class="image-container">
+        <img src="https://shouldcallpaul.replit.app/img/what-became-of-us.jpg" alt="What Became of Us – courtesy George Street Playhouse">
+        <p class="image-caption">Courtesy George Street Playhouse</p>
+    </div>
+
+    <p>Shayan Lotfi has gifted us with the most family-savvy everyone experience of a lifetime in "What Became Of Us" now playing at George Street Playhouse through April 5. It is the bittersweet evolution of a family as a torch is passed from parents to children to their children and as most Americans come from immigrant families, this is a deep dive into the hearts of many of us.</p>
+
+    <p>When Q, Christine Toy Johnson, begins to speak, she is on a spare stage with an Escher-esque series of stairs and balconies where lighting limns the spaces as needed. She transports us from The Old Country, where she and her parents' lives began and we come to the United States with them. When her brother Z, Francis Jue, is born, he essentially has a different set of parents as their mother and father have adapted to life in their new country using very different strategies. Over the decades, we see their devolution and evolution as people seeking happiness and finding it in ways that are very different from their parents' dreams.</p>
+
+    <div class="highlight">
+        <p>Ms. Johnson is a Tony Honoree and Mr. Jue is a Tony Award Winner. Under the expert direction of Laiona Michelle, these actors weave magic from our-story.</p>
+    </div>
+
+    <p>Shayan Lotfi tells the story that many of us are familiar with from family stories handed down. Often, siblings even just a few years apart feel like they are raised by different parents and this resonates through each in the sense of devotion and connection, even when that connection appears to be a fraying thread. Yet the sustained love and remembrance help us form new bonds in the 21st century.</p>
+
+    <p>Shoko Kambara's set is every-where and with Christopher J. Bailey's lighting, they create spaces and transport us through time and distance to the places in hearts. Nilamar Felder's costumes also suggest time and Scott Killian's original music and sound design all put us in the space out of time. We are in the hands of experts.</p>
+
+    <p>Ms. Johnson gives a master class in acting and when joined by Mr. Jue, this experience is one you will treasure, even when it rings your heart like a bell. The feeling of capital "F" "Family" is palpable. Something I truly needed in this time of turmoil – the belief that we can all be a family again.</p>
+
+    <div class="call-to-action">
+        <p><strong>The show only runs through April 5 — don't miss it!</strong></p>
+        <p><a href="https://secure.georgestreetplayhouse.org/whatbecameofus/22800" target="_blank">Get tickets at George Street Playhouse</a></p>
+    </div>
+
+</body>
+</html>
