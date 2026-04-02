@@ -246,6 +246,9 @@ Instructions for Generating the Prayer:
   // Convert markdown-style bold (**text**) to HTML <strong> tags
   processedPrayer = processedPrayer.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   
+  // Convert single asterisk (*text*) to HTML <em> (italic) tags
+  processedPrayer = processedPrayer.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  
   // Convert any remaining newlines to HTML line breaks
   processedPrayer = processedPrayer.replace(/\n/g, '<br>');
   
