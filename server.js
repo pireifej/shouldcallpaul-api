@@ -113,6 +113,13 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
+// Ensure all timestamps from pg are serialized as UTC ISO 8601 strings (with Z suffix)
+// OID 1114 = timestamp without time zone (pg returns as plain string — treat as UTC)
+// OID 1184 = timestamp with time zone (pg returns as JS Date — ensure ISO format)
+const { types } = require('pg');
+types.setTypeParser(1114, (val) => val ? new Date(val + 'Z').toISOString() : null);
+types.setTypeParser(1184, (val) => val ? new Date(val).toISOString() : null);
+
 // Initialize OpenAI client
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
