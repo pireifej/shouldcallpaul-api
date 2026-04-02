@@ -1323,7 +1323,7 @@ app.post('/regeneratePrayer', authenticate, async (req, res) => {
     const requestQuery = `
       SELECT r.request_text, r.fk_user_id, u.real_name, u.user_name
       FROM public.request r
-      LEFT JOIN public.user u ON r.fk_user_id = u.user_id
+      LEFT JOIN public."user" u ON r.fk_user_id = u.user_id
       WHERE r.request_id = $1
     `;
     
