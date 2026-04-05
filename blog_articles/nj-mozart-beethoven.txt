@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mozart, Beethoven and NJ Symphony</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 28px;
+            margin-bottom: 6px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #f0f6fc;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+        }
+        .call-to-action {
+            background-color: #eaf6fb;
+            padding: 15px;
+            border-left: 4px solid #2980b9;
+            margin: 20px 0;
+            text-align: center;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mozart, Beethoven and NJ Symphony</h1>
+    <p class="byline">by Sherri Rase for Urban Telegraph</p>
+
+    <p>The final weekend of March was huge for NJ Symphony with a special feature performance by the Principal Clarinetist of NJS, Juan Esteban Martinez. The festivities kicked off with a Classical Conversation at select performances hosted by Colton Conducting Fellow, the brilliant Gregory McDaniel. These conversations frame the works the audience will hear and add grace notes to the beauty of the performances. Arrive early, you'll be glad you did!</p>
+
+    <p>Mr. Martinez related that Mozart's Clarinet Concerto in A Major, K. 622 was written at the end of Mozart's life, and that he never got to hear it performed after it was published. Mozart wrote it originally for bassett-horn or bassett clarinet, an instrument in the key of F that looks like a wild night between a tenor sax and a clarinet. It is operatic in range. The piece requires a bit of adaptation to play on the A clarinet, much more common than the much more rare basset-horn.</p>
+
+    <p>We were told to listen in the first movement, that is more operatic — the high register is very sweet. Mr. McDaniel said Haydn wrote for clarinet as he did for trumpet. Mozart writes for the clarinet as a voice like soprano or alto. Mr. McDaniel opined the 2nd movement as very like an aria, one of the most beautiful of his works. Mr. Martinez is excited for the program as it includes two of the top five pieces written for clarinet. Beethoven's Pastorale, Symphony No. 6 gives themes to spotlight the clarinet and other instruments, all in the name of Spring.</p>
+
+    <h3>Mozart Divertimento in D Major, K. 136</h3>
+
+    <p>The concert began with the glorious Mozart Divertimento in D Major, K. 136. The sunlight outside was filtered through both burgeoning buds on branches as well as flowers in all stages of blooms, making the Divertimento with its Allegro reflecting the bright energy and playful breezes. The second movement, Andante, was graceful and measured, resting for the third movement, Presto — an amuse-bouche that was active, full of movement like a flock of birds wheeling and turning on a hidden signal. The Divertimento brought indoor focus on a sunny Spring day.</p>
+
+    <h3>Mozart's Clarinet Concerto in A Major, K. 622</h3>
+
+    <p>Rounding out the first act, Mozart's Clarinet Concerto in A Major, K. 622 with its first movement, Allegro, being deliciously classic Mozart — flourishing strings with flute in silver thread through the gold and green, music that feels like dappled sunlight on new leaves. Mr. Martinez navigates the clarinet melody with the verve of a Pied Piper, confident in his display of skill, both accomplished and joyful at once. He dances in place weaving a duet within the line for the upper and the lower voices.</p>
+
+    <p>Moving to the second movement, Adagio, the tone becomes contemplative, with Mr. Martinez showing the full range of both tonal variation as well as dynamic, where sometimes we get full voice and then a beautifully soft and sweet sotto voce vocalization in a most salubrious expression of clarinet as a vocal performer. In the final movement, Rondo: Allegro, we get the full-on experience of sprightly and joyful, where Mr. Martinez's solo gambols like a Spring lamb. His fluid dexterity surely inspired the youth in the audience to consider following in his footsteps where skill and joy unite.</p>
+
+    <div class="highlight">
+        <p>The audience was not willing to let Mr. Martinez exit without an encore. He graced us with a most beautiful 3rd movement of <em>7 Monologues for Solo Clarinet</em> by Jiří Pauer. Haunting and glorious, it was the perfect farewell for the first act.</p>
+    </div>
+
+    <h3>Beethoven's Symphony No. 6 in F Major, Op. 68, "Pastoral"</h3>
+
+    <p>The second act was dedicated to Beethoven's Symphony No. 6 in F Major, Op. 68, "Pastoral". Writing very thematic music, Beethoven may have inspired Carl Loewe who first, technically, used the word "Tondichtung" or tone poem. From the first movement, <em>Awakening of cheerful feelings on arriving in the countryside: Allegro ma non troppo</em>, Xian Zhang sets a lively tempo and uplifting energy with flowing legato passages. Ms. Zhang makes conducting a whole body workout during this forecast of cinematic music.</p>
+
+    <p>Continuing with <em>II. Scene by the brook: Andante molto mosso</em>, Ms. Zhang endows great presence in the moment, with a sense of grace in the gentle passage of time that lends a Buddhist feel to this movement. Then, <em>III. Merry assembly of country folk: Allegro</em> makes us part of preparing for the party and the spring celebrations — Beethoven knew exactly what he was doing. When the heavy weather arrives in <em>IV. Thunderstorm: Allegro</em>, the segue into the storm rolls in with roiling clouds, thunder in the timpani and scurrying had me shifting in my seat, wanting to get everything in ahead of the maelstrom.</p>
+
+    <p>Finally, during <em>V. Shepherd's Song</em> we are returned to happy, grateful feelings after the storm — the Allegretto brings us back with abundance and all we need to be content. I could feel and hear sunbeams breaking through clouds. Beethoven is at the pinnacle of his art in painting with sound, and this has always been one of my personal favorites.</p>
+
+    <div class="call-to-action">
+        <p><strong>Next up for the second week of April — Xian Zhang returns with a basketful of Prokofiev and more!</strong></p>
+        <p>Get your tickets now at <a href="https://njsymphony.org" target="_blank">njsymphony.org</a>.</p>
+    </div>
+
+</body>
+</html>
