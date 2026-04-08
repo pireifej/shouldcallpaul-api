@@ -17,8 +17,11 @@
             "desc": "<p>An 8-week youth public speaking program culminating in a live showcase before the Holmdel Township Committee and the Holmdel Mayor. Each session built on the last, covering: Introduction to Confidence, Impromptu Speaking, Speech Structure &amp; Organization, Vocal Variety &amp; Body Language, Storytelling &amp; Personal Narratives, Speech Evaluation &amp; Feedback, Preparing for the Big Day, and a Live Community Showcase. Students graduated with certificates of completion and a performance in front of a real public audience.</p>"
         },
         {
-            "image": "",
-            "gallery": [],
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_under_hood_main.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/ai_under_hood_tokens.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/ai_under_hood_audience.jpg"
+            ],
             "label": "A Look Under the Hood",
             "type": "workshops",
             "link": "https://mapl.events.mylibrary.digital/event?id=292858",
