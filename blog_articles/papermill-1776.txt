@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Mill's "1776" the Patriots' Dream Returns</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #c0392b;
+            padding-bottom: 10px;
+        }
+        p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        .byline {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .highlight {
+            background-color: #fdf6f0;
+            padding: 15px;
+            border-left: 4px solid #c0392b;
+            margin: 20px 0;
+        }
+        .image-caption {
+            font-style: italic;
+            color: #7f8c8d;
+            font-size: 0.85em;
+            text-align: center;
+            margin-top: -10px;
+            margin-bottom: 20px;
+        }
+        .call-to-action {
+            background-color: #fdf6f0;
+            padding: 15px;
+            border-left: 4px solid #c0392b;
+            margin: 20px 0;
+            text-align: center;
+        }
+        a {
+            color: #c0392b;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Paper Mill's "1776" the Patriots' Dream Returns</h1>
+    <p class="byline">by Sherri Rase for Urban Telegraph</p>
+
+    <p>This round season of reminiscence and looking forward that surrounds America 250 and Revolution NJ happening in our own backyard makes it high time for a revival of "1776", Sherman Edwards and Peter Stone's humanized version of historical events surrounding the writing of the Declaration of Independence. And Paper Mill Playhouse has created a winner!</p>
+
+    <p>From the first moment we meet John Adams (Will Blum), you know that this is one tough and stubborn cookie. Throughout the play, whether or not you've seen it or the iconic movie before, you'll be wondering how he keeps that high dudgeon gleaming throughout. But there's a difference between revolutionary fervor and a garden-variety grudge. Blum's Adams is world-class all the way. And in the sprinklings we get of Abigail, Elena Shaddow pours deep devotion into every morsel.</p>
+
+    <p>John Treacy Egan's Benjamin Franklin is delightfully sardonic, wise and artfully shows the fire for experiencing everything that Mr. Franklin is still known for today. When he and Adams convince Mr. Jefferson (Michael Burrell) that he must write the Declaration, all he can think of is getting home to his new bride Martha (Liz Leclerc). Mr. Adams knows what it is to miss one's beloved, so he imports Martha to Philadelphia. Ms. Leclerc's freshness and energy in singing "He Plays the Violin" will charm the gentlemen, as it so clearly does Franklin and Adams, and remind the women of that blush of new love. Spring is in her step, her heart and her voice.</p>
+
+    <div class="highlight">
+        <p>Those who know the show may remember that the original poster had an egg, emblematic of the soon-to-be fledgling brand new country. The graphic for this incarnation is a quill pen emblazoned with stars and stripes — and is it ink or blood that's rendered in red, white and blue? These days, it could be either, and you may find a fire in your belly, a call to action as you consider what it took to bring our country to fruition.</p>
+    </div>
+
+    <p>If John Dickinson's voice is tickling your remembrance, Edward Watts was also King Triton in Paper Mill's "Frozen" earlier in the season. He is indomitable as Dickinson, firm as iron, and a pleasure to watch. My favorite song from this show, "Molasses to Rum," was played with fervor and verve by Jonathan Young's Edward Rutledge. The masterful lighting Amith Chandrashaker created with Jillian Zack's music direction when Young mounts the highest table in the chamber of Kevin Rupnik's versatile set. This is the pinnacle of the point for me — the skewering of hypocrisy and the reminder that we are all responsible, and that we all have feet of clay.</p>
+
+    <p>Well played, Edwards and Stone. Well directed, Mark Hoebee. Deeply made, cast and crew of this 2026 version of 1776 at Paper Mill.</p>
+
+    <p class="image-caption">Photo by Evan Zimmerman for Paper Mill Playhouse</p>
+
+    <div class="call-to-action">
+        <p><strong>Tickets are already flying — this show closes Sunday, May 2!</strong></p>
+        <p>Make like an eagle and get yours today at <a href="https://www.papermill.org" target="_blank">papermill.org</a>.</p>
+    </div>
+
+</body>
+</html>
