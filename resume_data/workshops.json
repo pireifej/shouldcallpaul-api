@@ -12,7 +12,8 @@
             "details": {
                 "date": "February 4 – March 24, 2026",
                 "location": "Holmdel, NJ",
-                "duration": "Eight 1-hour sessions"
+                "duration": "Eight 1-hour sessions",
+                "cost": "$150 per student"
             },
             "desc": "<p>An 8-week youth public speaking program culminating in a live showcase before the Holmdel Township Committee and the Holmdel Mayor. Each session built on the last, covering: Introduction to Confidence, Impromptu Speaking, Speech Structure &amp; Organization, Vocal Variety &amp; Body Language, Storytelling &amp; Personal Narratives, Speech Evaluation &amp; Feedback, Preparing for the Big Day, and a Live Community Showcase. Students graduated with certificates of completion and a performance in front of a real public audience.</p>"
         },
@@ -29,7 +30,8 @@
                 "date": "March 30, 2026",
                 "location": "Matawan-Aberdeen Public Library",
                 "attendees": "20",
-                "duration": "1 hour"
+                "duration": "1 hour",
+                "cost": "$200"
             },
             "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 3: A Look Under the Hood - A simple, non-technical exploration of how Large Language Models (LLMs) actually work and how they generate text and images. The group exercise involved passing around short, incomplete stories for the group to finish, illustrating the predictive text nature of LLMs.</p>"
         },
@@ -57,7 +59,8 @@
                 "date": "March 2, 2026",
                 "location": "Matawan-Aberdeen Public Library",
                 "attendees": "30+",
-                "duration": "1 hour"
+                "duration": "1 hour",
+                "cost": "$200"
             },
             "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 2: AI in Your Daily Life - Explore current, practical applications of AI, from recommendation systems to tools like ChatGPT, and discuss the associated ethical considerations. The group exercise included a small prompt contest where teams tried to get an AI to generate the most creative or useful result.</p>"
         },
@@ -71,7 +74,8 @@
                 "date": "February 2, 2026",
                 "location": "Matawan-Aberdeen Public Library",
                 "attendees": "30+",
-                "duration": "1 hour"
+                "duration": "1 hour",
+                "cost": "$200"
             },
             "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 1: The Building Blocks of AI - Define Artificial Intelligence, Machine Learning, and Neural Networks with simple, real-world examples. The group exercise involved categorizing various common tools as examples of AI, Machine Learning, or simple Automation.</p>"
         },
@@ -83,7 +87,8 @@
                 "date": "January 16, 2026",
                 "location": "Asbury Park, NJ",
                 "attendees": "20+",
-                "duration": "1.5 hours"
+                "duration": "1.5 hours",
+                "cost": "$100"
             },
             "desc": "<p>A public speaking and communication workshop designed to help Big Brothers Big Sisters staff craft and deliver their message effectively. Participants learned practical techniques to communicate confidently in front of a crowd, on the phone, and in one-on-one settings to continue fostering relationships with mentors and community partners.</p>"
         },
@@ -110,7 +115,8 @@
                 "date": "November 3, 2025",
                 "location": "Hazlet Township Branch Library",
                 "attendees": "10",
-                "duration": "1 hour"
+                "duration": "1 hour",
+                "cost": "$100"
             },
             "desc": "<p>An improv workshop.</p>"
         },
