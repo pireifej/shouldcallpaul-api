@@ -10,7 +10,7 @@ const http = require('http');
 const { WebSocketServer } = require('ws');
 const { exec } = require('child_process');
 const { promisify } = require('util');
-const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend");
+const nodemailer = require("nodemailer");
 const multer = require('multer');
 const { sendPushNotification } = require('./pushNotifications');
 const { uploadImage } = require('./cloudinaryService');
@@ -270,33 +270,39 @@ Instructions for Generating the Prayer:
   };
 }
 
-// Email sending function using MailerSend
-async function mailerSendSingle(template, fromPerson, toPerson, subject, extraResult, res) {
-    const mailerSend = new MailerSend({
-        apiKey: process.env.MAILERSEND_API_KEY
+// Gmail SMTP transporter
+function createGmailTransporter() {
+    return nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD
+        }
     });
+}
 
-    const sentFrom = new Sender(fromPerson.email, fromPerson.name);
+// Email sending function using Gmail SMTP
+async function mailerSendSingle(template, fromPerson, toPerson, subject, extraResult, res) {
+    const transporter = createGmailTransporter();
 
-    const recipients = [
-        new Recipient(toPerson.email, toPerson.name)
-    ];
+    const bcc = (toPerson.email === "programmerpauly@gmail.com") ? undefined : "programmerpauly@gmail.com";
 
-    const bcc = (toPerson.email == "programmerpauly@gmail.com") ? [] : [new Recipient("programmerpauly@gmail.com", "Programmer Pauly")];
-
-    const emailParams = new EmailParams()
-        .setFrom(sentFrom)
-        .setTo(recipients)
-        .setBcc(bcc)
-        .setReplyTo(sentFrom)
-        .setSubject(subject)
-        .setHtml(template)
-        .setText("Email from PrayOverUs.com");
+    const mailOptions = {
+        from: `"${fromPerson.name}" <${process.env.GMAIL_USER}>`,
+        to: `"${toPerson.name}" <${toPerson.email}>`,
+        bcc,
+        replyTo: process.env.GMAIL_USER,
+        subject,
+        html: template,
+        text: "Email from PrayOverUs.com"
+    };
 
     const extraResultMessage = (extraResult) ? "|" + extraResult : "";
 
     try {
-        await mailerSend.email.send(emailParams);
+        await transporter.sendMail(mailOptions);
         if (res) {
             res.json({error: 0, result:"email sent from " + fromPerson.email + " to " + toPerson.email + extraResultMessage});
         }
@@ -792,21 +798,16 @@ app.post('/requestPasswordReset', async (req, res) => {
 </html>
     `;
     
-    const mailerSend = new MailerSend({
-      apiKey: process.env.MAILERSEND_API_KEY
+    const transporter = createGmailTransporter();
+    await transporter.sendMail({
+      from: `"Pray Over Us" <${process.env.GMAIL_USER}>`,
+      to: `"${firstName}" <${email}>`,
+      bcc: email !== "programmerpauly@gmail.com" ? "programmerpauly@gmail.com" : undefined,
+      replyTo: process.env.GMAIL_USER,
+      subject: "Reset Your Password - Pray Over Us",
+      html: emailHtml,
+      text: "Password reset requested for your Pray Over Us account"
     });
-    
-    const sentFrom = new Sender("paul@prayoverus.com", "Pray Over Us");
-    const emailParams = new EmailParams()
-      .setFrom(sentFrom)
-      .setTo([new Recipient(email, firstName)])
-      .setBcc([new Recipient("programmerpauly@gmail.com", "Paul")])
-      .setReplyTo(sentFrom)
-      .setSubject("Reset Your Password - Pray Over Us")
-      .setHtml(emailHtml)
-      .setText("Password reset requested for your Pray Over Us account");
-    
-    await mailerSend.email.send(emailParams);
     
     console.log(`📧 Password reset email sent to ${email}`);
     
@@ -3065,20 +3066,16 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
 </html>
     `;
 
-    // Set up MailerSend
-    const mailerSend = new MailerSend({
-      apiKey: process.env.MAILERSEND_API_KEY
-    });
-
-    const sentFrom = new Sender("paul@prayoverus.com", "Pray Over Us");
+    // Set up Gmail transporter for broadcast
+    const broadcastTransporter = createGmailTransporter();
 
     let successCount = 0;
     let failCount = 0;
-    const delayBetweenEmails = 600; // 600ms between emails = 100 emails/min (safe under 120/min limit)
+    const delayBetweenEmails = 600; // 600ms between emails
     const logInterval = 10; // Log progress every 10 emails
 
     // Send emails with rate limiting
-    const recipientsToSend = params.includeAllUsers ? userRecipients : [{email: "paul@prayoverus.com", user_name: "Paul", real_name: "Paul"}];
+    const recipientsToSend = params.includeAllUsers ? userRecipients : [{email: process.env.GMAIL_USER, user_name: "Paul", real_name: "Paul"}];
     
     for (let i = 0; i < recipientsToSend.length; i++) {
       const user = recipientsToSend[i];
@@ -3088,29 +3085,24 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
       const personalizedHtml = createEmailHtml(firstName, params.body, params.buttonLink, params.buttonText);
       
       // Build CC list - avoid duplicating the TO recipient
-      const ccRecipients = [];
-      if (user.email !== "paul@prayoverus.com") {
-        ccRecipients.push(new Recipient("paul@prayoverus.com", "Paul"));
+      const ccEmails = [];
+      if (user.email !== process.env.GMAIL_USER) {
+        ccEmails.push(process.env.GMAIL_USER);
       }
-      if (user.email !== "prayoverus@gmail.com") {
-        ccRecipients.push(new Recipient("prayoverus@gmail.com", "Pray Over Us"));
+      if (user.email !== "prayoverus@gmail.com" && process.env.GMAIL_USER !== "prayoverus@gmail.com") {
+        ccEmails.push("prayoverus@gmail.com");
       }
       
       try {
-        const emailParams = new EmailParams()
-          .setFrom(sentFrom)
-          .setTo([new Recipient(user.email, user.user_name)])
-          .setReplyTo(sentFrom)
-          .setSubject(params.subject)
-          .setHtml(personalizedHtml)
-          .setText("Email from PrayOverUs.com");
-        
-        // Only add CC if there are recipients
-        if (ccRecipients.length > 0) {
-          emailParams.setCc(ccRecipients);
-        }
-
-        await mailerSend.email.send(emailParams);
+        await broadcastTransporter.sendMail({
+          from: `"Pray Over Us" <${process.env.GMAIL_USER}>`,
+          to: `"${user.user_name}" <${user.email}>`,
+          cc: ccEmails.length > 0 ? ccEmails.join(", ") : undefined,
+          replyTo: process.env.GMAIL_USER,
+          subject: params.subject,
+          html: personalizedHtml,
+          text: "Email from PrayOverUs.com"
+        });
         successCount++;
         
         // Log progress periodically
