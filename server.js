@@ -11,6 +11,7 @@ const { WebSocketServer } = require('ws');
 const { exec } = require('child_process');
 const { promisify } = require('util');
 const nodemailer = require("nodemailer");
+const cron = require("node-cron");
 const multer = require('multer');
 const { sendPushNotification } = require('./pushNotifications');
 const { uploadImage } = require('./cloudinaryService');
@@ -3743,6 +3744,73 @@ wss.on('connection', (ws) => {
     broadcastToRoom(currentRoom, { type: 'room_updated', ...getRoomState(currentRoom) });
   });
 });
+
+// ─── DATABASE BACKUP SYSTEM ───────────────────────────────────────────────────
+
+const BACKUP_DIR = path.join(__dirname, 'backups', 'prod');
+const MAX_BACKUPS = 30; // Keep last 30 days
+
+function ensureBackupDir() {
+  if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
+}
+
+async function runProdBackup() {
+  const prodUrl = process.env.NEON_DATABASE_URL;
+  if (!prodUrl) throw new Error('NEON_DATABASE_URL secret is not set');
+
+  ensureBackupDir();
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const backupFile = path.join(BACKUP_DIR, `backup_${timestamp}.sql`);
+
+  const execPromise = promisify(exec);
+  await execPromise(`pg_dump "${prodUrl}" -f "${backupFile}"`);
+
+  // Rotate: delete oldest files beyond MAX_BACKUPS
+  const files = fs.readdirSync(BACKUP_DIR)
+    .filter(f => f.endsWith('.sql'))
+    .map(f => ({ name: f, time: fs.statSync(path.join(BACKUP_DIR, f)).mtimeMs }))
+    .sort((a, b) => a.time - b.time);
+
+  while (files.length > MAX_BACKUPS) {
+    const oldest = files.shift();
+    fs.unlinkSync(path.join(BACKUP_DIR, oldest.name));
+    console.log(`🗑️  Deleted old backup: ${oldest.name}`);
+  }
+
+  console.log(`✅ Production DB backup saved: ${backupFile}`);
+  return backupFile;
+}
+
+// POST /createBackup — manually trigger a production DB backup
+app.post('/createBackup', async (req, res) => {
+  try {
+    const key = req.body.key || req.headers['x-admin-key'];
+    if (key !== process.env.ADMIN_BROADCAST_KEY) {
+      return res.status(403).json({ error: 1, result: 'Unauthorized' });
+    }
+    const backupFile = await runProdBackup();
+    const files = fs.readdirSync(BACKUP_DIR).filter(f => f.endsWith('.sql'));
+    res.json({ error: 0, result: 'Backup created', file: path.basename(backupFile), total_backups: files.length });
+  } catch (error) {
+    console.error('Manual backup error:', error);
+    res.status(500).json({ error: 1, result: error.message });
+  }
+});
+
+// Daily backup at 2:00 AM UTC
+cron.schedule('0 2 * * *', async () => {
+  console.log('🕑 Running scheduled daily production DB backup...');
+  try {
+    await runProdBackup();
+  } catch (error) {
+    console.error('Scheduled backup failed:', error.message);
+  }
+});
+
+console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
+
+// ──────────────────────────────────────────────────────────────────────────────
 
 // Start server on 0.0.0.0 for public accessibility
 server.listen(PORT, '0.0.0.0', () => {
