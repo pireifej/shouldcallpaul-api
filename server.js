@@ -3947,6 +3947,64 @@ cron.schedule('0 2 * * *', async () => {
 
 console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
 
+// ── Daily devotional push notification — 12:00 PM UTC (8 AM Eastern / 7 AM Central) ──
+cron.schedule('0 12 * * *', async () => {
+  console.log('📲 Sending daily devotional push notification...');
+  try {
+    const tokenQuery = `
+      SELECT user_id, fcm_token
+      FROM public.user
+      WHERE fcm_token IS NOT NULL
+        AND fcm_token != ''
+        AND fcm_token LIKE 'ExponentPushToken%'
+    `;
+    const tokenResult = await pool.query(tokenQuery);
+
+    if (tokenResult.rows.length === 0) {
+      console.log('📲 No users with valid push tokens — skipping devotional notification');
+      return;
+    }
+
+    console.log(`📲 Sending devotional notification to ${tokenResult.rows.length} users`);
+
+    let successCount = 0;
+    let failedCount = 0;
+    const tokensToRemove = [];
+
+    for (const user of tokenResult.rows) {
+      const result = await sendPushNotification(
+        user.fcm_token,
+        "Daily Devotional 📖",
+        "Today's devotional is ready. Tap to read and reflect.",
+        { type: 'daily_devotional', screen: 'DailyDevotional' }
+      );
+
+      if (result.success) {
+        successCount++;
+      } else {
+        failedCount++;
+        if (result.shouldRemoveToken) {
+          tokensToRemove.push(user.user_id);
+        }
+      }
+    }
+
+    if (tokensToRemove.length > 0) {
+      await pool.query(
+        'UPDATE public.user SET fcm_token = NULL WHERE user_id = ANY($1)',
+        [tokensToRemove]
+      );
+      console.log(`🗑️  Removed ${tokensToRemove.length} invalid tokens`);
+    }
+
+    console.log(`✅ Devotional notification complete: ${successCount} sent, ${failedCount} failed`);
+  } catch (error) {
+    console.error('Devotional notification cron error:', error.message);
+  }
+});
+
+console.log('⏰ Daily devotional notification scheduled at 12:00 PM UTC (8 AM Eastern)');
+
 // ──────────────────────────────────────────────────────────────────────────────
 
 // Start server on 0.0.0.0 for public accessibility
