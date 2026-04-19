@@ -15,7 +15,8 @@
                 "duration": "Eight 1-hour sessions",
                 "cost": "$150 per student"
             },
-            "desc": "<p>An 8-week youth public speaking program culminating in a live showcase before the Holmdel Township Committee and the Holmdel Mayor. Each session built on the last, covering: Introduction to Confidence, Impromptu Speaking, Speech Structure &amp; Organization, Vocal Variety &amp; Body Language, Storytelling &amp; Personal Narratives, Speech Evaluation &amp; Feedback, Preparing for the Big Day, and a Live Community Showcase. Students graduated with certificates of completion and a performance in front of a real public audience.</p>"
+            "desc": "<p>An 8-week youth public speaking program culminating in a live showcase before the Holmdel Township Committee and the Holmdel Mayor. Each session built on the last, covering: Introduction to Confidence, Impromptu Speaking, Speech Structure &amp; Organization, Vocal Variety &amp; Body Language, Storytelling &amp; Personal Narratives, Speech Evaluation &amp; Feedback, Preparing for the Big Day, and a Live Community Showcase. Students graduated with certificates of completion and a performance in front of a real public audience.</p>",
+            "category": "youth"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_under_hood_main.jpg",
@@ -33,7 +34,8 @@
                 "duration": "1 hour",
                 "cost": "$200"
             },
-            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 3: A Look Under the Hood - A simple, non-technical exploration of how Large Language Models (LLMs) actually work and how they generate text and images. The group exercise involved passing around short, incomplete stories for the group to finish, illustrating the predictive text nature of LLMs.</p>"
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 3: A Look Under the Hood - A simple, non-technical exploration of how Large Language Models (LLMs) actually work and how they generate text and images. The group exercise involved passing around short, incomplete stories for the group to finish, illustrating the predictive text nature of LLMs.</p>",
+            "category": "ai"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/macoc_chamber_main.jpg",
@@ -50,7 +52,8 @@
                 "duration": "1.5 hours",
                 "cost": "Free"
             },
-            "desc": "<p>AI expert, Paul Ireifej of Should Call Paul, will present on how businesses can effectively use AI and help clear up some of the \"fog\" surrounding this rapidly evolving technology.</p>"
+            "desc": "<p>AI expert, Paul Ireifej of Should Call Paul, will present on how businesses can effectively use AI and help clear up some of the \"fog\" surrounding this rapidly evolving technology.</p>",
+            "category": "ai"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_daily_life_main.jpg",
@@ -68,7 +71,8 @@
                 "duration": "1 hour",
                 "cost": "$200"
             },
-            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 2: AI in Your Daily Life - Explore current, practical applications of AI, from recommendation systems to tools like ChatGPT, and discuss the associated ethical considerations. The group exercise included a small prompt contest where teams tried to get an AI to generate the most creative or useful result.</p>"
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 2: AI in Your Daily Life - Explore current, practical applications of AI, from recommendation systems to tools like ChatGPT, and discuss the associated ethical considerations. The group exercise included a small prompt contest where teams tried to get an AI to generate the most creative or useful result.</p>",
+            "category": "ai"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_building_blocks_main.jpg",
@@ -86,7 +90,8 @@
                 "duration": "1 hour",
                 "cost": "$200"
             },
-            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 1: The Building Blocks of AI - Define Artificial Intelligence, Machine Learning, and Neural Networks with simple, real-world examples. The group exercise involved categorizing various common tools as examples of AI, Machine Learning, or simple Automation.</p>"
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 1: The Building Blocks of AI - Define Artificial Intelligence, Machine Learning, and Neural Networks with simple, real-world examples. The group exercise involved categorizing various common tools as examples of AI, Machine Learning, or simple Automation.</p>",
+            "category": "ai"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/bbbs_asbury_park.jpg",
@@ -99,7 +104,8 @@
                 "duration": "1.5 hours",
                 "cost": "$100"
             },
-            "desc": "<p>A public speaking and communication workshop designed to help Big Brothers Big Sisters staff craft and deliver their message effectively. Participants learned practical techniques to communicate confidently in front of a crowd, on the phone, and in one-on-one settings to continue fostering relationships with mentors and community partners.</p>"
+            "desc": "<p>A public speaking and communication workshop designed to help Big Brothers Big Sisters staff craft and deliver their message effectively. Participants learned practical techniques to communicate confidently in front of a crowd, on the phone, and in one-on-one settings to continue fostering relationships with mentors and community partners.</p>",
+            "category": "speaking"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/speak_princeton_main.jpg",
@@ -115,7 +121,8 @@
                 "duration": "1 hour",
                 "cost": "Free"
             },
-            "desc": "<p>Find Your Voice. Be Heard. Learn how to boost your communication and leadership skills through vocal exercises, interactive activities, and more. Practical tools you can use immediately. Walk away with techniques to speak with confidence, command attention, and make your message memorable.</p>"
+            "desc": "<p>Find Your Voice. Be Heard. Learn how to boost your communication and leadership skills through vocal exercises, interactive activities, and more. Practical tools you can use immediately. Walk away with techniques to speak with confidence, command attention, and make your message memorable.</p>",
+            "category": "speaking"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/think_feet_main.jpg",
@@ -133,7 +140,8 @@
                 "duration": "1 hour",
                 "cost": "$100"
             },
-            "desc": "<p>An improv workshop.</p>"
+            "desc": "<p>An improv workshop.</p>",
+            "category": "speaking"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/bbbs_group.jpg",
@@ -149,7 +157,8 @@
                 "duration": "1.5 hours",
                 "cost": "Free"
             },
-            "desc": "<p>A public speaking and communication workshop designed to help Big Brothers Big Sisters staff effectively promote their mentoring program and services. Participants learned practical techniques to craft compelling messages, speak with confidence, and connect with potential mentors and community partners.</p>"
+            "desc": "<p>A public speaking and communication workshop designed to help Big Brothers Big Sisters staff effectively promote their mentoring program and services. Participants learned practical techniques to craft compelling messages, speak with confidence, and connect with potential mentors and community partners.</p>",
+            "category": "speaking"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/storytelling_main.jpg",
@@ -165,7 +174,8 @@
                 "duration": "1 hour",
                 "cost": "Free"
             },
-            "desc": "<p>There are a lot of ways to tell stories. Find out what suits your style as we explore and learn about storytelling. Listen, learn, and share during this evening program led by Paul Ireifej.</p>"
+            "desc": "<p>There are a lot of ways to tell stories. Find out what suits your style as we explore and learn about storytelling. Listen, learn, and share during this evening program led by Paul Ireifej.</p>",
+            "category": "speaking"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/future_school_ai_main.jpg",
@@ -181,7 +191,8 @@
                 "duration": "1.5 hours",
                 "cost": "Free"
             },
-            "desc": "<p>We'll explore how school leaders can personally use AI to save time. You'll choose one real administrative task like newsletters or evaluation summaries and use an AI assistant to create a draft version, refining it through prompt engineering.</p>"
+            "desc": "<p>We'll explore how school leaders can personally use AI to save time. You'll choose one real administrative task like newsletters or evaluation summaries and use an AI assistant to create a draft version, refining it through prompt engineering.</p>",
+            "category": "ai"
         },
         {
             "image": "img/teentalk3.jpg",
@@ -198,7 +209,8 @@
                 "duration": "1 hour",
                 "cost": "Free"
             },
-            "desc": "<p>Attention Teens! Do you want to feel more confident when speaking in front of a group? Whether it's for class presentations, interviews, or leadership roles, strong public speaking skills can make a big difference. With experienced public speaker and coach, Paul Ireifej, you'll get practical tools to become a more effective and confident communicator. No prior experience needed -- just bring your voice and an open mind!</p>"
+            "desc": "<p>Attention Teens! Do you want to feel more confident when speaking in front of a group? Whether it's for class presentations, interviews, or leadership roles, strong public speaking skills can make a big difference. With experienced public speaker and coach, Paul Ireifej, you'll get practical tools to become a more effective and confident communicator. No prior experience needed -- just bring your voice and an open mind!</p>",
+            "category": "youth"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/career-day-1.jpg",
@@ -214,7 +226,8 @@
                 "duration": "20 min x 7",
                 "cost": "Free"
             },
-            "desc": "<p>Gave a total of seven presentations to 4, 5 and 6 grade classes at Indian Hill School during their Career Day to showcase having a job in Software Engineering and Computer Programming. This was my second year in a row doing it.</p>"
+            "desc": "<p>Gave a total of seven presentations to 4, 5 and 6 grade classes at Indian Hill School during their Career Day to showcase having a job in Software Engineering and Computer Programming. This was my second year in a row doing it.</p>",
+            "category": "youth"
         },
         {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/rpi_workshop.jpg",
@@ -227,7 +240,8 @@
                 "duration": "1 hour",
                 "cost": "Free"
             },
-            "desc": "<p>\"The human brain starts working the moment you are born and never stops until you stand up to speak in public.\" – George Jessel</p><p>Join us for a night of dinner and gain some public speaking skills! This workshop combines interactive activities, practical exercises, and real-time feedback to help you build skills and confidence in a supportive environment of fellow alumni and friends. Whether you're a beginner or looking to refine your speaking abilities, this workshop is your first step to becoming a more dynamic speaker!</p>"
+            "desc": "<p>\"The human brain starts working the moment you are born and never stops until you stand up to speak in public.\" – George Jessel</p><p>Join us for a night of dinner and gain some public speaking skills! This workshop combines interactive activities, practical exercises, and real-time feedback to help you build skills and confidence in a supportive environment of fellow alumni and friends. Whether you're a beginner or looking to refine your speaking abilities, this workshop is your first step to becoming a more dynamic speaker!</p>",
+            "category": "speaking"
         },
         {
             "image": "img/redbankaione.jpg",
@@ -244,7 +258,8 @@
                 "duration": "1 hour",
                 "cost": "Free"
             },
-            "desc": "<p>You're invited to join our free, one-hour workshop with seasoned speaker and tech enthusiast Paul Ireifej and receive a hands-on introduction to AI.</p><p>Discover practical and simple ways to use ChatGPT in your daily life while shedding fears and demystifying artificial intelligence. Learn how AI can simplify tasks, spark creativity, and become a helpful, approachable tool in your everyday routine.</p><p>Let's make AI work for you - no tech experience required!</p>"
+            "desc": "<p>You're invited to join our free, one-hour workshop with seasoned speaker and tech enthusiast Paul Ireifej and receive a hands-on introduction to AI.</p><p>Discover practical and simple ways to use ChatGPT in your daily life while shedding fears and demystifying artificial intelligence. Learn how AI can simplify tasks, spark creativity, and become a helpful, approachable tool in your everyday routine.</p><p>Let's make AI work for you - no tech experience required!</p>",
+            "category": "ai"
         },
         {
             "image": "img/gallery/PXL_20250210_233640519.jpg",
@@ -261,7 +276,8 @@
                 "duration": "1 hour",
                 "cost": "Free"
             },
-            "desc": "<p>Curious about AI but feeling overwhelmed? Join us for a one-hour workshop with Paul Ireifej, a seasoned speaker and tech enthusiast. Discover practical and simple ways to use ChatGPT in your daily life while shedding fears and demystifying artificial intelligence. Learn how AI can simplify tasks, spark creativity, and become a helpful, approachable tool in your everyday routine. Let's make AI work for you - no tech experience required!</p>"
+            "desc": "<p>Curious about AI but feeling overwhelmed? Join us for a one-hour workshop with Paul Ireifej, a seasoned speaker and tech enthusiast. Discover practical and simple ways to use ChatGPT in your daily life while shedding fears and demystifying artificial intelligence. Learn how AI can simplify tasks, spark creativity, and become a helpful, approachable tool in your everyday routine. Let's make AI work for you - no tech experience required!</p>",
+            "category": "ai"
         },
         {
             "image": "img/gallery/PXL_20250206_224814234.jpg",
@@ -278,7 +294,8 @@
                 "duration": "1 hour",
                 "cost": "Free"
             },
-            "desc": "<p>Find your voice at our free workshop, hosted by experienced public speaker Paul Ireifej!</p><p>Adults and young adults are invited to join our free, one-hour workshop and discover the tools to speak with confidence, structure your message effectively, and captivate any audience.</p><p>This workshop combines interactive activities, practical exercises, and real-time feedback to help you build skills and confidence in a supportive environment. Whether you're a beginner or looking to refine your speaking abilities, this workshop is your first step to becoming a dynamic speaker!</p>"
+            "desc": "<p>Find your voice at our free workshop, hosted by experienced public speaker Paul Ireifej!</p><p>Adults and young adults are invited to join our free, one-hour workshop and discover the tools to speak with confidence, structure your message effectively, and captivate any audience.</p><p>This workshop combines interactive activities, practical exercises, and real-time feedback to help you build skills and confidence in a supportive environment. Whether you're a beginner or looking to refine your speaking abilities, this workshop is your first step to becoming a dynamic speaker!</p>",
+            "category": "speaking"
         },
         {
             "image": "img/gallery/PXL_20250116_000043349.jpg",
@@ -296,7 +313,8 @@
                 "duration": "1 hour",
                 "cost": "Free"
             },
-            "desc": "<p>Discover the tools to speak with confidence, structure your message effectively, and captivate any audience. In this engaging session, you'll learn how to:  Craft a compelling speech with a clear, introduction, body, and conclusion, Enhance your delivery using vocal variety and powerful body language, Conquer stage fright with proven techniques like breathing exercises and visualization. This workshop combines interactive activities, practical exercises, and real-time feedback to help you build skills and confidence in a supportive environment. Whether you're a beginner or looking to refine your speaking abilities, this workshop is your first step to becoming a dynamic speaker!</p>"
+            "desc": "<p>Discover the tools to speak with confidence, structure your message effectively, and captivate any audience. In this engaging session, you'll learn how to:  Craft a compelling speech with a clear, introduction, body, and conclusion, Enhance your delivery using vocal variety and powerful body language, Conquer stage fright with proven techniques like breathing exercises and visualization. This workshop combines interactive activities, practical exercises, and real-time feedback to help you build skills and confidence in a supportive environment. Whether you're a beginner or looking to refine your speaking abilities, this workshop is your first step to becoming a dynamic speaker!</p>",
+            "category": "speaking"
         },
         {
             "image": "img/gallery/respect2.jpg",
@@ -314,7 +332,8 @@
                 "duration": "Two 30 minute sessions",
                 "cost": "Free"
             },
-            "desc": "<p>The week of 10/7 is the \"Week of Respect\" in NJ, and Franklin School in North Bergen is looking for a volunteer speaker who can go into classrooms to speak to students grades 4 - 8 about the importance of respect, kindness, friendship, responsibility, or something that inspires them to be mindful of their actions.</p>"
+            "desc": "<p>The week of 10/7 is the \"Week of Respect\" in NJ, and Franklin School in North Bergen is looking for a volunteer speaker who can go into classrooms to speak to students grades 4 - 8 about the importance of respect, kindness, friendship, responsibility, or something that inspires them to be mindful of their actions.</p>",
+            "category": "youth"
         },
         {
             "label": "Master the Art of Public Speaking - Bell Works",
@@ -326,7 +345,8 @@
                 "duration": "1 hour",
                 "cost": "Free"
             },
-            "desc": "<p>Embark on a transformative journey in our \"Mastering the Art of Public Speaking\" workshop, featuring voluntary audience interaction with impromptu questions, examples of conststructive criticism. Discover your authentic voice, enhance public speaking skills, and gain a competitive edge. Join us for a concise, impactful session to unlock your full potential in communication and leadership.</p>"
+            "desc": "<p>Embark on a transformative journey in our \"Mastering the Art of Public Speaking\" workshop, featuring voluntary audience interaction with impromptu questions, examples of conststructive criticism. Discover your authentic voice, enhance public speaking skills, and gain a competitive edge. Join us for a concise, impactful session to unlock your full potential in communication and leadership.</p>",
+            "category": "speaking"
         },
         {
             "image": "img/PXL_20240824_152158036.MP.jpg",
@@ -340,7 +360,8 @@
                 "duration": "Eight 1-hour sessions",
                 "cost": "Free"
             },
-            "desc": "<p>An 8-week youth public speaking program following Toastmasters International conventions and format. Participants learned chairmanship, introduction to public speaking, impromptu speaking, organizing your speech, listening and body gestures, and voice and vocabulary. Each one-hour session included speeches with feedback from both the instructor and peers. The program culminated in a final debate project where participants demonstrated their newly developed skills.</p>"
+            "desc": "<p>An 8-week youth public speaking program following Toastmasters International conventions and format. Participants learned chairmanship, introduction to public speaking, impromptu speaking, organizing your speech, listening and body gestures, and voice and vocabulary. Each one-hour session included speeches with feedback from both the instructor and peers. The program culminated in a final debate project where participants demonstrated their newly developed skills.</p>",
+            "category": "youth"
         },
         {
             "image": "img/gallery/20240531_112847.jpg",
@@ -356,7 +377,8 @@
                 "duration": "20 min x 7",
                 "cost": "Free"
             },
-            "desc": "<p>Gave a total of seven presentations to 4, 5 and 6 grade classes at Indian Hill School during their Career Day to showcase having a job in Software Engineering and Computer Programming.</p>"
+            "desc": "<p>Gave a total of seven presentations to 4, 5 and 6 grade classes at Indian Hill School during their Career Day to showcase having a job in Software Engineering and Computer Programming.</p>",
+            "category": "youth"
         },
         {
             "image": "img/gallery/facebook_1716907117027_7201230388578389877.jpg",
@@ -369,7 +391,8 @@
                 "duration": "20 min",
                 "cost": "Free"
             },
-            "desc": "<p>Gave a presentation about impromptu speaking for the Youth Leadership Program.</p>"
+            "desc": "<p>Gave a presentation about impromptu speaking for the Youth Leadership Program.</p>",
+            "category": "youth"
         },
         {
             "image": "img/gallery/facebook_1716907083993_7201230250024254985.jpg",
@@ -382,7 +405,8 @@
                 "duration": "1 hour",
                 "cost": "Free"
             },
-            "desc": "<p>Embark on a transformative journey in our \"Mastering the Art of Public Speaking\" workshop, featuring voluntary audience interaction with impromptu questions, examples of conststructive criticism. Discover your authentic voice, enhance public speaking skills, and gain a competitive edge. Join us for a concise, impactful session to unlock your full potential in communication and leadership.</p>"
+            "desc": "<p>Embark on a transformative journey in our \"Mastering the Art of Public Speaking\" workshop, featuring voluntary audience interaction with impromptu questions, examples of conststructive criticism. Discover your authentic voice, enhance public speaking skills, and gain a competitive edge. Join us for a concise, impactful session to unlock your full potential in communication and leadership.</p>",
+            "category": "speaking"
         }
     ]
 }
