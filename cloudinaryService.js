@@ -34,4 +34,18 @@ async function uploadImage(fileBuffer, folder = 'uploads', resourceType = 'image
   }
 }
 
-module.exports = { uploadImage };
+async function uploadImageFromUrl(imageUrl, folder = 'uploads') {
+  try {
+    const result = await cloudinary.uploader.upload(imageUrl, {
+      folder: folder,
+      resource_type: 'image'
+    });
+    console.log(`✅ Cloudinary upload from URL successful: ${result.secure_url}`);
+    return result.secure_url;
+  } catch (error) {
+    console.error('Failed to upload URL to Cloudinary:', error);
+    throw error;
+  }
+}
+
+module.exports = { uploadImage, uploadImageFromUrl };

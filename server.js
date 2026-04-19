@@ -14,7 +14,7 @@ const nodemailer = require("nodemailer");
 const cron = require("node-cron");
 const multer = require('multer');
 const { sendPushNotification } = require('./pushNotifications');
-const { uploadImage } = require('./cloudinaryService');
+const { uploadImage, uploadImageFromUrl } = require('./cloudinaryService');
 require('dotenv').config();
 
 const app = express();
@@ -3793,9 +3793,12 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
     quality: 'standard'
   });
 
-  const imageUrl = imageResponse.data[0].url;
+  const dalleUrl = imageResponse.data[0].url;
 
-  // Step 3: Save to database
+  // Step 3: Upload image to Cloudinary for permanent storage
+  const imageUrl = await uploadImageFromUrl(dalleUrl, 'devotionals');
+
+  // Step 4: Save to database
   await pool.query(
     `INSERT INTO public.daily_devotional
       (date, theme, title, article_body, bible_verse, verse_reference, prayer, image_url, image_prompt)
