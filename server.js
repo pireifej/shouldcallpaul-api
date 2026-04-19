@@ -3745,6 +3745,138 @@ wss.on('connection', (ws) => {
   });
 });
 
+// ─── DAILY DEVOTIONAL SYSTEM ──────────────────────────────────────────────────
+
+const DEVOTIONAL_THEMES = [
+  'Grace', 'Strength', 'Hope', 'Forgiveness', 'Gratitude', 'Faith', 'Love',
+  'Peace', 'Patience', 'Courage', 'Humility', 'Joy', 'Mercy', 'Trust',
+  'Perseverance', 'Wisdom', 'Compassion', 'Renewal', 'Surrender', 'Light',
+  'Healing', 'Purpose', 'Community', 'Silence', 'Abundance'
+];
+
+async function generateDailyDevotional(targetDate) {
+  const dateStr = targetDate.toISOString().slice(0, 10);
+  const theme = DEVOTIONAL_THEMES[Math.floor(Math.random() * DEVOTIONAL_THEMES.length)];
+
+  console.log(`📖 Generating devotional for ${dateStr} — theme: ${theme}`);
+
+  // Step 1: Generate text content via GPT
+  const gptPrompt = `You are a warm, non-denominational Christian devotional writer. 
+Generate a daily devotional on the theme of "${theme}" for ${dateStr}.
+Respond ONLY with a valid JSON object — no markdown, no code fences, just raw JSON — with exactly these fields:
+{
+  "title": "A short, inspiring title (max 10 words)",
+  "articleBody": "A 250-word devotional article in plain prose. No bullet points.",
+  "bibleVerse": "The full text of one relevant Bible verse",
+  "verseReference": "Book Chapter:Verse (e.g. Romans 8:28)",
+  "prayer": "A short 3-4 sentence closing prayer written in first person",
+  "imagePrompt": "A descriptive visual scene suitable for a watercolor painting (2-3 sentences, no text or people)"
+}`;
+
+  const gptResponse = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: gptPrompt }],
+    temperature: 0.8,
+    response_format: { type: 'json_object' }
+  });
+
+  const content = JSON.parse(gptResponse.choices[0].message.content);
+
+  // Step 2: Generate image via DALL-E 3
+  const fullImagePrompt = `Watercolor, serene, minimalist style. ${content.imagePrompt} Soft pastel tones, peaceful atmosphere, no text, no people.`;
+
+  const imageResponse = await openai.images.generate({
+    model: 'dall-e-3',
+    prompt: fullImagePrompt,
+    n: 1,
+    size: '1024x1024',
+    quality: 'standard'
+  });
+
+  const imageUrl = imageResponse.data[0].url;
+
+  // Step 3: Save to database
+  await pool.query(
+    `INSERT INTO public.daily_devotional
+      (date, theme, title, article_body, bible_verse, verse_reference, prayer, image_url, image_prompt)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     ON CONFLICT (date) DO UPDATE SET
+       theme = EXCLUDED.theme,
+       title = EXCLUDED.title,
+       article_body = EXCLUDED.article_body,
+       bible_verse = EXCLUDED.bible_verse,
+       verse_reference = EXCLUDED.verse_reference,
+       prayer = EXCLUDED.prayer,
+       image_url = EXCLUDED.image_url,
+       image_prompt = EXCLUDED.image_prompt`,
+    [dateStr, theme, content.title, content.articleBody, content.bibleVerse,
+     content.verseReference, content.prayer, imageUrl, content.imagePrompt]
+  );
+
+  console.log(`✅ Devotional saved for ${dateStr}: "${content.title}"`);
+  return content;
+}
+
+// GET /getDailyDevotional — returns today's devotional, falls back to previous day
+app.get('/getDailyDevotional', async (req, res) => {
+  try {
+    // Try today first
+    const today = new Date().toISOString().slice(0, 10);
+    let result = await pool.query(
+      'SELECT * FROM public.daily_devotional WHERE date = $1',
+      [today]
+    );
+
+    // Fall back to most recent available entry
+    if (result.rows.length === 0) {
+      result = await pool.query(
+        'SELECT * FROM public.daily_devotional ORDER BY date DESC LIMIT 1'
+      );
+    }
+
+    if (result.rows.length === 0) {
+      return res.json({ error: 1, result: 'No devotional available yet.' });
+    }
+
+    res.json({ error: 0, result: result.rows[0] });
+  } catch (error) {
+    console.error('getDailyDevotional error:', error);
+    res.status(500).json({ error: 1, result: 'Internal server error' });
+  }
+});
+
+// POST /generateDevotional — admin endpoint to manually trigger generation
+app.post('/generateDevotional', async (req, res) => {
+  try {
+    const key = req.body.key || req.headers['x-admin-key'];
+    if (key !== process.env.ADMIN_BROADCAST_KEY) {
+      return res.status(403).json({ error: 1, result: 'Unauthorized' });
+    }
+    const targetDate = req.body.date ? new Date(req.body.date) : new Date();
+    await generateDailyDevotional(targetDate);
+    const dateStr = targetDate.toISOString().slice(0, 10);
+    const saved = await pool.query('SELECT * FROM public.daily_devotional WHERE date = $1', [dateStr]);
+    res.json({ error: 0, result: 'Devotional generated', devotional: saved.rows[0] });
+  } catch (error) {
+    console.error('Manual devotional generation error:', error);
+    res.status(500).json({ error: 1, result: error.message });
+  }
+});
+
+// Daily cron: generate devotional at 12:05 AM UTC every day
+cron.schedule('5 0 * * *', async () => {
+  console.log('📖 Running scheduled daily devotional generation...');
+  try {
+    await generateDailyDevotional(new Date());
+  } catch (error) {
+    console.error('Scheduled devotional generation failed:', error.message);
+  }
+});
+
+console.log('📖 Daily devotional generation scheduled at 12:05 AM UTC');
+
+// ──────────────────────────────────────────────────────────────────────────────
+
 // ─── DATABASE BACKUP SYSTEM ───────────────────────────────────────────────────
 
 const BACKUP_DIR = path.join(__dirname, 'backups', 'prod');
