@@ -3841,7 +3841,9 @@ app.get('/getDailyDevotional', async (req, res) => {
       return res.json({ error: 1, result: 'No devotional available yet.' });
     }
 
-    res.json({ error: 0, result: result.rows[0] });
+    const row = result.rows[0];
+    row.date = new Date(row.date).toISOString().slice(0, 10);
+    res.json({ error: 0, result: row });
   } catch (error) {
     console.error('getDailyDevotional error:', error);
     res.status(500).json({ error: 1, result: 'Internal server error' });
