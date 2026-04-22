@@ -3274,7 +3274,7 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
     const preview = content.substring(0, 200).trim() + '...';
 
     // Upload image to Cloudinary
-    const imageUrl = await uploadImage(req.file.buffer, req.file.mimetype, 'blog_articles');
+    const imageUrl = await uploadImage(req.file.buffer, 'blog_articles');
 
     // Generate the HTML content
     const authorName = author || 'Sherri Rase';
