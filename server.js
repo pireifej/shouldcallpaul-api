@@ -3465,30 +3465,11 @@ app.patch('/admin/editBlogArticle', authenticate, upload.single('image'), async 
       newImageUrl = await uploadImage(req.file.buffer, req.file.mimetype, 'blog_articles');
     }
 
-    // Update flat file content if new content provided
+    // Update flat file — write raw HTML content directly, no conversion
     if (content) {
       const filePath = path.join(__dirname, 'blog_articles', article.blog_article_file + '.txt');
-      const authorName = author || 'Sherri Rase';
-      const paragraphs = content.split('\n\n').filter(p => p.trim());
-      let htmlContent = '';
-      for (let i = 0; i < paragraphs.length; i++) {
-        const para = paragraphs[i].trim();
-        if (para.includes('http://') || para.includes('https://')) {
-          const urlMatch = para.match(/(https?:\/\/[^\s]+)/);
-          if (urlMatch) {
-            const url = urlMatch[0];
-            const text = para.replace(url, '').trim();
-            htmlContent += `\n    <div class="call-to-action">\n        <p><strong>${text}</strong></p>\n        <p><a href="${url}" target="_blank">Visit for more information</a></p>\n    </div>\n`;
-          }
-        } else if (para.length < 300 && i > 0 && i < paragraphs.length - 1) {
-          htmlContent += `\n    <div class="highlight">\n        <p>${para}</p>\n    </div>\n`;
-        } else {
-          htmlContent += `\n    <p>${para}</p>\n`;
-        }
-      }
-      const updatedTitle = title || article.title;
-      const htmlTemplate = `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>${updatedTitle}</title>\n    <style>\n        body { font-family: Georgia, serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }\n        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }\n        p { margin-bottom: 18px; text-align: justify; }\n        .byline { font-style: italic; color: #7f8c8d; font-size: 0.9em; }\n        .highlight { background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0; }\n        .call-to-action { background-color: #e8f5e8; padding: 15px; border-left: 4px solid #27ae60; margin: 20px 0; text-align: center; }\n        a { color: #3498db; text-decoration: none; }\n        a:hover { text-decoration: underline; }\n    </style>\n</head>\n<body>${htmlContent}\n</body>\n</html>`;
-      fs.writeFileSync(filePath, htmlTemplate);
+      fs.writeFileSync(filePath, content, 'utf8');
+      console.log(`📝 Flat file updated: ${filePath}`);
     }
 
     // Build DB update — only update fields that were provided
