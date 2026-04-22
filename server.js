@@ -3264,20 +3264,8 @@ app.post('/uploadProfilePicture', authenticate, (req, res) => {
   });
 });
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'blog_articles/img/');
-  },
-  filename: function (req, file, cb) {
-    // Use the filename provided in the request or generate from title
-    const customName = req.body.imageFilename || 'article-image';
-    const ext = path.extname(file.originalname);
-    cb(null, customName + ext);
-  }
-});
-
-const upload = multer({ storage: storage });
+// Configure multer for blog image uploads — memory storage so we can push to Cloudinary
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Admin endpoint to create a new blog article
 app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async (req, res) => {
@@ -3302,10 +3290,12 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
     
     // Generate preview text (first 200 characters)
     const preview = content.substring(0, 200).trim() + '...';
-    
+
+    // Upload image to Cloudinary
+    const imageUrl = await uploadImage(req.file.buffer, req.file.mimetype, 'blog_articles');
+
     // Generate the HTML content
     const authorName = author || 'Sherri Rase';
-    const imageUrl = `https://shouldcallpaul.replit.app/img/${req.file.filename}`;
     
     // Convert plain text content to HTML paragraphs
     const paragraphs = content.split('\n\n').filter(p => p.trim());
@@ -3429,13 +3419,12 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
       RETURNING id
     `;
     
-    const imageDbPath = `img/${req.file.filename}`;
     const result = await pool.query(insertQuery, [
       nextId,
       title,
       blogArticleFile,
       preview,
-      imageDbPath
+      imageUrl
     ]);
     
     console.log(`✅ Blog article created successfully: ID ${nextId}, file: ${blogArticleFile}.txt`);
@@ -3450,6 +3439,127 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
     
   } catch (error) {
     console.error('Error creating blog article:', error);
+    res.status(500).json({ error: 1, result: error.message });
+  }
+});
+
+// Admin endpoint to edit an existing blog article
+app.patch('/admin/editBlogArticle', authenticate, upload.single('image'), async (req, res) => {
+  try {
+    const { id, content, title, author } = req.body;
+
+    if (!id) {
+      return res.json({ error: 1, result: 'Article id is required' });
+    }
+
+    // Fetch existing article from DB
+    const existing = await pool.query('SELECT * FROM public.blog_article WHERE id = $1', [id]);
+    if (existing.rows.length === 0) {
+      return res.json({ error: 1, result: 'Article not found' });
+    }
+    const article = existing.rows[0];
+
+    // Handle optional new image upload to Cloudinary
+    let newImageUrl = null;
+    if (req.file) {
+      newImageUrl = await uploadImage(req.file.buffer, req.file.mimetype, 'blog_articles');
+    }
+
+    // Update flat file content if new content provided
+    if (content) {
+      const filePath = path.join(__dirname, 'blog_articles', article.blog_article_file + '.txt');
+      const authorName = author || 'Sherri Rase';
+      const paragraphs = content.split('\n\n').filter(p => p.trim());
+      let htmlContent = '';
+      for (let i = 0; i < paragraphs.length; i++) {
+        const para = paragraphs[i].trim();
+        if (para.includes('http://') || para.includes('https://')) {
+          const urlMatch = para.match(/(https?:\/\/[^\s]+)/);
+          if (urlMatch) {
+            const url = urlMatch[0];
+            const text = para.replace(url, '').trim();
+            htmlContent += `\n    <div class="call-to-action">\n        <p><strong>${text}</strong></p>\n        <p><a href="${url}" target="_blank">Visit for more information</a></p>\n    </div>\n`;
+          }
+        } else if (para.length < 300 && i > 0 && i < paragraphs.length - 1) {
+          htmlContent += `\n    <div class="highlight">\n        <p>${para}</p>\n    </div>\n`;
+        } else {
+          htmlContent += `\n    <p>${para}</p>\n`;
+        }
+      }
+      const updatedTitle = title || article.title;
+      const htmlTemplate = `<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>${updatedTitle}</title>\n    <style>\n        body { font-family: Georgia, serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }\n        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }\n        p { margin-bottom: 18px; text-align: justify; }\n        .byline { font-style: italic; color: #7f8c8d; font-size: 0.9em; }\n        .highlight { background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0; }\n        .call-to-action { background-color: #e8f5e8; padding: 15px; border-left: 4px solid #27ae60; margin: 20px 0; text-align: center; }\n        a { color: #3498db; text-decoration: none; }\n        a:hover { text-decoration: underline; }\n    </style>\n</head>\n<body>${htmlContent}\n</body>\n</html>`;
+      fs.writeFileSync(filePath, htmlTemplate);
+    }
+
+    // Build DB update — only update fields that were provided
+    const updates = [];
+    const values = [];
+    let idx = 1;
+
+    if (title) { updates.push(`title = $${idx++}`); values.push(title); }
+    if (content) {
+      const newPreview = content.substring(0, 200).trim() + '...';
+      updates.push(`preview = $${idx++}`); values.push(newPreview);
+    }
+    if (newImageUrl) { updates.push(`image = $${idx++}`); values.push(newImageUrl); }
+
+    if (updates.length > 0) {
+      values.push(id);
+      await pool.query(
+        `UPDATE public.blog_article SET ${updates.join(', ')} WHERE id = $${idx}`,
+        values
+      );
+    }
+
+    console.log(`✅ Blog article ${id} updated`);
+    res.json({
+      error: 0,
+      result: 'Article updated successfully',
+      articleId: parseInt(id),
+      newImageUrl: newImageUrl || null
+    });
+
+  } catch (error) {
+    console.error('Error editing blog article:', error);
+    res.status(500).json({ error: 1, result: error.message });
+  }
+});
+
+// Admin endpoint to delete a blog article
+app.delete('/admin/deleteBlogArticle', authenticate, async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+      return res.json({ error: 1, result: 'Article id is required' });
+    }
+
+    // Fetch article to get the flat file name
+    const existing = await pool.query('SELECT * FROM public.blog_article WHERE id = $1', [id]);
+    if (existing.rows.length === 0) {
+      return res.json({ error: 1, result: 'Article not found' });
+    }
+    const article = existing.rows[0];
+
+    // Delete flat file
+    const filePath = path.join(__dirname, 'blog_articles', article.blog_article_file + '.txt');
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log(`🗑️  Deleted file: ${filePath}`);
+    }
+
+    // Delete DB row
+    await pool.query('DELETE FROM public.blog_article WHERE id = $1', [id]);
+
+    console.log(`✅ Blog article ${id} deleted`);
+    res.json({
+      error: 0,
+      result: 'Article deleted successfully',
+      articleId: parseInt(id)
+    });
+
+  } catch (error) {
+    console.error('Error deleting blog article:', error);
     res.status(500).json({ error: 1, result: error.message });
   }
 });
