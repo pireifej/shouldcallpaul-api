@@ -3333,7 +3333,7 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
         }
         h1 {
             color: #2c3e50;
-            border-bottom: 2px solid #3498db;
+            border-bottom: 2px solid #c0392b;
             padding-bottom: 10px;
         }
         p {
@@ -3346,9 +3346,9 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
             font-size: 0.9em;
         }
         .highlight {
-            background-color: #f8f9fa;
+            background-color: #fdf6f0;
             padding: 15px;
-            border-left: 4px solid #3498db;
+            border-left: 4px solid #c0392b;
             margin: 20px 0;
         }
         .image-container {
@@ -3363,26 +3363,35 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
         .image-caption {
             font-style: italic;
             color: #7f8c8d;
-            font-size: 0.9em;
-            margin-top: 8px;
+            font-size: 0.85em;
+            text-align: center;
+            margin-top: -10px;
+            margin-bottom: 20px;
         }
         a {
-            color: #3498db;
+            color: #c0392b;
             text-decoration: none;
         }
         a:hover {
             text-decoration: underline;
         }
         .call-to-action {
-            background-color: #e8f5e8;
+            background-color: #fdf6f0;
             padding: 15px;
-            border-left: 4px solid #27ae60;
+            border-left: 4px solid #c0392b;
             margin: 20px 0;
             text-align: center;
         }
     </style>
 </head>
-<body>${htmlContent}
+<body>
+    <h1>${title}</h1>
+    <p class="byline">by ${authorName} for Urban Telegraph</p>
+
+    <div class="image-container">
+        <img src="${imageUrl}" alt="${title}" />
+    </div>
+${htmlContent}
 </body>
 </html>`;
     
