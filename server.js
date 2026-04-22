@@ -3388,9 +3388,6 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
     <h1>${title}</h1>
     <p class="byline">by ${authorName} for Urban Telegraph</p>
 
-    <div class="image-container">
-        <img src="${imageUrl}" alt="${title}" />
-    </div>
 ${htmlContent}
 </body>
 </html>`;
