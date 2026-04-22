@@ -1,6 +1,16 @@
 {
     "records": [
         {
+            "label": "Agentic Chaos Analytics: Data-Driven Fault and Load Testing for Fraud Detection",
+            "type": "conference",
+            "desc": "<p>AT&T Data Science Show — Online via Microsoft Teams Live Event (Plano, TX). \"We are committed to driving innovation and building a network that is reliable, resilient, and prepared for whatever the future brings.\"</p><p>Explore how agentic AI methods and chaos engineering can be combined not only to inject faults and simulate load spikes, but also to generate rich datasets for evaluating the robustness of fraud detection models. See how experimental chaos environments, orchestrated through AI agents and tools like Azure Chaos Mesh, illuminate hidden weaknesses in model pipelines, feature drift, and inference reliability under stress. You'll learn about feedback loops that log, analyze, and visualize the impact of simulated outages or anomalies—offering actionable insights for both model retraining and DevOps automation.</p>",
+            "gallery": [],
+            "details": {
+                "date": "April 15, 2026",
+                "location": "Online - MS Teams (Plano, TX)"
+            }
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/cfca/cfca_2025_main.JPG",
             "label": "Migrating Large-Scale Fraud Mitigation to the Cloud: Security and Compliance Excellence",
             "type": "conference",
