@@ -587,13 +587,13 @@ app.post('/getBlogArticle', authenticate, async (req, res) => {
       }
     }
     
-    // PostgreSQL query to get blog article metadata
+    // PostgreSQL query to get blog article — content served from DB
     const query = `
       SELECT 
         title, 
         preview, 
-        image, 
-        blog_article_file,
+        image,
+        content,
         (created_datetime AT TIME ZONE 'UTC' AT TIME ZONE $2) as timestamp 
       FROM public.blog_article 
       WHERE id = $1
@@ -606,31 +606,13 @@ app.post('/getBlogArticle', authenticate, async (req, res) => {
     }
     
     const articleData = result.rows[0];
-    const blogArticleFile = articleData.blog_article_file;
     
-    // Read the flat file content
-    const fs = require('fs');
-    const path = require('path');
-    
-    const filePath = path.join(__dirname, 'blog_articles', blogArticleFile + '.txt');
-    
-    fs.readFile(filePath, 'utf8', function (err, data) {
-      if (err) {
-        console.log(err);
-        return res.json({error: 1, result: err.message || err});
-      }
-      
-      console.log('Successfully read blog article:', blogArticleFile);
-      
-      const article = {
-        title: articleData.title,
-        content: data,
-        date: articleData.timestamp,
-        image: articleData.image
-      };
-      
-      res.json({error: 0, result: article});
-    });
+    res.json({error: 0, result: {
+      title: articleData.title,
+      content: articleData.content,
+      date: articleData.timestamp,
+      image: articleData.image
+    }});
     
   } catch (error) {
     console.error('Database query error:', error);
@@ -3404,18 +3386,14 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
 </body>
 </html>`;
     
-    // Save the HTML file
-    const htmlFilePath = path.join(__dirname, 'blog_articles', `${blogArticleFile}.txt`);
-    fs.writeFileSync(htmlFilePath, htmlTemplate);
-    
     // Get the next available ID
     const maxIdResult = await pool.query('SELECT MAX(id) as max_id FROM public.blog_article');
     const nextId = (maxIdResult.rows[0].max_id || 0) + 1;
     
-    // Insert into database
+    // Insert into database — content stored in DB, no flat file needed
     const insertQuery = `
-      INSERT INTO public.blog_article (id, created_datetime, title, blog_article_file, preview, image)
-      VALUES ($1, NOW(), $2, $3, $4, $5)
+      INSERT INTO public.blog_article (id, created_datetime, title, blog_article_file, preview, image, content)
+      VALUES ($1, NOW(), $2, $3, $4, $5, $6)
       RETURNING id
     `;
     
@@ -3424,10 +3402,11 @@ app.post('/admin/createBlogArticle', authenticate, upload.single('image'), async
       title,
       blogArticleFile,
       preview,
-      imageUrl
+      imageUrl,
+      htmlTemplate
     ]);
     
-    console.log(`✅ Blog article created successfully: ID ${nextId}, file: ${blogArticleFile}.txt`);
+    console.log(`✅ Blog article created successfully: ID ${nextId}`);
     
     res.json({
       error: 0,
@@ -3465,12 +3444,7 @@ app.patch('/admin/editBlogArticle', authenticate, upload.single('image'), async 
       newImageUrl = await uploadImage(req.file.buffer, req.file.mimetype, 'blog_articles');
     }
 
-    // Update flat file — write raw HTML content directly, no conversion
-    if (content) {
-      const filePath = path.join(__dirname, 'blog_articles', article.blog_article_file + '.txt');
-      fs.writeFileSync(filePath, content, 'utf8');
-      console.log(`📝 Flat file updated: ${filePath}`);
-    }
+    // Content is stored in DB — no flat file write needed
 
     // Build DB update — only update fields that were provided
     const updates = [];
@@ -3479,7 +3453,8 @@ app.patch('/admin/editBlogArticle', authenticate, upload.single('image'), async 
 
     if (title) { updates.push(`title = $${idx++}`); values.push(title); }
     if (content) {
-      const newPreview = content.substring(0, 200).trim() + '...';
+      updates.push(`content = $${idx++}`); values.push(content);
+      const newPreview = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 200) + '...';
       updates.push(`preview = $${idx++}`); values.push(newPreview);
     }
     if (newImageUrl) { updates.push(`image = $${idx++}`); values.push(newImageUrl); }
