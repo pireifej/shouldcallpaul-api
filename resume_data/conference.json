@@ -3,6 +3,7 @@
         {
             "label": "Agentic Chaos Analytics: Data-Driven Fault and Load Testing for Fraud Detection",
             "type": "conference",
+            "image": "https://res.cloudinary.com/dclyvhsee/image/upload/v1776864900/conference_talks/t7buctt1akzaxc9w29tb.png",
             "desc": "<p>AT&T Data Science Show — Online via Microsoft Teams Live Event (Plano, TX). \"We are committed to driving innovation and building a network that is reliable, resilient, and prepared for whatever the future brings.\"</p><p>Explore how agentic AI methods and chaos engineering can be combined not only to inject faults and simulate load spikes, but also to generate rich datasets for evaluating the robustness of fraud detection models. See how experimental chaos environments, orchestrated through AI agents and tools like Azure Chaos Mesh, illuminate hidden weaknesses in model pipelines, feature drift, and inference reliability under stress. You'll learn about feedback loops that log, analyze, and visualize the impact of simulated outages or anomalies—offering actionable insights for both model retraining and DevOps automation.</p>",
             "gallery": [],
             "details": {
