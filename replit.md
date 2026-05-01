@@ -28,14 +28,15 @@ Preferred communication style: Simple, everyday language.
 - **Church Member Directory**: `POST /getUsersByChurch` returns all active users for a given `churchId` with profile info and faith rank.
 
 ### Blog CMS
-- **Static Content**: Blog articles and images are stored as HTML files in `blog_articles/`.
+- **Database-backed Content**: Blog articles are stored in the `blog_article` table (`content TEXT` column). Flat files in `blog_articles/` exist as legacy backups but are unused.
 - **API Endpoints**: RESTful endpoints serve blog content and metadata.
+- **Admin Endpoints**: `POST /admin/createBlogArticle` (generates full HTML from plain text, uploads image to Cloudinary), `PATCH /admin/editBlogArticle`, `DELETE /admin/deleteBlogArticle`. Auth: Basic Auth.
 
 ### Email Notification System
-- **Service Provider**: MailerSend API for email delivery.
-- **Rate Limiting**: 600ms delay between emails to adhere to MailerSend's 120 requests/min limit.
+- **Service Provider**: Gmail SMTP via Nodemailer (`createGmailTransporter()`). MailerSend has been fully removed.
+- **Rate Limiting**: 600ms delay between emails during broadcasts.
 - **Personalization**: Emails use `real_name` (or `user_name`, then "Friend") for greetings.
-- **Broadcast Capabilities**: Supports test and production modes for sending personalized emails to all users with custom templates.
+- **Broadcast Capabilities**: `POST /sendBroadcastEmail` supports test mode (`includeAllUsers: false` sends to GMAIL_USER only) and production mode (`includeAllUsers: true` sends to all users).
 
 ### Resume/Portfolio Data Endpoints
 - **Purpose**: Provides structured JSON data for shouldcallpaul.com.
@@ -50,7 +51,7 @@ Preferred communication style: Simple, everyday language.
 ## Technical Design Decisions
 
 ### Email Management
-- **Rate Limiting**: Per-email delay strategy for MailerSend to prevent API rate limit breaches.
+- **Rate Limiting**: 600ms per-email delay during broadcasts to stay within Gmail's sending limits.
 - **Duplicate Prevention**: Dynamic CC list construction to avoid duplicate email addresses in TO/CC fields.
 
 ### Database Design
@@ -66,7 +67,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Services
 - **PostgreSQL**: Primary database system (Neon-backed Replit database).
-- **MailerSend**: Email delivery service.
+- **Gmail SMTP**: Email delivery via Nodemailer using a Gmail account and App Password.
 - **Expo Push Notifications**: Mobile push notification service.
 - **Cloudinary**: Cloud-based image management and CDN.
 
@@ -76,12 +77,13 @@ Preferred communication style: Simple, everyday language.
 - **bcrypt**: Password hashing.
 - **dotenv**: Environment variable management.
 - **cors**: Cross-origin resource sharing.
-- **mailersend**: MailerSend SDK.
+- **nodemailer**: Gmail SMTP email sending.
 - **expo-server-sdk**: Expo SDK for push notifications.
 - **multer**: Multipart/form-data handling.
 
 ### Environment Configuration
-- **DATABASE_URL**: PostgreSQL connection string.
-- **MAILERSEND_API_KEY**: MailerSend API key.
+- **DATABASE_URL**: PostgreSQL connection string (dev).
+- **NEON_DATABASE_URL**: PostgreSQL connection string (production).
+- **GMAIL_USER, GMAIL_APP_PASSWORD**: Gmail SMTP credentials for all email sending.
 - **CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET**: Cloudinary credentials.
 - **PORT**: Server port.
