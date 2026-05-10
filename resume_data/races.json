@@ -1,6 +1,48 @@
 {
     "records": [
         {
+            "image": "",
+            "label": "Flying Pig 3-Way Challenge — Half Marathon",
+            "type": "race",
+            "details": {
+                "date": "05/02/26",
+                "distance": "13.1 miles",
+                "time": "",
+                "location": "Cincinnati, OH"
+            },
+            "gallery": [],
+            "link": "",
+            "desc": "<p>The second leg of the Skyline Chili 3-Way Challenge at the Flying Pig Marathon Weekend. In celebration of the city of Cincinnati and the Flying Pig Marathon, Skyline Chili is proud to present the 3-Way Challenge — named after the Skyline 3-Way, a Cincinnati signature dish crafted from chili, spaghetti, and cheese.</p>"
+        },
+        {
+            "image": "",
+            "label": "Flying Pig 3-Way Challenge — 10K",
+            "type": "race",
+            "details": {
+                "date": "05/01/26",
+                "distance": "6.2 miles",
+                "time": "",
+                "location": "Cincinnati, OH"
+            },
+            "gallery": [],
+            "link": "",
+            "desc": "<p>The first leg of the Skyline Chili 3-Way Challenge at the Flying Pig Marathon Weekend. In celebration of the city of Cincinnati and the Flying Pig Marathon, Skyline Chili is proud to present the 3-Way Challenge — named after the Skyline 3-Way, a Cincinnati signature dish crafted from chili, spaghetti, and cheese.</p>"
+        },
+        {
+            "image": "",
+            "label": "Flying Pig 3-Way Challenge — 5K",
+            "type": "race",
+            "details": {
+                "date": "05/01/26",
+                "distance": "3.1 miles",
+                "time": "",
+                "location": "Cincinnati, OH"
+            },
+            "gallery": [],
+            "link": "",
+            "desc": "<p>The third leg of the Skyline Chili 3-Way Challenge at the Flying Pig Marathon Weekend. In celebration of the city of Cincinnati and the Flying Pig Marathon, Skyline Chili is proud to present the 3-Way Challenge — named after the Skyline 3-Way, a Cincinnati signature dish crafted from chili, spaghetti, and cheese.</p>"
+        },
+        {
             "image": "img/running/gasparilla_8k_2026.jpg",
             "label": "Tampa's Gasparilla Distance Classic 8K",
             "type": "race",
