@@ -3826,15 +3826,111 @@ const DEVOTIONAL_THEMES = [
   'Healing', 'Purpose', 'Community', 'Silence', 'Abundance'
 ];
 
+// Compute Easter Sunday for a given year (anonymous Gregorian algorithm)
+function getEaster(year) {
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+
+// Return a holiday name if the date matches a known event, otherwise null
+function getHolidayTheme(date) {
+  const month = date.getMonth() + 1; // 1-12
+  const day = date.getDate();
+  const year = date.getFullYear();
+  const dow = date.getDay(); // 0=Sun
+
+  // Fixed holidays
+  const fixed = {
+    '1-1':   { theme: 'Renewal',      event: "New Year's Day" },
+    '1-6':   { theme: 'Faith',        event: 'Epiphany' },
+    '2-2':   { theme: 'Light',        event: 'Candlemas' },
+    '2-14':  { theme: 'Love',         event: "Valentine's Day" },
+    '3-17':  { theme: 'Faith',        event: "St. Patrick's Day" },
+    '3-19':  { theme: 'Purpose',      event: 'Feast of St. Joseph' },
+    '4-23':  { theme: 'Courage',      event: "St. George's Day" },
+    '7-4':   { theme: 'Freedom',      event: 'Independence Day' },
+    '8-15':  { theme: 'Hope',         event: 'Assumption of Mary' },
+    '10-31': { theme: 'Light',        event: 'All Hallows Eve' },
+    '11-1':  { theme: 'Community',    event: "All Saints' Day" },
+    '11-2':  { theme: 'Mercy',        event: "All Souls' Day" },
+    '12-24': { theme: 'Hope',         event: 'Christmas Eve' },
+    '12-25': { theme: 'Joy',          event: 'Christmas Day' },
+    '12-26': { theme: 'Gratitude',    event: 'Day After Christmas' },
+    '12-31': { theme: 'Gratitude',    event: "New Year's Eve" },
+  };
+  const fixedKey = `${month}-${day}`;
+  if (fixed[fixedKey]) return fixed[fixedKey];
+
+  // Easter-relative movable feasts
+  const easter = getEaster(year);
+  const diffDays = Math.round((date - easter) / 86400000);
+  if (diffDays === -46) return { theme: 'Surrender',     event: 'Ash Wednesday' };
+  if (diffDays === -7)  return { theme: 'Humility',      event: 'Palm Sunday' };
+  if (diffDays === -3)  return { theme: 'Community',     event: 'Holy Thursday' };
+  if (diffDays === -2)  return { theme: 'Forgiveness',   event: 'Good Friday' };
+  if (diffDays === -1)  return { theme: 'Hope',          event: 'Holy Saturday' };
+  if (diffDays === 0)   return { theme: 'Joy',           event: 'Easter Sunday' };
+  if (diffDays === 1)   return { theme: 'Renewal',       event: 'Easter Monday' };
+  if (diffDays === 39)  return { theme: 'Purpose',       event: 'Ascension Thursday' };
+  if (diffDays === 49)  return { theme: 'Courage',       event: 'Pentecost Sunday' };
+
+  // Movable US/cultural holidays
+  // Mother's Day: 2nd Sunday in May
+  if (month === 5 && dow === 0) {
+    const firstSunday = day - ((day - 1) % 7);
+    if (day === firstSunday + 7) return { theme: 'Love', event: "Mother's Day" };
+  }
+  // Father's Day: 3rd Sunday in June
+  if (month === 6 && dow === 0) {
+    const firstSunday = day - ((day - 1) % 7);
+    if (day === firstSunday + 14) return { theme: 'Strength', event: "Father's Day" };
+  }
+  // Thanksgiving: 4th Thursday in November
+  if (month === 11 && dow === 4) {
+    const firstThursday = day - ((day - 1) % 7);
+    if (day === firstThursday + 21) return { theme: 'Gratitude', event: 'Thanksgiving Day' };
+  }
+  // Memorial Day: last Monday in May
+  if (month === 5 && dow === 1 && day > 24) {
+    return { theme: 'Perseverance', event: 'Memorial Day' };
+  }
+  // Labor Day: 1st Monday in September
+  if (month === 9 && dow === 1 && day <= 7) {
+    return { theme: 'Purpose', event: 'Labor Day' };
+  }
+  // MLK Day: 3rd Monday in January
+  if (month === 1 && dow === 1 && day >= 15 && day <= 21) {
+    return { theme: 'Justice', event: 'Martin Luther King Jr. Day' };
+  }
+
+  return null;
+}
+
 async function generateDailyDevotional(targetDate) {
   const dateStr = targetDate.toISOString().slice(0, 10);
-  const theme = DEVOTIONAL_THEMES[Math.floor(Math.random() * DEVOTIONAL_THEMES.length)];
 
-  console.log(`📖 Generating devotional for ${dateStr} — theme: ${theme}`);
+  // Check for a holiday/event on this date
+  const holiday = getHolidayTheme(targetDate);
+  const theme = holiday
+    ? holiday.theme
+    : DEVOTIONAL_THEMES[Math.floor(Math.random() * DEVOTIONAL_THEMES.length)];
+  const holidayContext = holiday
+    ? `Today is ${holiday.event}. Please incorporate this occasion naturally and meaningfully into the devotional.`
+    : '';
+
+  const holidayNote = holiday ? ` (${holiday.event})` : '';
+  console.log(`📖 Generating devotional for ${dateStr}${holidayNote} — theme: ${theme}`);
 
   // Step 1: Generate text content via GPT
   const gptPrompt = `You are a warm, non-denominational Christian devotional writer. 
-Generate a daily devotional on the theme of "${theme}" for ${dateStr}.
+Generate a daily devotional on the theme of "${theme}" for ${dateStr}.${holidayContext ? '\n' + holidayContext : ''}
 Respond ONLY with a valid JSON object — no markdown, no code fences, just raw JSON — with exactly these fields:
 {
   "title": "A short, inspiring title (max 10 words)",
@@ -3942,8 +4038,14 @@ app.post('/generateDevotional', async (req, res) => {
 
 // Daily cron: generate devotional at 12:05 AM UTC every day
 cron.schedule('5 0 * * *', async () => {
-  console.log('📖 Running scheduled daily devotional generation...');
+  const today = new Date().toISOString().slice(0, 10);
   try {
+    const existing = await pool.query('SELECT id FROM public.daily_devotional WHERE date = $1', [today]);
+    if (existing.rows.length > 0) {
+      console.log(`📖 Devotional for ${today} already exists — skipping generation.`);
+      return;
+    }
+    console.log('📖 Running scheduled daily devotional generation...');
     await generateDailyDevotional(new Date());
   } catch (error) {
     console.error('Scheduled devotional generation failed:', error.message);
