@@ -15,7 +15,7 @@
             "desc": "<p>The second leg of the Skyline Chili 3-Way Challenge at the Flying Pig Marathon Weekend. In celebration of the city of Cincinnati and the Flying Pig Marathon, Skyline Chili is proud to present the 3-Way Challenge — named after the Skyline 3-Way, a Cincinnati signature dish crafted from chili, spaghetti, and cheese.</p>"
         },
         {
-            "image": "img/running/flying_pig_10k_2026_cert.png",
+            "image": "img/running/flying_pig_10k_2026.jpg",
             "label": "Flying Pig 3-Way Challenge — 10K",
             "type": "race",
             "details": {
@@ -24,7 +24,7 @@
                 "time": "56 min 24 sec",
                 "location": "Cincinnati, OH"
             },
-            "gallery": ["img/running/flying_pig_10k_2026_cert.png"],
+            "gallery": ["img/running/flying_pig_10k_2026.jpg", "img/running/flying_pig_10k_2026_cert.png"],
             "link": "https://shouldcallpaul.replit.app/resume_data/img/running/flying_pig_10k_2026_cert.png",
             "desc": "<p>The first leg of the Skyline Chili 3-Way Challenge at the Flying Pig Marathon Weekend. In celebration of the city of Cincinnati and the Flying Pig Marathon, Skyline Chili is proud to present the 3-Way Challenge — named after the Skyline 3-Way, a Cincinnati signature dish crafted from chili, spaghetti, and cheese.</p>"
         },
