@@ -3829,7 +3829,7 @@ const DEVOTIONAL_THEMES = [
   'Healing', 'Purpose', 'Community', 'Silence', 'Abundance'
 ];
 
-// Compute Easter Sunday for a given year (anonymous Gregorian algorithm)
+// Compute Easter Sunday for a given year — returns a UTC midnight Date
 function getEaster(year) {
   const a = year % 19, b = Math.floor(year / 100), c = year % 100;
   const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
@@ -3839,15 +3839,16 @@ function getEaster(year) {
   const m = Math.floor((a + 11 * h + 22 * l) / 451);
   const month = Math.floor((h + l - 7 * m + 114) / 31);
   const day = ((h + l - 7 * m + 114) % 31) + 1;
-  return new Date(year, month - 1, day);
+  return new Date(Date.UTC(year, month - 1, day));
 }
 
 // Return a holiday name if the date matches a known event, otherwise null
 function getHolidayTheme(date) {
-  const month = date.getMonth() + 1; // 1-12
-  const day = date.getDate();
-  const year = date.getFullYear();
-  const dow = date.getDay(); // 0=Sun
+  // Normalize to UTC calendar date so afternoon calls don't bleed into tomorrow
+  const month = date.getUTCMonth() + 1; // 1-12
+  const day = date.getUTCDate();
+  const year = date.getUTCFullYear();
+  const dow = date.getUTCDay(); // 0=Sun
 
   // Fixed holidays
   const fixed = {
@@ -3871,9 +3872,10 @@ function getHolidayTheme(date) {
   const fixedKey = `${month}-${day}`;
   if (fixed[fixedKey]) return fixed[fixedKey];
 
-  // Easter-relative movable feasts
+  // Easter-relative movable feasts — normalize both sides to UTC midnight for exact day diff
   const easter = getEaster(year);
-  const diffDays = Math.round((date - easter) / 86400000);
+  const dateUtcMidnight = Date.UTC(year, month - 1, day);
+  const diffDays = Math.floor((dateUtcMidnight - easter.getTime()) / 86400000);
   if (diffDays === -46) return { theme: 'Surrender',     event: 'Ash Wednesday' };
   if (diffDays === -7)  return { theme: 'Humility',      event: 'Palm Sunday' };
   if (diffDays === -3)  return { theme: 'Community',     event: 'Holy Thursday' };
@@ -3941,7 +3943,8 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
   "bibleVerse": "The full text of one relevant Bible verse",
   "verseReference": "Book Chapter:Verse (e.g. Romans 8:28)",
   "prayer": "A short 3-4 sentence closing prayer written in first person",
-  "imagePrompt": "A descriptive visual scene suitable for a watercolor painting (2-3 sentences, no text or people)"
+  "imagePrompt": "A descriptive visual scene suitable for a watercolor painting (2-3 sentences, no text or people)",
+  "pexelsQuery": "2-4 words describing a beautiful nature scene that fits this devotional's mood. Use only concrete visual nouns (e.g. 'misty forest sunrise', 'golden wheat field', 'ocean sunrise waves', 'mountain lake reflection'). No abstract words, no holiday names, no people."
 }`;
 
   const gptResponse = await openai.chat.completions.create({
@@ -3953,13 +3956,11 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
 
   const content = JSON.parse(gptResponse.choices[0].message.content);
 
-  // Step 2: Fetch a beautiful photo from Pexels matching the devotional theme
+  // Step 2: Fetch a beautiful photo from Pexels using GPT's visual search query
   let imageUrl = null;
   try {
-    // Build a search query from the theme and holiday context
-    const searchQuery = holiday
-      ? `${holiday.event} nature spiritual`
-      : `${theme} nature peaceful`;
+    const searchQuery = content.pexelsQuery || `${theme} nature peaceful`;
+    console.log(`🔍 Pexels search: "${searchQuery}"`);
 
     const pexelsResponse = await pexels.photos.search({
       query: searchQuery,
@@ -3968,12 +3969,10 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
     });
 
     if (pexelsResponse.photos && pexelsResponse.photos.length > 0) {
-      // Pick a random photo from results for variety
       const pick = pexelsResponse.photos[Math.floor(Math.random() * pexelsResponse.photos.length)];
       const pexelsUrl = pick.src.large2x || pick.src.large || pick.src.original;
-      // Upload to Cloudinary for permanent CDN storage
       imageUrl = await uploadImageFromUrl(pexelsUrl, 'devotionals');
-      console.log(`🎨 Devotional image fetched from Pexels (photographer: ${pick.photographer})`);
+      console.log(`🎨 Devotional image fetched from Pexels: "${searchQuery}" (${pick.photographer})`);
     } else {
       console.warn(`⚠️  Pexels returned no photos for query "${searchQuery}"`);
     }
