@@ -15,6 +15,7 @@ const cron = require("node-cron");
 const multer = require('multer');
 const { sendPushNotification } = require('./pushNotifications');
 const { uploadImage, uploadImageFromUrl } = require('./cloudinaryService');
+const { createClient: createPexelsClient } = require('pexels');
 require('dotenv').config();
 
 const app = express();
@@ -126,6 +127,8 @@ types.setTypeParser(1184, (val) => val ? new Date(val).toISOString() : null);
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY 
 });
+
+const pexels = createPexelsClient(process.env.PEXELS_API_KEY);
 
 // ============================================
 // FAITH RANK HELPER FUNCTION
@@ -3950,37 +3953,32 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
 
   const content = JSON.parse(gptResponse.choices[0].message.content);
 
-  // Step 2: Generate image (DALL-E 3, fall back to DALL-E 2, then no image)
-  const fullImagePrompt = `Watercolor, serene, minimalist style. ${content.imagePrompt} Soft pastel tones, peaceful atmosphere, no text, no people.`;
-
+  // Step 2: Fetch a beautiful photo from Pexels matching the devotional theme
   let imageUrl = null;
   try {
-    let dalleUrl = null;
-    try {
-      const imageResponse = await openai.images.generate({
-        model: 'dall-e-3',
-        prompt: fullImagePrompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'standard'
-      });
-      dalleUrl = imageResponse.data[0].url;
-      console.log(`🎨 Devotional image generated with DALL-E 3`);
-    } catch (dalle3Err) {
-      console.warn(`⚠️  DALL-E 3 failed (${dalle3Err.message}) — trying DALL-E 2`);
-      const fallbackResponse = await openai.images.generate({
-        model: 'dall-e-2',
-        prompt: fullImagePrompt,
-        n: 1,
-        size: '1024x1024'
-      });
-      dalleUrl = fallbackResponse.data[0].url;
-      console.log(`🎨 Devotional image generated with DALL-E 2 fallback`);
+    // Build a search query from the theme and holiday context
+    const searchQuery = holiday
+      ? `${holiday.event} nature spiritual`
+      : `${theme} nature peaceful`;
+
+    const pexelsResponse = await pexels.photos.search({
+      query: searchQuery,
+      per_page: 15,
+      orientation: 'landscape'
+    });
+
+    if (pexelsResponse.photos && pexelsResponse.photos.length > 0) {
+      // Pick a random photo from results for variety
+      const pick = pexelsResponse.photos[Math.floor(Math.random() * pexelsResponse.photos.length)];
+      const pexelsUrl = pick.src.large2x || pick.src.large || pick.src.original;
+      // Upload to Cloudinary for permanent CDN storage
+      imageUrl = await uploadImageFromUrl(pexelsUrl, 'devotionals');
+      console.log(`🎨 Devotional image fetched from Pexels (photographer: ${pick.photographer})`);
+    } else {
+      console.warn(`⚠️  Pexels returned no photos for query "${searchQuery}"`);
     }
-    // Step 3: Upload image to Cloudinary for permanent storage
-    imageUrl = await uploadImageFromUrl(dalleUrl, 'devotionals');
   } catch (imgErr) {
-    console.warn(`⚠️  Image generation skipped entirely: ${imgErr.message}`);
+    console.warn(`⚠️  Pexels image fetch failed: ${imgErr.message}`);
   }
 
   // Step 4: Save to database
