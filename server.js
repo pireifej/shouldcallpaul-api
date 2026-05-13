@@ -3950,21 +3950,38 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
 
   const content = JSON.parse(gptResponse.choices[0].message.content);
 
-  // Step 2: Generate image via DALL-E 3
+  // Step 2: Generate image (DALL-E 3, fall back to DALL-E 2, then no image)
   const fullImagePrompt = `Watercolor, serene, minimalist style. ${content.imagePrompt} Soft pastel tones, peaceful atmosphere, no text, no people.`;
 
-  const imageResponse = await openai.images.generate({
-    model: 'dall-e-3',
-    prompt: fullImagePrompt,
-    n: 1,
-    size: '1024x1024',
-    quality: 'standard'
-  });
-
-  const dalleUrl = imageResponse.data[0].url;
-
-  // Step 3: Upload image to Cloudinary for permanent storage
-  const imageUrl = await uploadImageFromUrl(dalleUrl, 'devotionals');
+  let imageUrl = null;
+  try {
+    let dalleUrl = null;
+    try {
+      const imageResponse = await openai.images.generate({
+        model: 'dall-e-3',
+        prompt: fullImagePrompt,
+        n: 1,
+        size: '1024x1024',
+        quality: 'standard'
+      });
+      dalleUrl = imageResponse.data[0].url;
+      console.log(`🎨 Devotional image generated with DALL-E 3`);
+    } catch (dalle3Err) {
+      console.warn(`⚠️  DALL-E 3 failed (${dalle3Err.message}) — trying DALL-E 2`);
+      const fallbackResponse = await openai.images.generate({
+        model: 'dall-e-2',
+        prompt: fullImagePrompt,
+        n: 1,
+        size: '1024x1024'
+      });
+      dalleUrl = fallbackResponse.data[0].url;
+      console.log(`🎨 Devotional image generated with DALL-E 2 fallback`);
+    }
+    // Step 3: Upload image to Cloudinary for permanent storage
+    imageUrl = await uploadImageFromUrl(dalleUrl, 'devotionals');
+  } catch (imgErr) {
+    console.warn(`⚠️  Image generation skipped entirely: ${imgErr.message}`);
+  }
 
   // Step 4: Save to database
   await pool.query(
