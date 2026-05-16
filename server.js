@@ -1458,7 +1458,7 @@ app.post('/prayFor', authenticate, async (req, res) => {
           `;
           
           const fromPerson = { 
-            email: "paul@prayoverus.com", 
+            email: "prayoverus@gmail.com", 
             name: "PrayOverUs" 
           };
           
@@ -1624,7 +1624,7 @@ app.post('/contact', authenticate, async (req, res) => {
     
     // Define sender (same as prayer notifications)
     const fromPerson = { 
-      email: "paul@prayoverus.com", 
+      email: "prayoverus@gmail.com", 
       name: "PrayOverUs" 
     };
     
@@ -1876,7 +1876,7 @@ app.post('/createUser', authenticate, async (req, res) => {
       `;
       
       const fromPerson = { 
-        email: "paul@prayoverus.com", 
+        email: "prayoverus@gmail.com", 
         name: "PrayOverUs" 
       };
       
@@ -2345,12 +2345,12 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
       `;
 
       const fromPerson = { 
-        email: "paul@prayoverus.com", 
+        email: "prayoverus@gmail.com", 
         name: "PrayOverUs Notifications" 
       };
       
       const toPerson = {
-        email: "paul@prayoverus.com",
+        email: "prayoverus@gmail.com",
         name: "Paul"
       };
 
@@ -2953,7 +2953,7 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
       
       console.log(`📧 Preparing to send broadcast email to ${userRecipients.length} users in batches`);
     } else {
-      console.log('📧 Sending test broadcast email (to paul@prayoverus.com only)');
+      console.log('📧 Sending test broadcast email (to prayoverus@gmail.com only)');
     }
 
     // Function to create personalized HTML email template
@@ -3114,7 +3114,7 @@ app.post('/sendBroadcastEmail', authenticate, async (req, res) => {
     
     const message = params.includeAllUsers 
       ? `Broadcast email sent: ${successCount} successful, ${failCount} failed out of ${recipientsToSend.length} total` 
-      : "Test broadcast email sent to paul@prayoverus.com";
+      : "Test broadcast email sent to prayoverus@gmail.com";
     
     console.log(`📧 Broadcast complete: ${message}`);
     
