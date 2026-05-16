@@ -3939,7 +3939,7 @@ Generate a daily devotional on the theme of "${theme}" for ${dateStr}.${holidayC
 Respond ONLY with a valid JSON object — no markdown, no code fences, just raw JSON — with exactly these fields:
 {
   "title": "A short, inspiring title (max 10 words)",
-  "articleBody": "A 250-word devotional article in plain prose. No bullet points.",
+  "articleBody": "A 250-word devotional article in plain prose, split into exactly two paragraphs separated by a blank line. No bullet points.",
   "bibleVerse": "The full text of one relevant Bible verse",
   "verseReference": "Book Chapter:Verse (e.g. Romans 8:28)",
   "prayer": "A short 3-4 sentence closing prayer written in first person",
