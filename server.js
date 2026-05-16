@@ -4020,6 +4020,14 @@ app.get('/getDailyDevotional', async (req, res) => {
           'SELECT * FROM public.daily_devotional WHERE date = $1',
           [today]
         );
+        // If it's past 8 AM Eastern (12:00 PM UTC), the scheduled notification
+        // already missed — send it now as a catch-up for all users
+        const utcHour = new Date().getUTCHours();
+        if (utcHour >= 12) {
+          sendDailyDevotionalNotification('catch-up after on-demand generation').catch(e =>
+            console.error('Catch-up notification failed:', e.message)
+          );
+        }
       } catch (genErr) {
         console.error('On-demand devotional generation failed:', genErr.message);
         // Generation failed — fall back to most recent so the app still works
@@ -4145,18 +4153,27 @@ cron.schedule('0 2 * * *', async () => {
 
 console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
 
-// ── Daily devotional push notification — 12:00 PM UTC (8 AM Eastern / 7 AM Central) ──
-cron.schedule('0 12 * * *', async () => {
-  console.log('📲 Sending daily devotional push notification...');
+// ── Shared helper: send devotional push notification to all users ──
+// tracks which UTC dates have already had a notification sent this server session
+const devotionalNotificationSentDates = new Set();
+
+async function sendDailyDevotionalNotification(reason) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (devotionalNotificationSentDates.has(today)) {
+    console.log(`📲 Devotional notification already sent for ${today} — skipping (${reason})`);
+    return;
+  }
+  devotionalNotificationSentDates.add(today);
+
+  console.log(`📲 Sending daily devotional push notification (${reason})...`);
   try {
-    const tokenQuery = `
+    const tokenResult = await pool.query(`
       SELECT user_id, fcm_token
       FROM public.user
       WHERE fcm_token IS NOT NULL
         AND fcm_token != ''
         AND fcm_token LIKE 'ExponentPushToken%'
-    `;
-    const tokenResult = await pool.query(tokenQuery);
+    `);
 
     if (tokenResult.rows.length === 0) {
       console.log('📲 No users with valid push tokens — skipping devotional notification');
@@ -4176,14 +4193,11 @@ cron.schedule('0 12 * * *', async () => {
         "Today's devotional is ready. Tap to read and reflect.",
         { type: 'daily_devotional', screen: 'DailyDevotional' }
       );
-
       if (result.success) {
         successCount++;
       } else {
         failedCount++;
-        if (result.shouldRemoveToken) {
-          tokensToRemove.push(user.user_id);
-        }
+        if (result.shouldRemoveToken) tokensToRemove.push(user.user_id);
       }
     }
 
@@ -4197,9 +4211,13 @@ cron.schedule('0 12 * * *', async () => {
 
     console.log(`✅ Devotional notification complete: ${successCount} sent, ${failedCount} failed`);
   } catch (error) {
-    console.error('Devotional notification cron error:', error.message);
+    console.error('Devotional notification error:', error.message);
+    devotionalNotificationSentDates.delete(today); // allow retry if it errored
   }
-});
+}
+
+// ── Daily devotional push notification — 12:00 PM UTC (8 AM Eastern / 7 AM Central) ──
+cron.schedule('0 12 * * *', () => sendDailyDevotionalNotification('scheduled cron'));
 
 console.log('⏰ Daily devotional notification scheduled at 12:00 PM UTC (8 AM Eastern)');
 
