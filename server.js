@@ -4002,21 +4002,31 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
   return content;
 }
 
-// GET /getDailyDevotional — returns today's devotional, falls back to previous day
+// GET /getDailyDevotional — returns today's devotional, auto-generating if missing
 app.get('/getDailyDevotional', async (req, res) => {
   try {
-    // Try today first
     const today = new Date().toISOString().slice(0, 10);
     let result = await pool.query(
       'SELECT * FROM public.daily_devotional WHERE date = $1',
       [today]
     );
 
-    // Fall back to most recent available entry
+    // Today's article is missing — auto-generate it now (first caller triggers it, everyone else benefits)
     if (result.rows.length === 0) {
-      result = await pool.query(
-        'SELECT * FROM public.daily_devotional ORDER BY date DESC LIMIT 1'
-      );
+      console.log(`📖 No devotional for ${today} — auto-generating on demand...`);
+      try {
+        await generateDailyDevotional(new Date());
+        result = await pool.query(
+          'SELECT * FROM public.daily_devotional WHERE date = $1',
+          [today]
+        );
+      } catch (genErr) {
+        console.error('On-demand devotional generation failed:', genErr.message);
+        // Generation failed — fall back to most recent so the app still works
+        result = await pool.query(
+          'SELECT * FROM public.daily_devotional ORDER BY date DESC LIMIT 1'
+        );
+      }
     }
 
     if (result.rows.length === 0) {
