@@ -1243,7 +1243,7 @@ app.post('/getChatCompletion', authenticate, async (req, res) => {
     // Call OpenAI API with the content as user message
     // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // Using same model as original function
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "user",
