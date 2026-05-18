@@ -1,6 +1,32 @@
 {
     "records": [
         {
+            "label": "Effective Public Speaking Skills",
+            "type": "workshops",
+            "details": {
+                "date": "May 13, 2026",
+                "location": "Monmouth County Fire Academy",
+                "attendees": "20+",
+                "duration": "Two 50-min sessions (9:00 AM & 1:00 PM)",
+                "cost": "Paid"
+            },
+            "desc": "<p>Presented twice at the <strong>Monmouth County Employee Development Expo</strong> — at 9:00 AM and again at 1:00 PM — as part of a full-day event running 9:00 AM to 4:00 PM. This session covered practical techniques for effective public speaking in professional settings, including vocal delivery, body language, message structure, and audience engagement. Also presented at this same event: <em>Active Listening &amp; Communication Skills</em>.</p>",
+            "category": "speaking"
+        },
+        {
+            "label": "Active Listening & Communication Skills",
+            "type": "workshops",
+            "details": {
+                "date": "May 13, 2026",
+                "location": "Monmouth County Fire Academy",
+                "attendees": "45+ (first session)",
+                "duration": "Two 50-min sessions (11:00 AM & 3:00 PM)",
+                "cost": "Paid"
+            },
+            "desc": "<p>Presented twice at the <strong>Monmouth County Employee Development Expo</strong> — at 11:00 AM and again at 3:00 PM — as part of a full-day event running 9:00 AM to 4:00 PM. The 11:00 AM session drew 45+ attendees. This session focused on the skills of active listening and effective two-way communication in the workplace. Also presented at this same event: <em>Effective Public Speaking Skills</em>.</p>",
+            "category": "speaking"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/ysa_finale_group.jpg",
             "gallery": [
                 "https://shouldcallpaul.replit.app/resume_data/img/ysa_finale_certificates.jpg",
