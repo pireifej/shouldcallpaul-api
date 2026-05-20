@@ -1,0 +1,13 @@
+uploads = []
+
+[[generated]]
+id = "BaZ46vmNw4nrm0q_x5ebb"
+uri = "file://attached_assets/generated_images/a_sleek_modern_digital_2c6e.png"
+type = "image"
+title = "generated_image"
+
+[[outputs]]
+id = "gMin_BEiQPYT71Fuptrzm"
+uri = "file://attached_assets/generated_images/a_sleek_modern_digital_2c6e.png"
+type = "image"
+title = "Therapy Connect — AI-generated image"
