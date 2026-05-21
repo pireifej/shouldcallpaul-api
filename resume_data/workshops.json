@@ -45,6 +45,24 @@
             "category": "youth"
         },
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_future_thinking_main.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/ai_future_thinking_audience.jpg"
+            ],
+            "label": "The Future of Thinking",
+            "type": "workshops",
+            "link": "https://mapl.events.mylibrary.digital/event?id=292860",
+            "details": {
+                "date": "May 11, 2026",
+                "location": "Matawan-Aberdeen Public Library",
+                "attendees": "20+",
+                "duration": "1 hour",
+                "cost": "$200"
+            },
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 5: The Future of Thinking — Explore the exciting potential of AI and its impact on work, creativity, and the human experience. The group exercise challenged teams to brainstorm new, ethical ways AI could solve a real local community problem.</p>",
+            "category": "ai"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_under_hood_main.jpg",
             "gallery": [
                 "https://shouldcallpaul.replit.app/resume_data/img/ai_under_hood_tokens.jpg",
