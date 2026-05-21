@@ -63,6 +63,10 @@
             "category": "ai"
         },
         {
+            "image": "https://www.shouldcallpaul.com/img-new/session-4/paul-title-slide.jpg",
+            "gallery": [
+                "https://www.shouldcallpaul.com/img-new/session-4/paul-audience.jpg"
+            ],
             "label": "Securing the Future",
             "type": "workshops",
             "link": "https://mapl.events.mylibrary.digital/event?id=292859",
