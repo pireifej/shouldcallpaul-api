@@ -63,6 +63,20 @@
             "category": "ai"
         },
         {
+            "label": "Securing the Future",
+            "type": "workshops",
+            "link": "",
+            "details": {
+                "date": "April 2026",
+                "location": "Matawan-Aberdeen Public Library",
+                "attendees": "",
+                "duration": "1 hour",
+                "cost": "$200"
+            },
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 4: Securing the Future — A session focusing on the challenges of fraud and security in the age of AI, and the defenses being developed. The group exercise was a short \"spot the deepfake\" activity using provided examples to increase awareness of AI-generated deceit.</p>",
+            "category": "ai"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_under_hood_main.jpg",
             "gallery": [
                 "https://shouldcallpaul.replit.app/resume_data/img/ai_under_hood_tokens.jpg",
