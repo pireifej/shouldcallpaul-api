@@ -4,14 +4,15 @@
             "image": "img/hack/therapyconnect.png",
             "label": "Speech Sensei",
             "type": "hackathon",
-            "desc": "<p>Therapy Connect is a comprehensive speech and cognitive therapy platform featuring 49 evidence-based exercises powered by AI-generated content, natural voice playback, live phone call practice, and WebVR simulation. Built in collaboration with Alexis Passarelli, M.S., SLP of Morris Speech Therapy.</p>",
+            "desc": "<p>Therapy Connect is a comprehensive speech and cognitive therapy platform featuring 49 evidence-based exercises powered by AI-generated content, natural voice playback, live phone call practice, and WebVR simulation. Built in collaboration with Alexis Passarelli, M.S., SLP of Morris Speech Therapy.</p><p>Awarded <strong>Honorable Mention</strong> out of 65 competing teams.</p>",
             "link": "https://docs.google.com/presentation/d/1S1AiOryjshLSgUUjP_vNt7zeHFZOQuq_/edit?usp=sharing&ouid=112668354220077801813&rtpof=true&sd=true",
+            "demoLink": "https://therapy-connect--pireifej.replit.app/",
             "powerpointLink": "",
             "details": {
                 "date": "May 21, 2026",
                 "location": "Middletown, NJ",
                 "track": "Technology and Life Improvement",
-                "placement": "None"
+                "placement": "Honorable Mention"
             }
         },
         {
