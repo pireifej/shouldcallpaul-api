@@ -1,6 +1,11 @@
 {
     "records": [
         {
+            "image": "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-teaching.jpg",
+            "gallery": [
+                "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-signage.jpg",
+                "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-lobby.jpg"
+            ],
             "label": "Effective Public Speaking Skills",
             "type": "workshops",
             "details": {
@@ -14,6 +19,11 @@
             "category": "speaking"
         },
         {
+            "image": "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-butterflies-1.jpg",
+            "gallery": [
+                "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-butterflies-2.jpg",
+                "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-thoughtful.jpg"
+            ],
             "label": "Active Listening & Communication Skills",
             "type": "workshops",
             "details": {
