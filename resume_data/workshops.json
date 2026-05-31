@@ -285,6 +285,25 @@
             "category": "youth"
         },
         {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/career_day_2026_classroom.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/career_day_2026_slide.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/career_day_2026_sign.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/career_day_2026_student.jpg"
+            ],
+            "label": "Career Day at Indian Hill",
+            "type": "workshops",
+            "details": {
+                "date": "May 29, 2026",
+                "location": "Holmdel, NJ",
+                "attendees": "20+",
+                "duration": "Eight 50-min sessions",
+                "cost": "Free"
+            },
+            "desc": "<p>Returned to Indian Hill School for Career Day for the third consecutive year, presenting eight 50-minute sessions to 4th, 5th, and 6th grade classes. This year's talk covered a career in telecommunications and software development, followed by a hands-on AI segment: students gave a computer instructions to draw shapes, created original music using AI, and collaborated on AI-generated stories with corresponding illustrations starring student volunteers.</p>",
+            "category": "youth"
+        },
+        {
             "image": "https://shouldcallpaul.replit.app/resume_data/career-day-1.jpg",
             "gallery": [
                 "https://shouldcallpaul.replit.app/resume_data/career-day-2.jpg"
