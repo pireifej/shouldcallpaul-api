@@ -241,7 +241,25 @@ Instructions for Generating the Prayer:
   const chatResult = await chatResponse.json();
 
   if (!chatResult.choices || chatResult.choices.length === 0) {
-    return { error: "Failed to get a prayer from OpenAI" };
+    // Fallback prayer bank — used when OpenAI is unavailable
+    const fallbackPrayers = [
+      "<strong>Heavenly Father</strong>, we come before You with open hearts, trusting in Your perfect wisdom and boundless <strong>love</strong>. You know the needs of Your children before they speak them aloud. We ask that You <strong>bless</strong>, <strong>guide</strong>, and <strong>protect</strong> all who seek Your face today. Grant them <strong>peace</strong> that surpasses understanding, and may Your <strong>grace</strong> be sufficient in every trial they face.",
+      "<strong>Lord Jesus Christ</strong>, hear the prayers of Your people. You are our <strong>healer</strong>, our <strong>comforter</strong>, and our ever-present <strong>hope</strong>. We lay our burdens at Your feet and trust that You will work all things for good. Strengthen our <strong>faith</strong>, renew our <strong>hope</strong>, and fill our hearts with Your abiding <strong>love</strong>.",
+      "<strong>Heavenly Father</strong>, in Your infinite <strong>mercy</strong> You hear every prayer lifted to You. We bring this intention before Your throne of <strong>grace</strong>, knowing that nothing is impossible for You. May Your <strong>Holy Spirit</strong> move in power, bringing <strong>healing</strong>, <strong>peace</strong>, and Your perfect will to bear. We trust in Your timing and Your plan.",
+      "<strong>Lord God</strong>, You are our <strong>refuge</strong> and our <strong>strength</strong>, a very present <strong>help</strong> in times of trouble. We ask You to reach into this situation with Your almighty hand. May Your will be done and Your <strong>glory</strong> revealed. Wrap Your loving arms around those in need and grant them the <strong>comfort</strong> only You can give.",
+      "Most <strong>Holy Trinity</strong>, <strong>Father</strong>, <strong>Son</strong>, and <strong>Holy Spirit</strong>, we come before You in trust and <strong>faith</strong>. You are the source of all goodness and every perfect gift. Pour out Your <strong>blessings</strong> upon all who seek You today. May they know Your closeness, feel Your <strong>love</strong>, and walk in the <strong>peace</strong> that only You can give.",
+      "<strong>Merciful Jesus</strong>, You carried the cross so we would never carry our burdens alone. We lift this prayer to You with <strong>faith</strong> and <strong>hope</strong>, knowing You see every tear and hear every cry. <strong>Heal</strong> what is broken, <strong>restore</strong> what is lost, and remind Your beloved children that they are never alone. Your <strong>love</strong> never fails.",
+      "<strong>Mary</strong>, Queen of <strong>Heaven</strong>, join your prayers to ours as we bring this intention before your <strong>Son</strong>. Through your intercession, may <strong>God's grace</strong> flow abundantly. <strong>Lord</strong>, in Your <strong>mercy</strong>, hear our prayer. Grant <strong>wisdom</strong> to those who seek it, <strong>healing</strong> to those who suffer, and <strong>hope</strong> to all who feel lost.",
+      "<strong>Almighty God</strong>, nothing is hidden from Your sight and nothing is beyond Your reach. We come to You not because we have all the answers, but because You do. <strong>Guide</strong> us, <strong>protect</strong> us, and draw near to all who call upon Your name. May Your <strong>peace</strong> guard our hearts and minds as we place our <strong>trust</strong> in You."
+    ];
+    const fallback = fallbackPrayers[Math.floor(Math.random() * fallbackPrayers.length)];
+    console.warn('⚠️ OpenAI unavailable — using fallback prayer');
+    return {
+      rawPrayer: fallback,
+      processedPrayer: fallback,
+      tags: [],
+      isFallback: true
+    };
   }
 
   let rawPrayer = chatResult.choices[0].message.content;
@@ -2805,6 +2823,34 @@ app.post('/deleteRequestById', authenticate, async (req, res) => {
   }
 });
 
+// POST /archivePrayerRequest - Mark own prayer request as answered/archived (sets active = 0)
+app.post('/archivePrayerRequest', authenticate, async (req, res) => {
+  try {
+    const { request_id, user_id } = req.body;
+    if (!request_id || !user_id) {
+      return res.json({ error: 1, result: "request_id and user_id are required" });
+    }
+    const check = await pool.query(
+      'SELECT request_id, user_id FROM public.request WHERE request_id = $1',
+      [request_id]
+    );
+    if (check.rows.length === 0) {
+      return res.json({ error: 1, result: "Prayer request not found" });
+    }
+    if (check.rows[0].user_id !== parseInt(user_id)) {
+      return res.json({ error: 1, result: "You can only archive your own prayer requests" });
+    }
+    await pool.query(
+      'UPDATE public.request SET active = 0 WHERE request_id = $1',
+      [request_id]
+    );
+    res.json({ error: 0, result: "Prayer request archived successfully" });
+  } catch (error) {
+    console.error('Archive prayer request error:', error);
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
 // POST /deleteUser - Delete user and all related data with backup
 app.post('/deleteUser', authenticate, async (req, res) => {
   const execPromise = promisify(exec);
@@ -4220,6 +4266,22 @@ async function sendDailyDevotionalNotification(reason) {
 cron.schedule('0 12 * * *', () => sendDailyDevotionalNotification('scheduled cron'));
 
 console.log('⏰ Daily devotional notification scheduled at 12:00 PM UTC (8 AM Eastern)');
+
+// ── Auto-archive prayer requests older than 60 days — 3:00 AM UTC daily ──
+cron.schedule('0 3 * * *', async () => {
+  console.log('🗂️ Running auto-archive: setting active = 0 for requests older than 60 days...');
+  try {
+    const result = await pool.query(
+      `UPDATE public.request SET active = 0
+       WHERE active = 1
+         AND timestamp < NOW() - INTERVAL '60 days'`
+    );
+    console.log(`🗂️ Auto-archive complete: ${result.rowCount} request(s) archived`);
+  } catch (error) {
+    console.error('Auto-archive cron error:', error.message);
+  }
+});
+console.log('⏰ Auto-archive cron scheduled at 3:00 AM UTC (requests older than 60 days)');
 
 // ──────────────────────────────────────────────────────────────────────────────
 
