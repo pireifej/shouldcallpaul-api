@@ -2633,7 +2633,7 @@ app.post('/getMyRequests', authenticate, async (req, res) => {
   }
 });
 
-// POST /getAnsweredPrayers - Get user's own archived/answered prayer requests (active = 0)
+// POST /getAnsweredPrayers - Get user's own answered prayer requests (active = 2)
 app.post('/getAnsweredPrayers', authenticate, async (req, res) => {
   log(req);
   const params = req.body;
@@ -2654,6 +2654,7 @@ app.post('/getAnsweredPrayers', authenticate, async (req, res) => {
         prayers.prayer_title,
         request.request_title,
         request.picture as request_picture,
+        request.answered_message,
         settings.use_alias,
         settings.allow_comments,
         (request.timestamp AT TIME ZONE 'UTC' AT TIME ZONE $2) as timestamp,
@@ -2666,7 +2667,7 @@ app.post('/getAnsweredPrayers', authenticate, async (req, res) => {
       INNER JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
-      WHERE request.user_id = $1 AND request.active = 0
+      WHERE request.user_id = $1 AND request.active = 2
       ORDER BY timestamp_raw DESC
     `;
 
@@ -2893,6 +2894,141 @@ app.post('/archivePrayerRequest', authenticate, async (req, res) => {
     res.json({ error: 0, result: "Prayer request archived successfully" });
   } catch (error) {
     console.error('Archive prayer request error:', error);
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
+// POST /markPrayerAnswered - Mark prayer as answered, notify everyone who prayed for it
+app.post('/markPrayerAnswered', authenticate, async (req, res) => {
+  try {
+    const { request_id, user_id, answered_message } = req.body;
+
+    if (!request_id || !user_id) {
+      return res.json({ error: 1, result: "request_id and user_id are required" });
+    }
+    if (!answered_message || answered_message.trim().length === 0) {
+      return res.json({ error: 1, result: "Please share how your prayer was answered" });
+    }
+
+    // Verify ownership and get request details
+    const checkResult = await pool.query(
+      `SELECT request.request_id, request.user_id, request.request_title, request.request_text,
+              "user".real_name as requester_name
+       FROM public.request
+       INNER JOIN public."user" ON "user".user_id = request.user_id
+       WHERE request.request_id = $1`,
+      [request_id]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.json({ error: 1, result: "Prayer request not found" });
+    }
+    const requestRow = checkResult.rows[0];
+    if (requestRow.user_id !== parseInt(user_id)) {
+      return res.json({ error: 1, result: "You can only mark your own prayer requests as answered" });
+    }
+
+    // Mark as answered (active = 2) and save the gratitude message
+    await pool.query(
+      `UPDATE public.request SET active = 2, answered_message = $2 WHERE request_id = $1`,
+      [request_id, answered_message.trim()]
+    );
+
+    // Find all distinct users who prayed for this request (excluding the requester)
+    const prayersResult = await pool.query(
+      `SELECT DISTINCT
+         "user".user_id,
+         "user".real_name,
+         "user".email,
+         "user".fcm_token,
+         COALESCE(settings.prayer_emails, TRUE) as prayer_emails,
+         COALESCE(settings.push_notifications, TRUE) as push_notifications
+       FROM public.user_request
+       INNER JOIN public."user" ON "user".user_id = user_request.user_id
+       LEFT JOIN public.settings ON settings.user_id = "user".user_id
+       WHERE user_request.request_id = $1
+         AND user_request.user_id != $2`,
+      [request_id, user_id]
+    );
+
+    const prayers = prayersResult.rows;
+    const requesterName = requestRow.requester_name || 'Someone';
+    const requestTitle = requestRow.request_title || 'a prayer request';
+    const snippet = answered_message.trim().length > 200
+      ? answered_message.trim().slice(0, 197) + '…'
+      : answered_message.trim();
+
+    let pushCount = 0;
+    let emailCount = 0;
+
+    for (const person of prayers) {
+      // Push notification
+      if (person.push_notifications && person.fcm_token) {
+        try {
+          const pushResult = await sendPushNotification(
+            person.fcm_token,
+            `${requesterName}'s prayer was answered! 🙌`,
+            `"${requestTitle}" — tap to read their testimony`,
+            { type: 'prayer_answered', requestId: request_id.toString(), requesterId: user_id.toString() }
+          );
+          if (pushResult.shouldRemoveToken) {
+            await pool.query(
+              'UPDATE public."user" SET fcm_token = NULL WHERE user_id = $1',
+              [person.user_id]
+            );
+          } else {
+            pushCount++;
+          }
+        } catch (pushErr) {
+          console.error(`Failed push for user ${person.user_id}:`, pushErr.message);
+        }
+      }
+
+      // Email notification
+      if (person.prayer_emails && person.email) {
+        try {
+          const emailTemplate = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2c3e50;">🙌 A prayer you prayed for has been answered!</h2>
+              <p>Dear ${person.real_name || 'Friend'},</p>
+              <p><strong>${requesterName}</strong> wanted you to know that their prayer request — <em>"${requestTitle}"</em> — has been answered!</p>
+              <p>Here's what they shared:</p>
+              <div style="background-color: #f0f9f0; padding: 15px; border-left: 4px solid #27ae60; margin: 20px 0; border-radius: 4px;">
+                <em>"${snippet}"</em>
+              </div>
+              <p>Your prayers made a difference. Thank you for being part of the PrayOverUs community.</p>
+              <p>God bless you,<br>The PrayOverUs Team</p>
+              <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+              <p style="font-size: 12px; color: #666;">
+                You received this because you prayed for this request. You can manage notification settings in your PrayOverUs account.
+              </p>
+            </div>
+          `;
+          await mailerSendSingle(
+            emailTemplate,
+            { email: 'prayoverus@gmail.com', name: 'PrayOverUs' },
+            { email: person.email, name: person.real_name || 'Friend' },
+            `🙌 ${requesterName}'s prayer was answered`,
+            null, null
+          );
+          emailCount++;
+        } catch (emailErr) {
+          console.error(`Failed email for user ${person.user_id}:`, emailErr.message);
+        }
+      }
+    }
+
+    console.log(`✅ Prayer ${request_id} marked answered by user ${user_id} — ${pushCount} pushes, ${emailCount} emails sent`);
+    res.json({
+      error: 0,
+      result: "Your prayer has been marked as answered",
+      notified: prayers.length,
+      pushCount,
+      emailCount
+    });
+
+  } catch (error) {
+    console.error('Mark prayer answered error:', error);
     res.status(500).json({ error: 'Internal server error: ' + error.message });
   }
 });
