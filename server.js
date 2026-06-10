@@ -2713,7 +2713,7 @@ app.post('/getMyRequests', authenticate, async (req, res) => {
       INNER JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
-      WHERE request.user_id = $1 AND request.active = 1
+      WHERE request.user_id = $1 AND request.active IN (1, 2)
       ORDER BY timestamp_raw DESC
     `;
 
