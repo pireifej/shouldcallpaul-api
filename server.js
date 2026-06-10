@@ -130,6 +130,9 @@ const openai = new OpenAI({
 
 const pexels = createPexelsClient(process.env.PEXELS_API_KEY);
 
+// In-memory cache for Daily Bread TTS audio, keyed by date string (e.g. "2026-06-09")
+const dailyBreadAudioCache = new Map();
+
 // ============================================
 // FAITH RANK HELPER FUNCTION
 // Computes rank info from faith_points using cached rank data
@@ -1278,6 +1281,85 @@ app.post('/getChatCompletion', authenticate, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// POST /getDailyBreadAudio - Generate (or serve cached) TTS audio for a Daily Bread devotional
+// No authentication required. Supports Range requests for ExoPlayer streaming.
+app.post('/getDailyBreadAudio', async (req, res) => {
+  try {
+    const { date, title, content, bibleVerse, verseReference, prayer } = req.body;
+
+    if (!date) {
+      return res.status(400).json({ message: "date is required" });
+    }
+
+    // Serve from cache if available
+    if (dailyBreadAudioCache.has(date)) {
+      console.log(`🔊 Daily Bread audio cache hit for ${date}`);
+      return serveAudioBuffer(req, res, dailyBreadAudioCache.get(date));
+    }
+
+    // Compose the TTS script
+    let text = [
+      title || '',
+      bibleVerse && verseReference ? `${bibleVerse} — ${verseReference}` : (bibleVerse || verseReference || ''),
+      content || '',
+      prayer ? `Today's closing prayer. ${prayer}` : ''
+    ]
+      .filter(Boolean)
+      .join('\n\n')
+      .slice(0, 4000);
+
+    console.log(`🔊 Generating Daily Bread audio for ${date} (${text.length} chars)...`);
+
+    const ttsResponse = await openai.audio.speech.create({
+      model: 'tts-1-hd',
+      voice: 'nova',
+      input: text,
+      response_format: 'mp3'
+    });
+
+    const audioBuffer = Buffer.from(await ttsResponse.arrayBuffer());
+    dailyBreadAudioCache.set(date, audioBuffer);
+    console.log(`🔊 Daily Bread audio generated and cached for ${date} (${audioBuffer.length} bytes)`);
+
+    serveAudioBuffer(req, res, audioBuffer);
+
+  } catch (error) {
+    console.error('Daily Bread audio generation error:', error);
+    res.status(500).json({ message: "Failed to generate audio" });
+  }
+});
+
+function serveAudioBuffer(req, res, buffer) {
+  const total = buffer.length;
+  const rangeHeader = req.headers['range'];
+
+  if (rangeHeader) {
+    const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+    if (match) {
+      const start = parseInt(match[1], 10);
+      const end = match[2] ? parseInt(match[2], 10) : total - 1;
+      const chunkSize = end - start + 1;
+
+      res.writeHead(206, {
+        'Content-Type': 'audio/mpeg',
+        'Accept-Ranges': 'bytes',
+        'Content-Range': `bytes ${start}-${end}/${total}`,
+        'Content-Length': chunkSize,
+        'Cache-Control': 'public, max-age=86400'
+      });
+      return res.end(buffer.slice(start, end + 1));
+    }
+  }
+
+  res.writeHead(200, {
+    'Content-Type': 'audio/mpeg',
+    'Accept-Ranges': 'bytes',
+    'Content-Length': total,
+    'Cache-Control': 'public, max-age=86400'
+  });
+  res.end(buffer);
+}
 
 // POST /testGeneratePrayer - Test prayer generation without storing to database
 // Uses the SAME prompt and processing as submitPrayerRequest
