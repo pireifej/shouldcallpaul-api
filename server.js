@@ -2633,6 +2633,52 @@ app.post('/getMyRequests', authenticate, async (req, res) => {
   }
 });
 
+// POST /getAnsweredPrayers - Get user's own archived/answered prayer requests (active = 0)
+app.post('/getAnsweredPrayers', authenticate, async (req, res) => {
+  log(req);
+  const params = req.body;
+
+  if (!params.userId) {
+    return res.json({ error: "Required params 'userId' missing" });
+  }
+
+  try {
+    const timezone = params.tz || 'UTC';
+
+    const query = `
+      SELECT DISTINCT
+        request.request_id,
+        request.user_id,
+        request.request_text,
+        request.fk_prayer_id,
+        prayers.prayer_title,
+        request.request_title,
+        request.picture as request_picture,
+        settings.use_alias,
+        settings.allow_comments,
+        (request.timestamp AT TIME ZONE 'UTC' AT TIME ZONE $2) as timestamp,
+        request.timestamp as timestamp_raw,
+        "user".user_name,
+        "user".real_name,
+        "user".picture,
+        "user".church_id
+      FROM public.request
+      INNER JOIN public."user" ON "user".user_id = request.user_id
+      LEFT JOIN public.settings ON settings.user_id = "user".user_id
+      LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
+      WHERE request.user_id = $1 AND request.active = 0
+      ORDER BY timestamp_raw DESC
+    `;
+
+    const result = await pool.query(query, [params.userId, timezone]);
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('Database query error:', err);
+    res.json({ error: "Database error: " + err.message });
+  }
+});
+
 // POST /getCommunityWall - Get community prayer wall with prayer counts and names
 app.post('/getCommunityWall', authenticate, async (req, res) => {
   log(req);
