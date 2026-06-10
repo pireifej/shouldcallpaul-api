@@ -3035,7 +3035,7 @@ app.post('/markPrayerAnswered', authenticate, async (req, res) => {
          "user".email,
          "user".fcm_token,
          COALESCE(settings.prayer_emails, 1) != 0 as prayer_emails,
-         COALESCE(settings.push_notifications, 1) != 0 as push_notifications
+         COALESCE(settings.push_notifications, TRUE) as push_notifications
        FROM public.user_request
        INNER JOIN public."user" ON "user".user_id = user_request.user_id
        LEFT JOIN public.settings ON settings.user_id = "user".user_id
