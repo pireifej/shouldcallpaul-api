@@ -1286,10 +1286,21 @@ app.post('/getChatCompletion', authenticate, async (req, res) => {
 // No authentication required. Supports Range requests for ExoPlayer streaming.
 app.post('/getDailyBreadAudio', async (req, res) => {
   try {
-    const { date, title, content, bibleVerse, verseReference, prayer } = req.body;
+    const { date, title, content, bibleVerse, verseReference, prayer, checkOnly } = req.body;
 
     if (!date) {
       return res.status(400).json({ message: "date is required" });
+    }
+
+    // checkOnly mode — return JSON status without serving audio (useful for Postman testing)
+    if (checkOnly) {
+      const cached = dailyBreadAudioCache.has(date);
+      return res.json({
+        success: true,
+        date,
+        cached,
+        message: cached ? "Audio already cached for this date" : "Audio not yet cached — will be generated on next real request"
+      });
     }
 
     // Serve from cache if available
