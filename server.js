@@ -4558,6 +4558,69 @@ cron.schedule('0 3 * * *', async () => {
 });
 console.log('⏰ Auto-archive cron scheduled at 3:00 AM UTC (requests older than 60 days)');
 
+// ── Pending testimony reminders — 1:00 PM UTC daily (9 AM Eastern) ──
+// Notifies users with open requests at 7-day intervals (covers 7, 14, 30-day milestones)
+cron.schedule('0 13 * * *', async () => {
+  console.log('🙏 Running pending testimony reminder cron...');
+  try {
+    // Find all users with qualifying open requests and their push token
+    const result = await pool.query(`
+      SELECT
+        u.user_id,
+        u.fcm_token,
+        COALESCE(s.push_notifications, TRUE) as push_notifications,
+        COUNT(r.request_id) as qualifying_count,
+        ARRAY_AGG(r.request_id) as request_ids
+      FROM public.request r
+      INNER JOIN public."user" u ON u.user_id = r.user_id
+      LEFT JOIN public.settings s ON s.user_id = r.user_id
+      WHERE
+        r.active = 1
+        AND r.timestamp < NOW() - INTERVAL '7 days'
+        AND (r.last_reminder_sent IS NULL OR r.last_reminder_sent < NOW() - INTERVAL '7 days')
+        AND u.fcm_token IS NOT NULL
+        AND u.fcm_token != ''
+      GROUP BY u.user_id, u.fcm_token, s.push_notifications
+    `);
+
+    console.log(`🙏 Found ${result.rows.length} user(s) with qualifying prayer requests`);
+
+    let notified = 0;
+    for (const user of result.rows) {
+      if (!user.push_notifications) continue;
+
+      const count = parseInt(user.qualifying_count);
+      const title = 'Has God answered your prayer? 🙏';
+      const body = `You have ${count} prayer request${count !== 1 ? 's' : ''} that may be ready for a testimony. Open Pray Over Us to share what God did!`;
+      const data = { type: 'pending_testimony', userId: user.user_id.toString() };
+
+      try {
+        const pushResult = await sendPushNotification(user.fcm_token, title, body, data);
+
+        if (pushResult.shouldRemoveToken) {
+          await pool.query('UPDATE public."user" SET fcm_token = NULL WHERE user_id = $1', [user.user_id]);
+          console.log(`🗑️ Removed invalid token for user ${user.user_id}`);
+        } else {
+          // Mark last_reminder_sent on all qualifying requests for this user
+          await pool.query(
+            'UPDATE public.request SET last_reminder_sent = NOW() WHERE request_id = ANY($1)',
+            [user.request_ids]
+          );
+          notified++;
+          console.log(`🙏 Reminder sent to user ${user.user_id} (${count} request${count !== 1 ? 's' : ''})`);
+        }
+      } catch (pushErr) {
+        console.error(`🙏 Failed to send reminder to user ${user.user_id}:`, pushErr.message);
+      }
+    }
+
+    console.log(`🙏 Testimony reminder cron complete: ${notified} user(s) notified`);
+  } catch (error) {
+    console.error('🙏 Testimony reminder cron error:', error.message);
+  }
+});
+console.log('⏰ Pending testimony reminder cron scheduled at 1:00 PM UTC (9 AM Eastern)');
+
 // ──────────────────────────────────────────────────────────────────────────────
 
 // Start server on 0.0.0.0 for public accessibility
