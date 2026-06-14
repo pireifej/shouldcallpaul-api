@@ -4592,7 +4592,11 @@ cron.schedule('0 13 * * *', async () => {
       const count = parseInt(user.qualifying_count);
       const title = 'Has God answered your prayer? 🙏';
       const body = `You have ${count} prayer request${count !== 1 ? 's' : ''} that may be ready for a testimony. Open Pray Over Us to share what God did!`;
-      const data = { type: 'pending_testimony', userId: user.user_id.toString() };
+      const data = {
+        type: 'pending_testimony',
+        requestId: user.request_ids[0].toString(),
+        userId: user.user_id.toString()
+      };
 
       try {
         const pushResult = await sendPushNotification(user.fcm_token, title, body, data);
