@@ -2577,6 +2577,46 @@ app.get('/getFaithRanks', async (req, res) => {
   }
 });
 
+// POST /readDailyBread - Award faith points for reading today's Daily Bread (once per day)
+app.post('/readDailyBread', authenticate, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return res.json({ error: 1, result: "Required param 'userId' missing" });
+
+    const todayUTC = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+
+    const checkResult = await pool.query(
+      'SELECT last_daily_bread_date FROM public."user" WHERE user_id = $1',
+      [userId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.json({ error: 1, result: "User not found" });
+    }
+
+    const lastRead = checkResult.rows[0].last_daily_bread_date;
+    const alreadyRead = lastRead && lastRead.toISOString().slice(0, 10) === todayUTC;
+
+    if (alreadyRead) {
+      return res.json({ error: 0, points_awarded: 0, already_read: true });
+    }
+
+    await pool.query(
+      `UPDATE public."user"
+       SET faith_points = COALESCE(faith_points, 0) + 2,
+           last_daily_bread_date = $1
+       WHERE user_id = $2`,
+      [todayUTC, userId]
+    );
+
+    return res.json({ error: 0, points_awarded: 2, already_read: false });
+
+  } catch (error) {
+    console.error('Error in /readDailyBread endpoint:', error);
+    res.json({ error: 1, result: "Internal server error: " + error.message });
+  }
+});
+
 app.get('/getAllChurches', async (req, res) => {
   try {
     const query = `
