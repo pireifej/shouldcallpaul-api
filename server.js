@@ -3169,7 +3169,7 @@ app.post('/deleteUser', authenticate, async (req, res) => {
     const backupFile = path.join(backupDir, `user_deletion_backup_${params.userId}_${timestamp}.sql`);
     
     try {
-      const pgDumpCommand = `pg_dump "${process.env.DATABASE_URL}" > "${backupFile}"`;
+      const pgDumpCommand = `pg_dump "${process.env.NEON_DATABASE_URL}" > "${backupFile}"`;
       await execPromise(pgDumpCommand);
       console.log(`Database backup created: ${backupFile}`);
     } catch (backupError) {
