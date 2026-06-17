@@ -757,7 +757,7 @@ app.post('/requestPasswordReset', async (req, res) => {
       [user.user_id, token, expiresAt]
     );
     
-    const resetLink = `prayoverus://reset-password?token=${token}`;
+    const resetLink = `https://shouldcallpaul.replit.app/reset?token=${token}`;
     const firstName = user.real_name || user.user_name || "Friend";
     
     const emailHtml = `
@@ -824,6 +824,26 @@ app.post('/requestPasswordReset', async (req, res) => {
     console.error('Password reset request error:', error);
     res.json({error: 1, result: "An error occurred. Please try again later."});
   }
+});
+
+// GET /reset - Redirect page that bounces email link into the app's custom scheme
+app.get('/reset', (req, res) => {
+  const token = req.query.token;
+  if (!token) return res.status(400).send('Missing token.');
+  const appLink = `prayoverus://reset-password?token=${token}`;
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting…</title>
+  <meta http-equiv="refresh" content="0;url=${appLink}">
+</head>
+<body style="font-family:Arial,sans-serif;text-align:center;padding:60px 20px;">
+  <p>Opening Pray Over Us…</p>
+  <p><a href="${appLink}">Tap here if the app doesn't open automatically.</a></p>
+  <script>window.location.href = "${appLink}";</script>
+</body>
+</html>`);
 });
 
 app.post('/resetPassword', async (req, res) => {
