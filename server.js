@@ -135,6 +135,10 @@ const dailyBreadAudioCache = new Map();
 const DEVOTIONAL_AUDIO_DIR = path.join(__dirname, 'audio', 'devotionals');
 if (!fs.existsSync(DEVOTIONAL_AUDIO_DIR)) fs.mkdirSync(DEVOTIONAL_AUDIO_DIR, { recursive: true });
 
+const prayerAudioCache = new Map();
+const PRAYER_AUDIO_DIR = path.join(__dirname, 'audio', 'prayers');
+if (!fs.existsSync(PRAYER_AUDIO_DIR)) fs.mkdirSync(PRAYER_AUDIO_DIR, { recursive: true });
+
 // ============================================
 // FAITH RANK HELPER FUNCTION
 // Computes rank info from faith_points using cached rank data
@@ -2706,6 +2710,134 @@ app.post('/getPrayerByRequestId', authenticate, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.json({ error: "Database error: " + err.message });
+  }
+});
+
+// POST /getPrayerAudio - Generate (or serve cached) TTS audio for a prayer request
+app.post('/getPrayerAudio', authenticate, async (req, res) => {
+  try {
+    const { requestId, text } = req.body;
+    if (!requestId) return res.status(400).json({ message: "requestId is required" });
+    if (!text) return res.status(400).json({ message: "text is required" });
+
+    const key = String(requestId);
+
+    // 1. In-memory cache
+    if (prayerAudioCache.has(key)) {
+      console.log(`🔊 Prayer audio cache hit for requestId ${key}`);
+      return serveAudioBuffer(req, res, prayerAudioCache.get(key));
+    }
+
+    // 2. Disk cache
+    const audioPath = path.join(PRAYER_AUDIO_DIR, `prayer_${key}.mp3`);
+    if (fs.existsSync(audioPath)) {
+      console.log(`🔊 Prayer audio served from disk for requestId ${key}`);
+      const audioBuffer = fs.readFileSync(audioPath);
+      prayerAudioCache.set(key, audioBuffer);
+      return serveAudioBuffer(req, res, audioBuffer);
+    }
+
+    // 3. Generate, save, serve
+    console.log(`🔊 Generating prayer audio for requestId ${key} (${text.length} chars)...`);
+    const ttsResponse = await openai.audio.speech.create({
+      model: 'tts-1-hd',
+      voice: 'nova',
+      input: text.slice(0, 4000),
+      response_format: 'mp3'
+    });
+
+    const audioBuffer = Buffer.from(await ttsResponse.arrayBuffer());
+    fs.writeFileSync(audioPath, audioBuffer);
+    prayerAudioCache.set(key, audioBuffer);
+    console.log(`🔊 Prayer audio saved for requestId ${key} (${audioBuffer.length} bytes)`);
+
+    serveAudioBuffer(req, res, audioBuffer);
+
+  } catch (error) {
+    console.error('Prayer audio generation error:', error);
+    res.status(500).json({ message: "Failed to generate audio" });
+  }
+});
+
+// POST /getDetailedPrayerByRequestId - Get or generate a longer detailed prayer for a request
+app.post('/getDetailedPrayerByRequestId', authenticate, async (req, res) => {
+  try {
+    const { requestId } = req.body;
+    if (!requestId) return res.json({ error: 1, result: "Required param 'requestId' missing" });
+
+    // Check DB cache first
+    const cacheCheck = await pool.query(
+      'SELECT detailed_prayer FROM public.request WHERE request_id = $1',
+      [requestId]
+    );
+
+    if (cacheCheck.rows.length === 0) {
+      return res.json({ error: 1, result: "Request not found" });
+    }
+
+    if (cacheCheck.rows[0].detailed_prayer) {
+      return res.json({ error: 0, result: cacheCheck.rows[0].detailed_prayer });
+    }
+
+    // Fetch request text + author name for generation
+    const dataQuery = await pool.query(
+      `SELECT r.request_text, u.real_name
+       FROM public.request r
+       JOIN public."user" u ON r.user_id = u.user_id
+       WHERE r.request_id = $1`,
+      [requestId]
+    );
+
+    if (dataQuery.rows.length === 0) {
+      return res.json({ error: 1, result: "Request not found" });
+    }
+
+    const { request_text, real_name } = dataQuery.rows[0];
+    const authorName = real_name || "Someone";
+
+    const prompt = `You are an expert prayer writer composing a rich, extended Catholic-style intercessory prayer.
+
+Prayer Request: ${request_text}
+Submitted by: ${authorName}
+
+Write a detailed prayer in 4 sections:
+1. Opening — Address God/Jesus/Mary reverently, acknowledge His power and love (1 paragraph)
+2. Intercession — Specifically pray for the person and need mentioned, using their name or relationship (1 paragraph)
+3. Scripture-inspired section — Draw on a relevant scriptural theme (e.g. healing, strength, peace, trust) without quoting chapter/verse directly (1 paragraph)
+4. Closing — A confident, surrendering conclusion that trusts in God's will (1 paragraph)
+
+Rules:
+- Use markdown-style bold (**text**) for all names (including divine names: God, Lord, Jesus, Holy Spirit, Mary, Father) and key intercession words (heal, protect, guide, bless, comfort, strengthen, peace, grace, mercy, love, hope, faith, wisdom, courage).
+- DO NOT invent names not in the request text. Use possessive phrases (e.g. "${authorName}'s mother") instead.
+- Do NOT end with "Amen".
+- Total length: 180–220 words.
+- Output plain text with a blank line between each section.`;
+
+    const chatResponse = await fetch(`http://localhost:${PORT}/getChatCompletion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': req.headers.authorization },
+      body: JSON.stringify({ content: prompt })
+    });
+
+    const chatResult = await chatResponse.json();
+
+    if (!chatResult.choices || chatResult.choices.length === 0) {
+      return res.json({ error: 1, result: "Prayer generation failed. Please try again." });
+    }
+
+    const detailedPrayer = chatResult.choices[0].message.content.trim();
+
+    // Cache in DB
+    await pool.query(
+      'UPDATE public.request SET detailed_prayer = $1 WHERE request_id = $2',
+      [detailedPrayer, requestId]
+    );
+
+    res.json({ error: 0, result: detailedPrayer });
+
+  } catch (error) {
+    console.error('Error in /getDetailedPrayerByRequestId:', error);
+    res.json({ error: 1, result: "Internal server error: " + error.message });
   }
 });
 
