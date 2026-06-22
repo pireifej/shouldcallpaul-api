@@ -190,6 +190,24 @@ function computeRank(faithPoints, ranks) {
 // PRAYER GENERATION HELPER FUNCTION
 // Single source of truth for prayer generation prompt and processing
 // ============================================
+// ── BADGE HELPER ─────────────────────────────────────────────────────────────
+// Awards a badge to a user. Returns the badge definition if newly earned, null if already owned.
+async function awardBadge(userId, badgeKey) {
+  const insert = await pool.query(
+    `INSERT INTO public.badges (user_id, badge_key) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING badge_key`,
+    [userId, badgeKey]
+  );
+  if (insert.rowCount === 0) return null; // already had it
+  const def = await pool.query(
+    'SELECT title, icon, description FROM public.badge_definitions WHERE badge_key = $1',
+    [badgeKey]
+  );
+  return def.rows.length > 0
+    ? { badge_key: badgeKey, title: def.rows[0].title, icon: def.rows[0].icon, description: def.rows[0].description }
+    : { badge_key: badgeKey };
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function generatePrayer(requestText, authorName, authHeader) {
   const realName = authorName || "Someone";
   
@@ -1659,12 +1677,51 @@ app.post('/prayFor', authenticate, async (req, res) => {
         }
       }
       
+      // Badge checks (fire-and-forget — errors never block the response)
+      let newBadge = null;
+      try {
+        // first_responder: one of first 3 to pray on this request
+        const prayCountRes = await pool.query(
+          'SELECT COUNT(*) FROM public.user_request WHERE request_id = $1', [params.requestId]
+        );
+        if (parseInt(prayCountRes.rows[0].count) <= 3) {
+          newBadge = await awardBadge(params.userId, 'first_responder') || newBadge;
+        }
+
+        // midnight_intercessor: 5+ prayers between 11 PM–4 AM UTC
+        const utcHour = new Date().getUTCHours();
+        if (utcHour >= 23 || utcHour < 4) {
+          const nightRes = await pool.query(
+            `SELECT COUNT(*) FROM public.user_request WHERE user_id = $1
+             AND (EXTRACT(HOUR FROM timestamp) >= 23 OR EXTRACT(HOUR FROM timestamp) < 4)`,
+            [params.userId]
+          );
+          if (parseInt(nightRes.rows[0].count) >= 5) {
+            newBadge = await awardBadge(params.userId, 'midnight_intercessor') || newBadge;
+          }
+        }
+
+        // global_heart: prayed for requests from 3+ distinct churches
+        const churchRes = await pool.query(
+          `SELECT COUNT(DISTINCT r.church_id) FROM public.user_request ur
+           JOIN public.request r ON r.request_id = ur.request_id
+           WHERE ur.user_id = $1 AND r.church_id IS NOT NULL`,
+          [params.userId]
+        );
+        if (parseInt(churchRes.rows[0].count) >= 3) {
+          newBadge = await awardBadge(params.userId, 'global_heart') || newBadge;
+        }
+      } catch (badgeErr) {
+        console.warn('Badge check failed (non-blocking):', badgeErr.message);
+      }
+
       // Return success response with the prayer data
       res.json({
         success: true,
         message: "Prayer recorded successfully",
         emailSent: emailResult?.error === 0,
         pushSent: pushResult.success === true,
+        new_badge: newBadge,
         data: {
           requestOwner: {
             name: requestOwner?.real_name,
@@ -2636,18 +2693,91 @@ app.post('/readDailyBread', authenticate, async (req, res) => {
       return res.json({ error: 0, points_awarded: 0, already_read: true });
     }
 
+    // Compute new streak
+    const yesterday = new Date();
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    const yesterdayStr = yesterday.toISOString().slice(0, 10);
+    const lastReadStr = lastRead ? lastRead.toISOString().slice(0, 10) : null;
+    const currentStreak = checkResult.rows[0].daily_bread_streak || 0;
+    const newStreak = lastReadStr === yesterdayStr ? currentStreak + 1 : 1;
+
     await pool.query(
       `UPDATE public."user"
        SET faith_points = COALESCE(faith_points, 0) + 2,
-           last_daily_bread_date = $1
-       WHERE user_id = $2`,
-      [todayUTC, userId]
+           last_daily_bread_date = $1,
+           daily_bread_streak = $2
+       WHERE user_id = $3`,
+      [todayUTC, newStreak, userId]
     );
 
-    return res.json({ error: 0, points_awarded: 2, already_read: false });
+    // daily_bread_streak badge: 7 consecutive days
+    let newBadge = null;
+    try {
+      if (newStreak >= 7) {
+        newBadge = await awardBadge(userId, 'daily_bread_streak');
+      }
+    } catch (badgeErr) {
+      console.warn('Badge check failed (non-blocking):', badgeErr.message);
+    }
+
+    return res.json({ error: 0, points_awarded: 2, already_read: false, streak: newStreak, new_badge: newBadge });
 
   } catch (error) {
     console.error('Error in /readDailyBread endpoint:', error);
+    res.json({ error: 1, result: "Internal server error: " + error.message });
+  }
+});
+
+// GET /getUserBadges - Get all badges earned by a user
+app.get('/getUserBadges', authenticate, async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.json({ error: 1, result: "userId is required" });
+    const result = await pool.query(
+      `SELECT b.badge_key, d.title, d.description, d.icon, b.earned_at
+       FROM public.badges b
+       LEFT JOIN public.badge_definitions d ON d.badge_key = b.badge_key
+       WHERE b.user_id = $1
+       ORDER BY b.earned_at DESC`,
+      [userId]
+    );
+    res.json({ error: 0, badges: result.rows });
+  } catch (error) {
+    console.error('Error in /getUserBadges:', error);
+    res.json({ error: 1, result: "Internal server error: " + error.message });
+  }
+});
+
+// POST /addComment - Add a comment to a prayer request
+app.post('/addComment', authenticate, async (req, res) => {
+  try {
+    const { userId, requestId, comment } = req.body;
+    if (!userId) return res.json({ error: 1, result: "Required param 'userId' missing" });
+    if (!requestId) return res.json({ error: 1, result: "Required param 'requestId' missing" });
+    if (!comment || !comment.trim()) return res.json({ error: 1, result: "Required param 'comment' missing" });
+
+    await pool.query(
+      `INSERT INTO public.comments (user_id, request_id, comment, timestamp) VALUES ($1, $2, $3, NOW())`,
+      [userId, requestId, comment.trim()]
+    );
+
+    // deep_waters badge: 10+ total comments
+    let newBadge = null;
+    try {
+      const countRes = await pool.query(
+        'SELECT COUNT(*) FROM public.comments WHERE user_id = $1', [userId]
+      );
+      if (parseInt(countRes.rows[0].count) >= 10) {
+        newBadge = await awardBadge(userId, 'deep_waters');
+      }
+    } catch (badgeErr) {
+      console.warn('Badge check failed (non-blocking):', badgeErr.message);
+    }
+
+    res.json({ error: 0, result: "Comment added", new_badge: newBadge });
+
+  } catch (error) {
+    console.error('Error in /addComment:', error);
     res.json({ error: 1, result: "Internal server error: " + error.message });
   }
 });
@@ -3315,13 +3445,27 @@ app.post('/markPrayerAnswered', authenticate, async (req, res) => {
       }
     }
 
+    // the_rejoicer badge: 5+ answered prayers
+    let newBadge = null;
+    try {
+      const answeredRes = await pool.query(
+        `SELECT COUNT(*) FROM public.request WHERE user_id = $1 AND active = 2`, [user_id]
+      );
+      if (parseInt(answeredRes.rows[0].count) >= 5) {
+        newBadge = await awardBadge(user_id, 'the_rejoicer');
+      }
+    } catch (badgeErr) {
+      console.warn('Badge check failed (non-blocking):', badgeErr.message);
+    }
+
     console.log(`✅ Prayer ${request_id} marked answered by user ${user_id} — ${pushCount} pushes, ${emailCount} emails sent`);
     res.json({
       error: 0,
       result: "Your prayer has been marked as answered",
       notified: prayers.length,
       pushCount,
-      emailCount
+      emailCount,
+      new_badge: newBadge
     });
 
   } catch (error) {
