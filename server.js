@@ -4883,6 +4883,25 @@ async function runProdBackup() {
   }
 
   console.log(`✅ Production DB backup saved: ${backupFile}`);
+
+  // Email the backup as an attachment so it survives redeployments
+  try {
+    const stats = fs.statSync(backupFile);
+    const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
+    const dateLabel = timestamp.slice(0, 10);
+    const transporter = createGmailTransporter();
+    await transporter.sendMail({
+      from: `"Pray Over Us Backup" <${process.env.GMAIL_USER}>`,
+      to: process.env.GMAIL_USER,
+      subject: `🗄️ Daily DB Backup — ${dateLabel} (${sizeMB} MB)`,
+      text: `Automated daily production database backup.\n\nDate: ${dateLabel}\nFile: ${path.basename(backupFile)}\nSize: ${sizeMB} MB\n\nThis backup was generated automatically at 2:00 AM UTC.`,
+      attachments: [{ filename: path.basename(backupFile), path: backupFile }]
+    });
+    console.log(`📧 Backup emailed to ${process.env.GMAIL_USER}`);
+  } catch (emailErr) {
+    console.error('⚠️  Backup email failed (file still saved locally):', emailErr.message);
+  }
+
   return backupFile;
 }
 
