@@ -107,11 +107,11 @@ app.use((req, res, next) => {
     if (shouldLog) {
       const params = sanitizeParams(req.body);
       const userId = req.body?.userId || req.body?.user_id || null;
-      pool.query(
+      auditPool.query(
         `INSERT INTO public.api_request_log (method, endpoint, caller_ip, user_id, params, response_summary)
          VALUES ($1, $2, $3, $4, $5, $6)`,
         [req.method, req.path, callerIp, userId ? parseInt(userId) : null, JSON.stringify(params), responseSummary]
-      ).catch(() => {}); // fire-and-forget — never block the response
+      ).catch((e) => console.error('Audit log write failed:', e.message)); // log failures visibly
     }
 
     originalSend.call(this, data);
@@ -129,6 +129,12 @@ function getRandomString(length) {
   }
   return result;
 }
+
+// Dedicated pool for audit logging — always writes to Neon regardless of environment
+const auditPool = new Pool({
+  connectionString: process.env.NEON_DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 // PostgreSQL connection pool - use production database
 const pool = new Pool({
@@ -3516,18 +3522,18 @@ app.post('/deleteUser', authenticate, async (req, res) => {
     // ── Guard 2: explicit confirmation phrase required ────────────────────────
     if (params.confirmPhrase !== 'DELETE MY ACCOUNT') {
       // Still audit the blocked attempt
-      await pool.query(
+      await auditPool.query(
         `INSERT INTO public.admin_audit_log (action, performed_by_ip, target_user_id, payload, result)
          VALUES ($1, $2, $3, $4, $5)`,
         ['deleteUser_BLOCKED', callerIp, params.userId,
          JSON.stringify({ reason: 'missing or wrong confirmPhrase', provided: params.confirmPhrase || null }),
          'blocked']
-      ).catch(() => {}); // fire-and-forget, never block the response
+      ).catch((e) => console.error('Audit write failed:', e.message));
       return res.json({ error: 1, result: "Deletion requires confirmPhrase: 'DELETE MY ACCOUNT' in request body." });
     }
 
     // ── Audit log: intent recorded in DB before anything is touched ───────────
-    await pool.query(
+    await auditPool.query(
       `INSERT INTO public.admin_audit_log (action, performed_by_ip, target_user_id, payload, result)
        VALUES ($1, $2, $3, $4, $5)`,
       ['deleteUser_INITIATED', callerIp, params.userId,
@@ -3546,20 +3552,20 @@ app.post('/deleteUser', authenticate, async (req, res) => {
     const userCheckResult = await pool.query(userCheckQuery, [params.userId]);
 
     if (userCheckResult.rows.length === 0) {
-      await pool.query(
+      await auditPool.query(
         `UPDATE public.admin_audit_log SET result = $1 WHERE action = 'deleteUser_INITIATED' AND target_user_id = $2 AND result = 'pending'`,
         ['failed: user not found', params.userId]
-      ).catch(() => {});
+      ).catch((e) => console.error('Audit write failed:', e.message));
       return res.json({ error: 1, result: "User not found" });
     }
 
     const user = userCheckResult.rows[0];
 
     if (user.active !== 1) {
-      await pool.query(
+      await auditPool.query(
         `UPDATE public.admin_audit_log SET result = $1 WHERE action = 'deleteUser_INITIATED' AND target_user_id = $2 AND result = 'pending'`,
         ['failed: already inactive', params.userId]
-      ).catch(() => {});
+      ).catch((e) => console.error('Audit write failed:', e.message));
       return res.json({ error: 1, result: "User is already inactive or deleted" });
     }
 
@@ -3579,10 +3585,10 @@ app.post('/deleteUser', authenticate, async (req, res) => {
       console.log(`Database backup created: ${backupFile}`);
     } catch (backupError) {
       console.error('Backup error:', backupError);
-      await pool.query(
+      await auditPool.query(
         `UPDATE public.admin_audit_log SET result = $1 WHERE action = 'deleteUser_INITIATED' AND target_user_id = $2 AND result = 'pending'`,
         ['failed: pg_dump error — ' + backupError.message, params.userId]
-      ).catch(() => {});
+      ).catch((e) => console.error('Audit write failed:', e.message));
       return res.json({ error: 1, result: "Failed to create database backup: " + backupError.message });
     }
 
@@ -3623,7 +3629,7 @@ app.post('/deleteUser', authenticate, async (req, res) => {
       await client.query('COMMIT');
 
       // Audit: record successful completion
-      await pool.query(
+      await auditPool.query(
         `UPDATE public.admin_audit_log SET result = $1, payload = $2
          WHERE action = 'deleteUser_INITIATED' AND target_user_id = $3 AND result = 'pending'`,
         [
@@ -3659,10 +3665,10 @@ app.post('/deleteUser', authenticate, async (req, res) => {
     } catch (deleteError) {
       await client.query('ROLLBACK');
       console.error('Deletion error:', deleteError);
-      await pool.query(
+      await auditPool.query(
         `UPDATE public.admin_audit_log SET result = $1 WHERE action = 'deleteUser_INITIATED' AND target_user_id = $2 AND result = 'pending'`,
         ['failed: ' + deleteError.message, params.userId]
-      ).catch(() => {});
+      ).catch((e) => console.error('Audit write failed:', e.message));
       res.json({ error: 1, result: "Failed to delete user: " + deleteError.message });
     } finally {
       client.release();
