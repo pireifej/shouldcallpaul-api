@@ -208,7 +208,7 @@ async function awardBadge(userId, badgeKey) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function generatePrayer(requestText, authorName, authHeader) {
+async function generatePrayer(requestText, authorName, authHeader, lang = 'en') {
   const realName = authorName || "Someone";
   
   const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.
@@ -253,7 +253,7 @@ Instructions for Generating the Prayer:
 
 7. Length: The prayer should be 50-80 words (similar to The Lord's Prayer at ~65 words). Be concise yet complete - address the specific request meaningfully without padding.
 
-8. Output plain text with line breaks between paragraphs. Do NOT use HTML tags.`;
+8. Output plain text with line breaks between paragraphs. Do NOT use HTML tags.${lang === 'es' ? '\n\nIMPORTANT: Generate this entire prayer in Spanish (Latin American Spanish). All text — the address to God, every petition, every intercession, and every divine name in context — must be written in Spanish.' : ''}`;
 
   // Call OpenAI via getChatCompletion endpoint
   const chatResponse = await fetch(`http://localhost:${PORT}/getChatCompletion`, {
@@ -1437,7 +1437,7 @@ app.post('/testGeneratePrayer', authenticate, async (req, res) => {
     }
     
     // Use the shared generatePrayer function
-    const result = await generatePrayer(params.requestText, params.authorName, req.headers.authorization);
+    const result = await generatePrayer(params.requestText, params.authorName, req.headers.authorization, params.lang || 'en');
     
     if (result.error) {
       return res.json({ error: result.error });
@@ -1488,7 +1488,7 @@ app.post('/regeneratePrayer', authenticate, async (req, res) => {
     const realName = requestResult.rows[0].real_name || requestResult.rows[0].user_name || "Someone";
     
     // Step 2: Generate prayer using shared function
-    const prayerGenResult = await generatePrayer(requestText, realName, req.headers.authorization);
+    const prayerGenResult = await generatePrayer(requestText, realName, req.headers.authorization, params.lang || 'en');
     
     if (prayerGenResult.error) {
       return res.json({ error: prayerGenResult.error });
@@ -2468,7 +2468,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
 
     // Step 3: Generate prayer using shared function
     try {
-      const prayerGenResult = await generatePrayer(params.requestText, realName, req.headers.authorization);
+      const prayerGenResult = await generatePrayer(params.requestText, realName, req.headers.authorization, params.lang || 'en');
       
       if (prayerGenResult.error) {
         res.json({ error: prayerGenResult.error });
@@ -2892,12 +2892,14 @@ app.post('/getPrayerAudio', authenticate, async (req, res) => {
 // POST /getDetailedPrayerByRequestId - Get or generate a longer detailed prayer for a request
 app.post('/getDetailedPrayerByRequestId', authenticate, async (req, res) => {
   try {
-    const { requestId } = req.body;
+    const { requestId, lang = 'en' } = req.body;
     if (!requestId) return res.json({ error: 1, result: "Required param 'requestId' missing" });
+
+    const cacheCol = lang === 'es' ? 'detailed_prayer_es' : 'detailed_prayer';
 
     // Check DB cache first
     const cacheCheck = await pool.query(
-      'SELECT detailed_prayer FROM public.request WHERE request_id = $1',
+      `SELECT ${cacheCol} FROM public.request WHERE request_id = $1`,
       [requestId]
     );
 
@@ -2905,8 +2907,8 @@ app.post('/getDetailedPrayerByRequestId', authenticate, async (req, res) => {
       return res.json({ error: 1, result: "Request not found" });
     }
 
-    if (cacheCheck.rows[0].detailed_prayer) {
-      return res.json({ error: 0, result: cacheCheck.rows[0].detailed_prayer });
+    if (cacheCheck.rows[0][cacheCol]) {
+      return res.json({ error: 0, result: cacheCheck.rows[0][cacheCol] });
     }
 
     // Fetch request text + author name for generation
@@ -2924,6 +2926,9 @@ app.post('/getDetailedPrayerByRequestId', authenticate, async (req, res) => {
 
     const { request_text, real_name } = dataQuery.rows[0];
     const authorName = real_name || "Someone";
+    const spanishInstruction = lang === 'es'
+      ? '\n\nIMPORTANT: Write this entire prayer in Spanish (Latin American Spanish). Every word must be in Spanish.'
+      : '';
 
     const prompt = `You are an expert prayer writer composing a rich, extended Catholic-style intercessory prayer.
 
@@ -2941,7 +2946,7 @@ Rules:
 - DO NOT invent names not in the request text. Use possessive phrases (e.g. "${authorName}'s mother") instead.
 - Do NOT end with "Amen".
 - Total length: 180–220 words.
-- Output plain text with a blank line between each section.`;
+- Output plain text with a blank line between each section.${spanishInstruction}`;
 
     const chatResponse = await fetch(`http://localhost:${PORT}/getChatCompletion`, {
       method: 'POST',
@@ -2957,9 +2962,9 @@ Rules:
 
     const detailedPrayer = chatResult.choices[0].message.content.trim();
 
-    // Cache in DB
+    // Cache in DB (language-specific column)
     await pool.query(
-      'UPDATE public.request SET detailed_prayer = $1 WHERE request_id = $2',
+      `UPDATE public.request SET ${cacheCol} = $1 WHERE request_id = $2`,
       [detailedPrayer, requestId]
     );
 
@@ -4587,7 +4592,7 @@ function getHolidayTheme(date) {
   return null;
 }
 
-async function generateDailyDevotional(targetDate) {
+async function generateDailyDevotional(targetDate, lang = 'en') {
   const dateStr = targetDate.toISOString().slice(0, 10);
 
   // Check for a holiday/event on this date
@@ -4614,7 +4619,7 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
   "prayer": "A short 3-4 sentence closing prayer written in first person",
   "imagePrompt": "A descriptive visual scene suitable for a watercolor painting (2-3 sentences, no text or people)",
   "pexelsQuery": "2-4 words describing a beautiful nature scene that fits this devotional's mood. Use only concrete visual nouns (e.g. 'misty forest sunrise', 'golden wheat field', 'ocean sunrise waves', 'mountain lake reflection'). No abstract words, no holiday names, no people."
-}`;
+}${lang === 'es' ? '\n\nIMPORTANT: Respond entirely in Spanish (Latin American Spanish). Every field — title, articleBody, bibleVerse, verseReference, prayer — must be written in Spanish. The pexelsQuery should remain in English for search purposes.' : ''}`;
 
   const gptResponse = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
@@ -4652,9 +4657,9 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
   // Step 4: Save to database
   await pool.query(
     `INSERT INTO public.daily_devotional
-      (date, theme, title, article_body, bible_verse, verse_reference, prayer, image_url, image_prompt)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     ON CONFLICT (date) DO UPDATE SET
+      (date, theme, title, article_body, bible_verse, verse_reference, prayer, image_url, image_prompt, lang)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     ON CONFLICT (date, lang) DO UPDATE SET
        theme = EXCLUDED.theme,
        title = EXCLUDED.title,
        article_body = EXCLUDED.article_body,
@@ -4664,7 +4669,7 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
        image_url = EXCLUDED.image_url,
        image_prompt = EXCLUDED.image_prompt`,
     [dateStr, theme, content.title, content.articleBody, content.bibleVerse,
-     content.verseReference, content.prayer, imageUrl, content.imagePrompt]
+     content.verseReference, content.prayer, imageUrl, content.imagePrompt, lang]
   );
 
   console.log(`✅ Devotional saved for ${dateStr}: "${content.title}"`);
@@ -4755,6 +4760,53 @@ app.get('/getDailyDevotional', async (req, res) => {
     res.json({ error: 0, result: row });
   } catch (error) {
     console.error('getDailyDevotional error:', error);
+    res.status(500).json({ error: 1, result: 'Internal server error' });
+  }
+});
+
+// POST /getDailyDevotional — mobile app version, supports lang param
+app.post('/getDailyDevotional', authenticate, async (req, res) => {
+  try {
+    const lang = (req.body && req.body.lang === 'es') ? 'es' : 'en';
+    const today = new Date().toISOString().slice(0, 10);
+
+    let result = await pool.query(
+      'SELECT * FROM public.daily_devotional WHERE date = $1 AND lang = $2',
+      [today, lang]
+    );
+
+    if (result.rows.length === 0) {
+      console.log(`📖 No ${lang} devotional for ${today} — generating on demand...`);
+      try {
+        await generateDailyDevotional(new Date(), lang);
+        result = await pool.query(
+          'SELECT * FROM public.daily_devotional WHERE date = $1 AND lang = $2',
+          [today, lang]
+        );
+      } catch (genErr) {
+        console.error(`On-demand ${lang} devotional generation failed:`, genErr.message);
+        // Fall back to English if Spanish generation fails
+        result = await pool.query(
+          'SELECT * FROM public.daily_devotional WHERE date = $1 AND lang = $2',
+          [today, 'en']
+        );
+        if (result.rows.length === 0) {
+          result = await pool.query(
+            'SELECT * FROM public.daily_devotional ORDER BY date DESC LIMIT 1'
+          );
+        }
+      }
+    }
+
+    if (result.rows.length === 0) {
+      return res.json({ error: 1, result: 'No devotional available yet.' });
+    }
+
+    const row = result.rows[0];
+    row.date = new Date(row.date).toISOString().slice(0, 10);
+    res.json({ error: 0, result: row });
+  } catch (error) {
+    console.error('POST getDailyDevotional error:', error);
     res.status(500).json({ error: 1, result: 'Internal server error' });
   }
 });
