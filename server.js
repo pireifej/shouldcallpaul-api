@@ -3482,31 +3482,63 @@ app.post('/markPrayerAnswered', authenticate, async (req, res) => {
 // POST /deleteUser - Delete user and all related data with backup
 app.post('/deleteUser', authenticate, async (req, res) => {
   const execPromise = promisify(exec);
-  
+  const callerIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+
   try {
     const params = req.body;
-    
-    // Validate required parameters
+
+    // ── Guard 1: required userId ──────────────────────────────────────────────
     if (!params.userId) {
       return res.json({ error: 1, result: "Required param 'userId' missing" });
     }
 
+    // ── Guard 2: explicit confirmation phrase required ────────────────────────
+    if (params.confirmPhrase !== 'DELETE MY ACCOUNT') {
+      // Still audit the blocked attempt
+      await pool.query(
+        `INSERT INTO public.admin_audit_log (action, performed_by_ip, target_user_id, payload, result)
+         VALUES ($1, $2, $3, $4, $5)`,
+        ['deleteUser_BLOCKED', callerIp, params.userId,
+         JSON.stringify({ reason: 'missing or wrong confirmPhrase', provided: params.confirmPhrase || null }),
+         'blocked']
+      ).catch(() => {}); // fire-and-forget, never block the response
+      return res.json({ error: 1, result: "Deletion requires confirmPhrase: 'DELETE MY ACCOUNT' in request body." });
+    }
+
+    // ── Audit log: intent recorded in DB before anything is touched ───────────
+    await pool.query(
+      `INSERT INTO public.admin_audit_log (action, performed_by_ip, target_user_id, payload, result)
+       VALUES ($1, $2, $3, $4, $5)`,
+      ['deleteUser_INITIATED', callerIp, params.userId,
+       JSON.stringify({ userId: params.userId }),
+       'pending']
+    );
+    console.warn(`🚨 deleteUser called for userId=${params.userId} from IP ${callerIp}`);
+
     // Step 1: Check if user exists and is active
     const userCheckQuery = `
       SELECT user_id, real_name, email, active 
-      FROM public.user 
+      FROM public."user" 
       WHERE user_id = $1
     `;
-    
+
     const userCheckResult = await pool.query(userCheckQuery, [params.userId]);
-    
+
     if (userCheckResult.rows.length === 0) {
+      await pool.query(
+        `UPDATE public.admin_audit_log SET result = $1 WHERE action = 'deleteUser_INITIATED' AND target_user_id = $2 AND result = 'pending'`,
+        ['failed: user not found', params.userId]
+      ).catch(() => {});
       return res.json({ error: 1, result: "User not found" });
     }
-    
+
     const user = userCheckResult.rows[0];
-    
+
     if (user.active !== 1) {
+      await pool.query(
+        `UPDATE public.admin_audit_log SET result = $1 WHERE action = 'deleteUser_INITIATED' AND target_user_id = $2 AND result = 'pending'`,
+        ['failed: already inactive', params.userId]
+      ).catch(() => {});
       return res.json({ error: 1, result: "User is already inactive or deleted" });
     }
 
@@ -3519,31 +3551,31 @@ app.post('/deleteUser', authenticate, async (req, res) => {
     // Step 3: Create database backup
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, -5);
     const backupFile = path.join(backupDir, `user_deletion_backup_${params.userId}_${timestamp}.sql`);
-    
+
     try {
       const pgDumpCommand = `pg_dump "${process.env.NEON_DATABASE_URL}" > "${backupFile}"`;
       await execPromise(pgDumpCommand);
       console.log(`Database backup created: ${backupFile}`);
     } catch (backupError) {
       console.error('Backup error:', backupError);
+      await pool.query(
+        `UPDATE public.admin_audit_log SET result = $1 WHERE action = 'deleteUser_INITIATED' AND target_user_id = $2 AND result = 'pending'`,
+        ['failed: pg_dump error — ' + backupError.message, params.userId]
+      ).catch(() => {});
       return res.json({ error: 1, result: "Failed to create database backup: " + backupError.message });
     }
 
     // Step 4: Begin transaction for deletion
     const client = await pool.connect();
-    
+
     try {
       await client.query('BEGIN');
-      
-      // Delete in correct order to avoid foreign key violations
-      
-      // 4a. Delete from user_request where this user prayed for others
+
       const deleteUserRequestSelf = await client.query(
         'DELETE FROM public.user_request WHERE user_id = $1',
         [params.userId]
       );
-      
-      // 4b. Delete from user_request where others prayed for this user's requests
+
       const deleteUserRequestOthers = await client.query(
         `DELETE FROM public.user_request 
          WHERE request_id IN (
@@ -3551,32 +3583,49 @@ app.post('/deleteUser', authenticate, async (req, res) => {
          )`,
         [params.userId]
       );
-      
-      // 4c. Delete from request table (this user's prayer requests)
+
       const deleteRequests = await client.query(
         'DELETE FROM public.request WHERE user_id = $1',
         [params.userId]
       );
-      
-      // 4d. Delete from settings table
+
       const deleteSettings = await client.query(
         'DELETE FROM public.settings WHERE user_id = $1',
         [params.userId]
       );
-      
-      // 4e. Delete from user table
-      const deleteUser = await client.query(
-        'DELETE FROM public.user WHERE user_id = $1 RETURNING user_id, real_name, email',
+
+      const deleteUserRow = await client.query(
+        'DELETE FROM public."user" WHERE user_id = $1 RETURNING user_id, real_name, email',
         [params.userId]
       );
-      
+
       await client.query('COMMIT');
-      
-      // Return success response
+
+      // Audit: record successful completion
+      await pool.query(
+        `UPDATE public.admin_audit_log SET result = $1, payload = $2
+         WHERE action = 'deleteUser_INITIATED' AND target_user_id = $3 AND result = 'pending'`,
+        [
+          'completed',
+          JSON.stringify({
+            deleted_user: deleteUserRow.rows[0],
+            counts: {
+              user_prayers: deleteUserRequestSelf.rowCount,
+              others_prayers: deleteUserRequestOthers.rowCount,
+              requests: deleteRequests.rowCount,
+              settings: deleteSettings.rowCount
+            }
+          }),
+          params.userId
+        ]
+      ).catch(() => {});
+
+      console.warn(`✅ deleteUser completed for userId=${params.userId} (${user.email}) from IP ${callerIp}`);
+
       res.json({
         error: 0,
         result: "User deleted successfully",
-        deleted_user: deleteUser.rows[0],
+        deleted_user: deleteUserRow.rows[0],
         backup_file: backupFile,
         deleted_counts: {
           user_prayers: deleteUserRequestSelf.rowCount,
@@ -3585,15 +3634,19 @@ app.post('/deleteUser', authenticate, async (req, res) => {
           settings: deleteSettings.rowCount
         }
       });
-      
+
     } catch (deleteError) {
       await client.query('ROLLBACK');
       console.error('Deletion error:', deleteError);
+      await pool.query(
+        `UPDATE public.admin_audit_log SET result = $1 WHERE action = 'deleteUser_INITIATED' AND target_user_id = $2 AND result = 'pending'`,
+        ['failed: ' + deleteError.message, params.userId]
+      ).catch(() => {});
       res.json({ error: 1, result: "Failed to delete user: " + deleteError.message });
     } finally {
       client.release();
     }
-    
+
   } catch (error) {
     console.error('Error in /deleteUser endpoint:', error);
     res.json({ error: 1, result: "Internal server error: " + error.message });
