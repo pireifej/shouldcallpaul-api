@@ -40,62 +40,83 @@ app.use('/audio', (req, res, next) => {
     next();
 }, express.static('public/audio'));
 
+// Fields to strip from logged params so passwords/tokens never reach the DB
+const SENSITIVE_FIELDS = new Set(['password', 'token', 'fcm_token', 'authorization', 'api_key', 'secret']);
+function sanitizeParams(body) {
+  if (!body || typeof body !== 'object') return body;
+  const out = {};
+  for (const [k, v] of Object.entries(body)) {
+    out[k] = SENSITIVE_FIELDS.has(k.toLowerCase()) ? '***' : v;
+  }
+  return out;
+}
+
+// Endpoints that generate too much noise to log every call (read-only feeds)
+const SKIP_LOG_PATHS = new Set(['/api/requests', '/getAllBlogArticles', '/getFaithRanks', '/getDailyDevotional']);
+
 // Comprehensive request/response logging middleware
 app.use((req, res, next) => {
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
-  
-  // Log incoming request
+  const callerIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+
+  // Console log every request
   console.log(`\n🔵 INCOMING REQUEST ${timestamp}`);
   console.log(`   Method: ${req.method}`);
   console.log(`   Path: ${req.path}`);
-  console.log(`   IP: ${req.ip || req.connection.remoteAddress || 'unknown'}`);
+  console.log(`   IP: ${callerIp}`);
   console.log(`   User-Agent: ${req.get('User-Agent') || 'none'}`);
   console.log(`   Content-Type: ${req.get('Content-Type') || 'none'}`);
-  
-  // Log request body for POST/PUT requests
-  if (req.method === 'POST' || req.method === 'PUT') {
+
+  if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
     console.log(`   Payload:`, req.body);
   }
-  
-  // Intercept response
+
+  // Intercept response to capture status + write DB log
   const originalSend = res.send;
   res.send = function(data) {
-    const endTime = Date.now();
-    const duration = endTime - startTime;
-    
-    // Determine if response is error or success
+    const duration = Date.now() - startTime;
+
     let responseStatus = 'SUCCESS';
     let errorInfo = null;
-    
-    if (res.statusCode >= 400) {
-      responseStatus = 'ERROR';
-    }
-    
-    // Try to parse response data to check for error property
+    let responseSummary = null;
+
+    if (res.statusCode >= 400) responseStatus = 'ERROR';
+
     try {
-      const parsedData = JSON.parse(data);
-      if (parsedData && parsedData.error) {
+      const parsed = JSON.parse(data);
+      if (parsed && parsed.error && parsed.error !== 0) {
         responseStatus = 'ERROR';
-        errorInfo = parsedData.error;
+        errorInfo = typeof parsed.error === 'string' ? parsed.error : JSON.stringify(parsed.error);
       }
-    } catch (e) {
-      // Response is not JSON, keep current status
-    }
-    
-    // Log response status
+      // Store a short summary (result field, or error string, capped at 200 chars)
+      const summary = parsed?.result || parsed?.message || errorInfo || null;
+      if (summary) responseSummary = String(summary).slice(0, 200);
+    } catch (e) { /* non-JSON response */ }
+
     console.log(`🔴 RESPONSE ${timestamp}`);
     console.log(`   Status: ${res.statusCode} (${responseStatus})`);
     console.log(`   Duration: ${duration}ms`);
-    if (errorInfo) {
-      console.log(`   Error: ${errorInfo}`);
-    }
+    if (errorInfo) console.log(`   Error: ${errorInfo}`);
     console.log(`───────────────────────────────────────`);
-    
-    // Call original send
+
+    // Write to DB for all POST/PATCH/DELETE except noisy read-only paths
+    const shouldLog = (req.method === 'POST' || req.method === 'PATCH' || req.method === 'DELETE')
+      && !SKIP_LOG_PATHS.has(req.path);
+
+    if (shouldLog) {
+      const params = sanitizeParams(req.body);
+      const userId = req.body?.userId || req.body?.user_id || null;
+      pool.query(
+        `INSERT INTO public.api_request_log (method, endpoint, caller_ip, user_id, params, response_summary)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [req.method, req.path, callerIp, userId ? parseInt(userId) : null, JSON.stringify(params), responseSummary]
+      ).catch(() => {}); // fire-and-forget — never block the response
+    }
+
     originalSend.call(this, data);
   };
-  
+
   next();
 });
 
