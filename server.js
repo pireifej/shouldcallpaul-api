@@ -346,6 +346,25 @@ Instructions for Generating the Prayer:
   };
 }
 
+// Translate text between 'en' and 'es' using OpenAI.
+// contentType: 'text' for plain request text, 'prayer_html' for prayer HTML with tags.
+async function translateText(text, fromLang, toLang, contentType = 'text') {
+  const fromName = fromLang === 'es' ? 'Spanish' : 'English';
+  const toName = toLang === 'es' ? 'Spanish' : 'English';
+  const htmlNote = contentType === 'prayer_html'
+    ? ' Preserve all HTML tags (<strong>, <br>, <em>, etc.) exactly as they appear — only translate the human-readable text between the tags.'
+    : '';
+  const resp = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{
+      role: 'user',
+      content: `Translate the following from ${fromName} to ${toName}. Keep it natural and heartfelt. Preserve names and places as-is.${htmlNote} Return only the translated text, nothing else:\n\n${text}`
+    }],
+    max_tokens: 600,
+  });
+  return resp.choices[0].message.content.trim();
+}
+
 // Gmail SMTP transporter
 function createGmailTransporter() {
     return nodemailer.createTransport({
@@ -969,7 +988,7 @@ app.post('/getRequestById', authenticate, async (req, res) => {
       SELECT 
         request.request_id,
         request.user_id,
-        request.request_text,
+        COALESCE(CASE WHEN $1='es' THEN request.content_es ELSE request.content_en END, request.request_text) as request_text,
         request.request_title,
         request.picture as request_picture,
         request.my_church_only,
@@ -984,7 +1003,7 @@ app.post('/getRequestById', authenticate, async (req, res) => {
         "user".picture as user_picture,
         "user".church_id,
         prayers.prayer_title,
-        prayers.prayer_text
+        COALESCE(CASE WHEN $1='es' THEN prayers.prayer_es ELSE prayers.prayer_en END, prayers.prayer_text) as prayer_text
       FROM public.request
       LEFT JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
@@ -992,7 +1011,8 @@ app.post('/getRequestById', authenticate, async (req, res) => {
       WHERE request.request_id = $2
     `;
     
-    const result = await pool.query(query, [timezone, requestId]);
+    const lang = ['en', 'es'].includes(params.lang) ? params.lang : 'en';
+    const result = await pool.query(query, [lang, requestId]);
     
     if (result.rows.length === 0) {
       return res.json({ error: 1, result: "Request not found" });
@@ -2412,11 +2432,14 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
     }
 
     // Step 1: Insert the request into the database (simplified approach)
+    const lang = ['en', 'es'].includes(params.lang) ? params.lang : 'en';
+
     const insertQuery = `
       INSERT INTO public.request (
         user_id, request_text, request_title, picture, fk_prayer_id,
-        other_person_email, active, my_church_only, timestamp, updated_timestamp
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        other_person_email, active, my_church_only, timestamp, updated_timestamp,
+        content_en, content_es
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), $9, $10)
       RETURNING request_id
     `;
 
@@ -2440,7 +2463,9 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
       params.prayerId || null,                // $5
       params.otherPersonEmail || null,        // $6
       1,                                      // $7 - active (1 for true in smallint)
-      myChurchOnly                            // $8 - my_church_only flag
+      myChurchOnly,                           // $8 - my_church_only flag
+      lang === 'en' ? params.requestText : null,  // $9 - content_en
+      lang === 'es' ? params.requestText : null   // $10 - content_es
     ];
 
     const insertResult = await pool.query(insertQuery, queryParams);
@@ -2506,8 +2531,8 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
 
       // Step 4: Insert the generated prayer
       const prayerInsertQuery = `
-        INSERT INTO public.prayers (prayer_title, prayer_text, prayer_text_me, tags, active, prayer_file_name) 
-        VALUES ($1, $2, $3, $4, $5, $6) 
+        INSERT INTO public.prayers (prayer_title, prayer_text, prayer_text_me, tags, active, prayer_file_name, prayer_en, prayer_es) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
         RETURNING prayer_id
       `;
 
@@ -2517,7 +2542,9 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
         newPrayer,
         'openAI',
         1,          // active field is smallint, use 1 instead of true
-        'openAI'
+        'openAI',
+        lang === 'en' ? newPrayer : null,  // prayer_en
+        lang === 'es' ? newPrayer : null   // prayer_es
       ]);
 
       const prayerId = dbInsertResult.rows[0].prayer_id;
@@ -2540,6 +2567,18 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
         prayer: newPrayer,
         message: "Prayer shared with the community"
       });
+
+      // Async: translate request text and prayer to the other language (fire-and-forget)
+      const otherLang = lang === 'es' ? 'en' : 'es';
+      translateText(params.requestText, lang, otherLang, 'text').then(translatedText => {
+        const col = otherLang === 'es' ? 'content_es' : 'content_en';
+        return pool.query(`UPDATE public.request SET ${col} = $1 WHERE request_id = $2`, [translatedText, requestId]);
+      }).catch(e => console.error(`Request text translation error (request ${requestId}):`, e.message));
+
+      translateText(newPrayer, lang, otherLang, 'prayer_html').then(translatedPrayer => {
+        const col = otherLang === 'es' ? 'prayer_es' : 'prayer_en';
+        return pool.query(`UPDATE public.prayers SET ${col} = $1 WHERE prayer_id = $2`, [translatedPrayer, prayerId]);
+      }).catch(e => console.error(`Prayer translation error (prayer ${prayerId}):`, e.message));
 
       // Step 7: Send notification email to admin
       const notificationHtml = `
@@ -2841,17 +2880,19 @@ app.post('/getPrayerByRequestId', authenticate, async (req, res) => {
   }
 
   try {
-    // Use a parameterized query to prevent SQL injection (PostgreSQL syntax)
+    const lang = ['en', 'es'].includes(params.lang) ? params.lang : 'en';
+
     const query = `
-      SELECT p.prayer_text 
+      SELECT COALESCE(
+        CASE WHEN $1='es' THEN p.prayer_es ELSE p.prayer_en END,
+        p.prayer_text
+      ) as prayer_text
       FROM public.request r
       INNER JOIN public.prayers p ON r.fk_prayer_id = p.prayer_id
-      WHERE r.request_id = $1
+      WHERE r.request_id = $2
     `;
 
-    const result = await pool.query(query, [params.requestId]);
-
-    console.log(result.rows);
+    const result = await pool.query(query, [lang, params.requestId]);
 
     if (result.rows.length > 0 && result.rows[0].prayer_text) {
       res.json({
@@ -3062,7 +3103,7 @@ app.post('/getMyRequests', authenticate, async (req, res) => {
       SELECT DISTINCT 
         request.request_id,
         request.user_id,
-        request.request_text,
+        COALESCE(CASE WHEN $2='es' THEN request.content_es ELSE request.content_en END, request.request_text) as request_text,
         request.fk_prayer_id,
         prayers.prayer_title,
         request.request_title,
@@ -3083,7 +3124,8 @@ app.post('/getMyRequests', authenticate, async (req, res) => {
       ORDER BY timestamp_raw DESC
     `;
 
-    const result = await pool.query(query, [params.userId, timezone]);
+    const lang = ['en', 'es'].includes(params.lang) ? params.lang : 'en';
+    const result = await pool.query(query, [params.userId, lang]);
     res.json(result.rows);
 
   } catch (err) {
@@ -3108,7 +3150,7 @@ app.post('/getAnsweredPrayers', authenticate, async (req, res) => {
       SELECT DISTINCT
         request.request_id,
         request.user_id,
-        request.request_text,
+        COALESCE(CASE WHEN $2='es' THEN request.content_es ELSE request.content_en END, request.request_text) as request_text,
         request.fk_prayer_id,
         prayers.prayer_title,
         request.request_title,
@@ -3130,7 +3172,8 @@ app.post('/getAnsweredPrayers', authenticate, async (req, res) => {
       ORDER BY timestamp_raw DESC
     `;
 
-    const result = await pool.query(query, [params.userId, timezone]);
+    const lang = ['en', 'es'].includes(params.lang) ? params.lang : 'en';
+    const result = await pool.query(query, [params.userId, lang]);
     res.json(result.rows);
 
   } catch (err) {
@@ -3154,12 +3197,12 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
   }
 
   try {
-    const timezone = params.tz || 'UTC';
+    const lang = ['en', 'es'].includes(params.lang) ? params.lang : 'en';
     const filterByChurch = params.filterByChurch === true || params.filterByChurch === 'true';
     
     // Build the WHERE clause based on church filter and my_church_only flag
     let whereClause = 'WHERE request.active = 1';
-    let queryParams = [params.userId, timezone];
+    let queryParams = [params.userId, lang];
     
     // Always filter by my_church_only flag:
     // If request.my_church_only = TRUE, only show to users in the same church as the request creator
@@ -3186,7 +3229,7 @@ app.post('/getCommunityWall', authenticate, async (req, res) => {
       SELECT DISTINCT 
         request.request_id,
         request.user_id,
-        request.request_text,
+        COALESCE(CASE WHEN $2='es' THEN request.content_es ELSE request.content_en END, request.request_text) as request_text,
         request.fk_prayer_id,
         prayers.prayer_title,
         request.request_title,
