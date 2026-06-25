@@ -4715,20 +4715,20 @@ function getHolidayTheme(date) {
   return null;
 }
 
-async function generateDailyDevotional(targetDate, lang = 'en') {
+async function generateDailyDevotional(targetDate, lang = 'en', { sharedTheme = null, sharedImageUrl = null } = {}) {
   const dateStr = targetDate.toISOString().slice(0, 10);
 
   // Check for a holiday/event on this date
   const holiday = getHolidayTheme(targetDate);
-  const theme = holiday
+  const theme = sharedTheme || (holiday
     ? holiday.theme
-    : DEVOTIONAL_THEMES[Math.floor(Math.random() * DEVOTIONAL_THEMES.length)];
+    : DEVOTIONAL_THEMES[Math.floor(Math.random() * DEVOTIONAL_THEMES.length)]);
   const holidayContext = holiday
     ? `Today is ${holiday.event}. Please incorporate this occasion naturally and meaningfully into the devotional.`
     : '';
 
   const holidayNote = holiday ? ` (${holiday.event})` : '';
-  console.log(`📖 Generating devotional for ${dateStr}${holidayNote} — theme: ${theme}`);
+  console.log(`📖 Generating ${lang} devotional for ${dateStr}${holidayNote} — theme: ${theme}`);
 
   // Step 1: Generate text content via GPT
   const gptPrompt = `You are a warm, non-denominational Christian devotional writer. 
@@ -4753,28 +4753,32 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
 
   const content = JSON.parse(gptResponse.choices[0].message.content);
 
-  // Step 2: Fetch a beautiful photo from Pexels using GPT's visual search query
-  let imageUrl = null;
-  try {
-    const searchQuery = content.pexelsQuery || `${theme} nature peaceful`;
-    console.log(`🔍 Pexels search: "${searchQuery}"`);
+  // Step 2: Fetch a beautiful photo from Pexels (or reuse shared image from EN version)
+  let imageUrl = sharedImageUrl || null;
+  if (!imageUrl) {
+    try {
+      const searchQuery = content.pexelsQuery || `${theme} nature peaceful`;
+      console.log(`🔍 Pexels search: "${searchQuery}"`);
 
-    const pexelsResponse = await pexels.photos.search({
-      query: searchQuery,
-      per_page: 15,
-      orientation: 'landscape'
-    });
+      const pexelsResponse = await pexels.photos.search({
+        query: searchQuery,
+        per_page: 15,
+        orientation: 'landscape'
+      });
 
-    if (pexelsResponse.photos && pexelsResponse.photos.length > 0) {
-      const pick = pexelsResponse.photos[Math.floor(Math.random() * pexelsResponse.photos.length)];
-      const pexelsUrl = pick.src.large2x || pick.src.large || pick.src.original;
-      imageUrl = await uploadImageFromUrl(pexelsUrl, 'devotionals');
-      console.log(`🎨 Devotional image fetched from Pexels: "${searchQuery}" (${pick.photographer})`);
-    } else {
-      console.warn(`⚠️  Pexels returned no photos for query "${searchQuery}"`);
+      if (pexelsResponse.photos && pexelsResponse.photos.length > 0) {
+        const pick = pexelsResponse.photos[Math.floor(Math.random() * pexelsResponse.photos.length)];
+        const pexelsUrl = pick.src.large2x || pick.src.large || pick.src.original;
+        imageUrl = await uploadImageFromUrl(pexelsUrl, 'devotionals');
+        console.log(`🎨 Devotional image fetched from Pexels: "${searchQuery}" (${pick.photographer})`);
+      } else {
+        console.warn(`⚠️  Pexels returned no photos for query "${searchQuery}"`);
+      }
+    } catch (imgErr) {
+      console.warn(`⚠️  Pexels image fetch failed: ${imgErr.message}`);
     }
-  } catch (imgErr) {
-    console.warn(`⚠️  Pexels image fetch failed: ${imgErr.message}`);
+  } else {
+    console.log(`🎨 Reusing ${lang === 'en' ? 'EN' : 'ES'} devotional image from English version`);
   }
 
   // Step 4: Save to database
@@ -4797,46 +4801,48 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
 
   console.log(`✅ Devotional saved for ${dateStr}: "${content.title}"`);
 
-  // Step 5: Generate TTS audio and save to disk
-  try {
-    const audioPath = path.join(DEVOTIONAL_AUDIO_DIR, `daily_bread_${dateStr}.mp3`);
-    const ttsScript = [
-      content.title,
-      content.bibleVerse && content.verseReference
-        ? `${content.bibleVerse} — ${content.verseReference}`
-        : (content.bibleVerse || content.verseReference || ''),
-      content.articleBody,
-      content.prayer ? `Today's closing prayer. ${content.prayer}` : ''
-    ].filter(Boolean).join('\n\n').slice(0, 4000);
+  // Step 5: Generate TTS audio and save to disk (English only — Spanish TTS skipped for now)
+  if (lang === 'en') {
+    try {
+      const audioPath = path.join(DEVOTIONAL_AUDIO_DIR, `daily_bread_${dateStr}.mp3`);
+      const ttsScript = [
+        content.title,
+        content.bibleVerse && content.verseReference
+          ? `${content.bibleVerse} — ${content.verseReference}`
+          : (content.bibleVerse || content.verseReference || ''),
+        content.articleBody,
+        content.prayer ? `Today's closing prayer. ${content.prayer}` : ''
+      ].filter(Boolean).join('\n\n').slice(0, 4000);
 
-    const ttsResponse = await openai.audio.speech.create({
-      model: 'tts-1-hd',
-      voice: 'nova',
-      input: ttsScript,
-      response_format: 'mp3'
-    });
-    const audioBuffer = Buffer.from(await ttsResponse.arrayBuffer());
-    fs.writeFileSync(audioPath, audioBuffer);
-    dailyBreadAudioCache.set(dateStr, audioBuffer);
-    console.log(`🔊 Devotional audio saved for ${dateStr} (${audioBuffer.length} bytes)`);
+      const ttsResponse = await openai.audio.speech.create({
+        model: 'tts-1-hd',
+        voice: 'nova',
+        input: ttsScript,
+        response_format: 'mp3'
+      });
+      const audioBuffer = Buffer.from(await ttsResponse.arrayBuffer());
+      fs.writeFileSync(audioPath, audioBuffer);
+      dailyBreadAudioCache.set(dateStr, audioBuffer);
+      console.log(`🔊 Devotional audio saved for ${dateStr} (${audioBuffer.length} bytes)`);
 
-    // Cleanup: delete audio files older than 7 days
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 7);
-    const files = fs.readdirSync(DEVOTIONAL_AUDIO_DIR);
-    for (const file of files) {
-      const match = file.match(/^daily_bread_(\d{4}-\d{2}-\d{2})\.mp3$/);
-      if (match && new Date(match[1]) < cutoff) {
-        fs.unlinkSync(path.join(DEVOTIONAL_AUDIO_DIR, file));
-        dailyBreadAudioCache.delete(match[1]);
-        console.log(`🗑️  Deleted old audio: ${file}`);
+      // Cleanup: delete audio files older than 7 days
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 7);
+      const files = fs.readdirSync(DEVOTIONAL_AUDIO_DIR);
+      for (const file of files) {
+        const match = file.match(/^daily_bread_(\d{4}-\d{2}-\d{2})\.mp3$/);
+        if (match && new Date(match[1]) < cutoff) {
+          fs.unlinkSync(path.join(DEVOTIONAL_AUDIO_DIR, file));
+          dailyBreadAudioCache.delete(match[1]);
+          console.log(`🗑️  Deleted old audio: ${file}`);
+        }
       }
+    } catch (audioErr) {
+      console.warn(`⚠️  Audio generation failed for ${dateStr}: ${audioErr.message}`);
     }
-  } catch (audioErr) {
-    console.warn(`⚠️  Audio generation failed for ${dateStr}: ${audioErr.message}`);
   }
 
-  return content;
+  return { content, theme, imageUrl };
 }
 
 // GET /getDailyDevotional — returns today's devotional, auto-generating if missing
@@ -4942,27 +4948,75 @@ app.post('/generateDevotional', async (req, res) => {
       return res.status(403).json({ error: 1, result: 'Unauthorized' });
     }
     const targetDate = req.body.date ? new Date(req.body.date) : new Date();
-    await generateDailyDevotional(targetDate);
     const dateStr = targetDate.toISOString().slice(0, 10);
+    const langParam = req.body.lang; // optional — if omitted, generate both EN + ES
+
+    if (langParam === 'es') {
+      // ES only — try to reuse EN image/theme from DB
+      const enRow = await pool.query(
+        'SELECT theme, image_url FROM public.daily_devotional WHERE date = $1 AND lang = $2',
+        [dateStr, 'en']
+      );
+      const sharedTheme = enRow.rows[0]?.theme || null;
+      const sharedImageUrl = enRow.rows[0]?.image_url || null;
+      await generateDailyDevotional(targetDate, 'es', { sharedTheme, sharedImageUrl });
+    } else if (langParam === 'en') {
+      await generateDailyDevotional(targetDate, 'en');
+    } else {
+      // Generate EN first, then ES with shared context
+      const enResult = await generateDailyDevotional(targetDate, 'en');
+      await generateDailyDevotional(targetDate, 'es', {
+        sharedTheme: enResult.theme,
+        sharedImageUrl: enResult.imageUrl
+      });
+    }
+
     const saved = await pool.query('SELECT * FROM public.daily_devotional WHERE date = $1', [dateStr]);
-    res.json({ error: 0, result: 'Devotional generated', devotional: saved.rows[0] });
+    res.json({ error: 0, result: 'Devotional generated', devotionals: saved.rows });
   } catch (error) {
     console.error('Manual devotional generation error:', error);
     res.status(500).json({ error: 1, result: error.message });
   }
 });
 
-// Daily cron: generate devotional at 12:05 AM UTC every day
+// Daily cron: generate EN + ES devotionals at 12:05 AM UTC every day
 cron.schedule('5 0 * * *', async () => {
   const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
   try {
-    const existing = await pool.query('SELECT id FROM public.daily_devotional WHERE date = $1', [today]);
-    if (existing.rows.length > 0) {
-      console.log(`📖 Devotional for ${today} already exists — skipping generation.`);
-      return;
+    const existing = await pool.query(
+      'SELECT lang FROM public.daily_devotional WHERE date = $1',
+      [today]
+    );
+    const existingLangs = new Set(existing.rows.map(r => r.lang));
+
+    // Generate English first (it picks the theme and image)
+    let sharedTheme = null;
+    let sharedImageUrl = null;
+    if (!existingLangs.has('en')) {
+      console.log('📖 Running scheduled English devotional generation...');
+      const result = await generateDailyDevotional(now, 'en');
+      sharedTheme = result.theme;
+      sharedImageUrl = result.imageUrl;
+    } else {
+      console.log(`📖 English devotional for ${today} already exists — reading theme/image for ES.`);
+      const enRow = await pool.query(
+        'SELECT theme, image_url FROM public.daily_devotional WHERE date = $1 AND lang = $2',
+        [today, 'en']
+      );
+      if (enRow.rows.length > 0) {
+        sharedTheme = enRow.rows[0].theme;
+        sharedImageUrl = enRow.rows[0].image_url;
+      }
     }
-    console.log('📖 Running scheduled daily devotional generation...');
-    await generateDailyDevotional(new Date());
+
+    // Generate Spanish using same theme + image
+    if (!existingLangs.has('es')) {
+      console.log('📖 Running scheduled Spanish devotional generation...');
+      await generateDailyDevotional(now, 'es', { sharedTheme, sharedImageUrl });
+    } else {
+      console.log(`📖 Spanish devotional for ${today} already exists — skipping.`);
+    }
   } catch (error) {
     console.error('Scheduled devotional generation failed:', error.message);
   }
