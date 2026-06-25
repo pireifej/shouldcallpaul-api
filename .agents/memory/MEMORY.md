@@ -1,0 +1,1 @@
+- [Route extraction — factory pattern](route-extraction.md) — server.js split into 9 route files in routes/; factory fn receives ctx object; serveAudioBuffer and cron-shared helpers stay in server.js
