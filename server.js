@@ -163,6 +163,7 @@ const DEVOTIONAL_AUDIO_DIR = path.join(__dirname, 'audio', 'devotionals');
 if (!fs.existsSync(DEVOTIONAL_AUDIO_DIR)) fs.mkdirSync(DEVOTIONAL_AUDIO_DIR, { recursive: true });
 
 const prayerAudioCache = new Map();
+const MAX_PRAYER_AUDIO_CACHE = 50;
 const PRAYER_AUDIO_DIR = path.join(__dirname, 'audio', 'prayers');
 if (!fs.existsSync(PRAYER_AUDIO_DIR)) fs.mkdirSync(PRAYER_AUDIO_DIR, { recursive: true });
 
@@ -379,7 +380,7 @@ function createGmailTransporter() {
 }
 
 // Email sending function using Gmail SMTP
-async function mailerSendSingle(template, fromPerson, toPerson, subject, extraResult, res) {
+async function sendGmailSingle(template, fromPerson, toPerson, subject, extraResult, res) {
     const transporter = createGmailTransporter();
 
     const bcc = (toPerson.email === "programmerpauly@gmail.com") ? undefined : "programmerpauly@gmail.com";
@@ -1020,12 +1021,13 @@ const ctx = {
   loadFaithRanks,
   generateDailyDevotional,
   sendDailyDevotionalNotification,
-  mailerSendSingle,
+  sendGmailSingle,
   createGmailTransporter,
   uploadImage,
   uploadImageFromUrl,
   sendPushNotification,
   prayerAudioCache,
+  MAX_PRAYER_AUDIO_CACHE,
   dailyBreadAudioCache,
   PRAYER_AUDIO_DIR,
   DEVOTIONAL_AUDIO_DIR,

@@ -3,7 +3,7 @@ const express = require('express');
 
 module.exports = function authRoutes(ctx) {
   const router = express.Router();
-  const { pool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, mailerSendSingle, getBaseUrl, log } = ctx;
+  const { pool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, getBaseUrl, log } = ctx;
 
 router.post('/login', authenticate, async (req, res) => {
   try {
@@ -14,7 +14,7 @@ router.post('/login', authenticate, async (req, res) => {
     for (let i = 0; i < requiredParams.length; i++) {
       const requiredParam = requiredParams[i];
       if (!params[requiredParam]) {
-        return res.json({error: "Required params '" + requiredParam + "' missing"});
+        return res.json({error: 1, result: "Required params '" + requiredParam + "' missing"});
       }
     }
     

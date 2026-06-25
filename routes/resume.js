@@ -3,7 +3,7 @@ const express = require('express');
 
 module.exports = function resumeRoutes(ctx) {
   const router = express.Router();
-  const { authenticate, mailerSendSingle, fs, path } = ctx;
+  const { authenticate, sendGmailSingle, fs, path } = ctx;
 
 router.post('/contact', authenticate, async (req, res) => {
   try {
@@ -72,7 +72,7 @@ router.post('/contact', authenticate, async (req, res) => {
     `;
     
     // Send the email
-    const emailResult = await mailerSendSingle(
+    const emailResult = await sendGmailSingle(
       emailTemplate,
       fromPerson,
       toPerson,

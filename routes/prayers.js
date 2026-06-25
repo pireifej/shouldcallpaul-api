@@ -3,7 +3,7 @@ const express = require('express');
 
 module.exports = function prayersRoutes(ctx) {
   const router = express.Router();
-  const { pool, authenticate, generatePrayer, translateText, computeRank, awardBadge, loadFaithRanks, mailerSendSingle, uploadImage, sendPushNotification, prayerAudioCache, PRAYER_AUDIO_DIR, openai, multer, path, fs, log, serveAudioBuffer } = ctx;
+  const { pool, authenticate, generatePrayer, translateText, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, uploadImage, sendPushNotification, prayerAudioCache, MAX_PRAYER_AUDIO_CACHE, PRAYER_AUDIO_DIR, openai, multer, path, fs, log, serveAudioBuffer } = ctx;
 
 router.get('/api/requests', authenticate, async (req, res) => {
   try {
@@ -29,7 +29,6 @@ router.post('/getRequestById', authenticate, async (req, res) => {
     }
     
     const requestId = params.requestId;
-    const timezone = params.tz || 'UTC';
     
     // Get the request with all details
     // Use LEFT JOINs for optional tables to ensure request is found even if related data is missing
@@ -357,7 +356,7 @@ router.post('/prayFor', authenticate, async (req, res) => {
           
           const subject = `${userWhoPrayed.real_name} prayed for your request`;
           
-          emailResult = await mailerSendSingle(emailTemplate, fromPerson, toPerson, subject, null, null);
+          emailResult = await sendGmailSingle(emailTemplate, fromPerson, toPerson, subject, null, null);
           console.log('Prayer notification email sent:', emailResult);
         } catch (emailError) {
           console.error('Failed to send prayer notification email:', emailError);
@@ -972,7 +971,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
         name: "Paul"
       };
 
-      mailerSendSingle(
+      sendGmailSingle(
         notificationHtml,
         fromPerson,
         toPerson,
@@ -1131,7 +1130,7 @@ router.post('/getPrayerByRequestId', authenticate, async (req, res) => {
     }
   } catch (err) {
     console.error(err);
-    res.json({ error: "Database error: " + err.message });
+    res.json({ error: 1, result: "Database error: " + err.message });
   }
 });
 
@@ -1155,6 +1154,9 @@ router.post('/getPrayerAudio', authenticate, async (req, res) => {
     if (fs.existsSync(audioPath)) {
       console.log(`🔊 Prayer audio served from disk for requestId ${key}`);
       const audioBuffer = fs.readFileSync(audioPath);
+      if (prayerAudioCache.size >= MAX_PRAYER_AUDIO_CACHE) {
+        prayerAudioCache.delete(prayerAudioCache.keys().next().value);
+      }
       prayerAudioCache.set(key, audioBuffer);
       return serveAudioBuffer(req, res, audioBuffer);
     }
@@ -1170,6 +1172,9 @@ router.post('/getPrayerAudio', authenticate, async (req, res) => {
 
     const audioBuffer = Buffer.from(await ttsResponse.arrayBuffer());
     fs.writeFileSync(audioPath, audioBuffer);
+    if (prayerAudioCache.size >= MAX_PRAYER_AUDIO_CACHE) {
+      prayerAudioCache.delete(prayerAudioCache.keys().next().value);
+    }
     prayerAudioCache.set(key, audioBuffer);
     console.log(`🔊 Prayer audio saved for requestId ${key} (${audioBuffer.length} bytes)`);
 
@@ -1280,7 +1285,7 @@ router.post('/getPrayedFor', authenticate, async (req, res) => {
     for (let i = 0; i < requiredParams.length; i++) {
       const requiredParam = requiredParams[i];
       if (!params[requiredParam]) {
-        return res.json({error: "Required params '" + requiredParam + "' missing"});
+        return res.json({error: 1, result: "Required params '" + requiredParam + "' missing"});
       }
     }
     
@@ -1321,8 +1326,6 @@ router.post('/getMyRequests', authenticate, async (req, res) => {
   }
 
   try {
-    const timezone = params.tz || 'UTC';
-    
     // PostgreSQL query with proper parameterization to prevent SQL injection
     const query = `
       SELECT DISTINCT 
@@ -1355,7 +1358,7 @@ router.post('/getMyRequests', authenticate, async (req, res) => {
 
   } catch (err) {
     console.error('Database query error:', err);
-    res.json({ error: "Database error: " + err.message });
+    res.json({ error: 1, result: "Database error: " + err.message });
   }
 });
 
@@ -1365,12 +1368,10 @@ router.post('/getAnsweredPrayers', authenticate, async (req, res) => {
   const params = req.body;
 
   if (!params.userId) {
-    return res.json({ error: "Required params 'userId' missing" });
+    return res.json({ error: 1, result: "Required params 'userId' missing" });
   }
 
   try {
-    const timezone = params.tz || 'UTC';
-
     const query = `
       SELECT DISTINCT
         request.request_id,
@@ -1403,7 +1404,7 @@ router.post('/getAnsweredPrayers', authenticate, async (req, res) => {
 
   } catch (err) {
     console.error('Database query error:', err);
-    res.json({ error: "Database error: " + err.message });
+    res.json({ error: 1, result: "Database error: " + err.message });
   }
 });
 
@@ -1535,7 +1536,7 @@ router.post('/getCommunityWall', authenticate, async (req, res) => {
 
   } catch (err) {
     console.error('Database query error:', err);
-    res.json({ error: "Database error: " + err.message });
+    res.json({ error: 1, result: "Database error: " + err.message });
   }
 });
 
@@ -1731,7 +1732,7 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
               </p>
             </div>
           `;
-          await mailerSendSingle(
+          await sendGmailSingle(
             emailTemplate,
             { email: 'prayoverus@gmail.com', name: 'PrayOverUs' },
             { email: person.email, name: person.real_name || 'Friend' },

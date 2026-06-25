@@ -3,7 +3,7 @@ const express = require('express');
 
 module.exports = function adminRoutes(ctx) {
   const router = express.Router();
-  const { pool, authenticate, openai, mailerSendSingle, createGmailTransporter, sendPushNotification, runProdBackup, BACKUP_DIR, fs, path, log } = ctx;
+  const { pool, authenticate, openai, sendGmailSingle, createGmailTransporter, sendPushNotification, runProdBackup, BACKUP_DIR, fs, path, log } = ctx;
 
 router.post('/getRequestCount', authenticate, async (req, res) => {
   try {
@@ -66,7 +66,7 @@ router.post('/getChatCompletion', authenticate, async (req, res) => {
     
     // Validate required parameters
     if (!params.content) {
-      return res.json({ error: "Required param 'content' missing" });
+      return res.json({ error: 1, result: "Required param 'content' missing" });
     }
     
     // Call OpenAI API with the content as user message
@@ -101,7 +101,7 @@ router.post('/sendBroadcastEmail', authenticate, async (req, res) => {
   for (let i = 0; i < requiredParams.length; i++) {
     const requiredParam = requiredParams[i];
     if (params[requiredParam] === undefined) {
-      res.json({ error: "Required param '" + requiredParam + "' missing" });
+      res.json({ error: 1, result: "Required param '" + requiredParam + "' missing" });
       return;
     }
   }

@@ -14,7 +14,7 @@ router.post('/getAllBlogArticles', authenticate, async (req, res) => {
     for (let i = 0; i < requiredParams.length; i++) {
       const requiredParam = requiredParams[i];
       if (!params[requiredParam]) {
-        return res.json({error: "Required params '" + requiredParam + "' missing"});
+        return res.json({error: 1, result: "Required params '" + requiredParam + "' missing"});
       }
     }
     
@@ -50,7 +50,7 @@ router.post('/getBlogArticle', authenticate, async (req, res) => {
     for (let i = 0; i < requiredParams.length; i++) {
       const requiredParam = requiredParams[i];
       if (!params[requiredParam]) {
-        return res.json({error: "Required params '" + requiredParam + "' missing"});
+        return res.json({error: 1, result: "Required params '" + requiredParam + "' missing"});
       }
     }
     

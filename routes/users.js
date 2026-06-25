@@ -3,7 +3,7 @@ const express = require('express');
 
 module.exports = function usersRoutes(ctx) {
   const router = express.Router();
-  const { pool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, uploadImage, getRandomString, multer, path, log } = ctx;
+  const { pool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, uploadImage, getRandomString, multer, path, log } = ctx;
 
 router.post('/getUserByEmail', authenticate, async (req, res) => {
   try {
@@ -14,7 +14,7 @@ router.post('/getUserByEmail', authenticate, async (req, res) => {
     for (let i = 0; i < requiredParams.length; i++) {
       const requiredParam = requiredParams[i];
       if (!params[requiredParam]) {
-        return res.json({error: "Required params '" + requiredParam + "' missing"});
+        return res.json({error: 1, result: "Required params '" + requiredParam + "' missing"});
       }
     }
     
@@ -63,7 +63,7 @@ router.post('/getAllUsers', authenticate, async (req, res) => {
     for (let i = 0; i < requiredParams.length; i++) {
       const requiredParam = requiredParams[i];
       if (!params[requiredParam]) {
-        return res.json({error: "Required params '" + requiredParam + "' missing"});
+        return res.json({error: 1, result: "Required params '" + requiredParam + "' missing"});
       }
     }
     
@@ -118,15 +118,14 @@ router.post('/getUser', authenticate, async (req, res) => {
     for (let i = 0; i < requiredParams.length; i++) {
       const requiredParam = requiredParams[i];
       if (!params[requiredParam]) {
-        return res.json({error: "Required params '" + requiredParam + "' missing"});
+        return res.json({error: 1, result: "Required params '" + requiredParam + "' missing"});
       }
     }
     
     const userId = params.userId;
-    const timezone = params.tz || 'UTC';
-    
     // Check if userId is numeric to determine if it could be a user_id
     const isNumeric = !isNaN(userId) && !isNaN(parseFloat(userId));
+    const timezone = params.tz || 'UTC';
     
     let query, queryParams;
     
@@ -524,7 +523,7 @@ router.post('/createUser', authenticate, async (req, res) => {
       };
       
       // Send email (don't wait for it to complete)
-      mailerSendSingle(emailTemplate, fromPerson, toPerson, "Welcome to 'Pray Over Us'", null, null)
+      sendGmailSingle(emailTemplate, fromPerson, toPerson, "Welcome to 'Pray Over Us'", null, null)
         .then(emailResult => {
           console.log('Welcome email sent:', emailResult);
         })
