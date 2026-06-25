@@ -160,7 +160,7 @@ router.post('/testGeneratePrayer', authenticate, async (req, res) => {
     }
     
     // Use the shared generatePrayer function
-    const result = await generatePrayer(params.requestText, params.authorName, req.headers.authorization, params.lang || 'en');
+    const result = await generatePrayer(params.requestText, params.authorName, params.lang || 'en');
     
     if (result.error) {
       return res.json({ error: result.error });
@@ -211,7 +211,7 @@ router.post('/regeneratePrayer', authenticate, async (req, res) => {
     const realName = requestResult.rows[0].real_name || requestResult.rows[0].user_name || "Someone";
     
     // Step 2: Generate prayer using shared function
-    const prayerGenResult = await generatePrayer(requestText, realName, req.headers.authorization, params.lang || 'en');
+    const prayerGenResult = await generatePrayer(requestText, realName, params.lang || 'en');
     
     if (prayerGenResult.error) {
       return res.json({ error: prayerGenResult.error });
@@ -868,7 +868,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
 
     // Step 3: Generate prayer using shared function
     try {
-      const prayerGenResult = await generatePrayer(params.requestText, realName, req.headers.authorization, params.lang || 'en');
+      const prayerGenResult = await generatePrayer(params.requestText, realName, params.lang || 'en');
       
       if (prayerGenResult.error) {
         res.json({ error: prayerGenResult.error });

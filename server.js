@@ -235,7 +235,7 @@ async function awardBadge(userId, badgeKey) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function generatePrayer(requestText, authorName, authHeader, lang = 'en') {
+async function generatePrayer(requestText, authorName, lang = 'en') {
   const realName = authorName || "Someone";
   
   const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.
@@ -282,17 +282,17 @@ Instructions for Generating the Prayer:
 
 8. Output plain text with line breaks between paragraphs. Do NOT use HTML tags.${lang === 'es' ? '\n\nIMPORTANT: Generate this entire prayer in Spanish (Latin American Spanish). All text — the address to God, every petition, every intercession, and every divine name in context — must be written in Spanish.' : ''}`;
 
-  // Call OpenAI via getChatCompletion endpoint
-  const chatResponse = await fetch(`http://localhost:${PORT}/getChatCompletion`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': authHeader
-    },
-    body: JSON.stringify({ content: promptToGeneratePrayer })
-  });
-
-  const chatResult = await chatResponse.json();
+  // Call OpenAI directly
+  let chatResult;
+  try {
+    chatResult = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: promptToGeneratePrayer }]
+    });
+  } catch (openaiErr) {
+    console.warn('⚠️ OpenAI error in generatePrayer:', openaiErr.message);
+    chatResult = {};
+  }
 
   if (!chatResult.choices || chatResult.choices.length === 0) {
     // Fallback prayer bank — used when OpenAI is unavailable
