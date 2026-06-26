@@ -260,7 +260,51 @@ router.post('/resetPassword', async (req, res) => {
   }
 });
 
-// POST /getRequestById - Get a single prayer request by ID with all details
+router.post('/changePassword', authenticate, async (req, res) => {
+  try {
+    log(req);
+    const { userId, currentPassword, newPassword } = req.body || {};
+
+    if (!userId || !currentPassword || !newPassword) {
+      return res.json({ error: 1, result: 'userId, currentPassword, and newPassword are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.json({ error: 1, result: 'New password must be at least 6 characters' });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.json({ error: 1, result: 'New password must be different from your current password' });
+    }
+
+    const userResult = await pool.query(
+      'SELECT user_id, password FROM public."user" WHERE user_id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.json({ error: 1, result: 'User not found' });
+    }
+
+    const passwordMatch = await bcrypt.compare(currentPassword, userResult.rows[0].password);
+    if (!passwordMatch) {
+      return res.json({ error: 1, result: 'Current password is incorrect' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query(
+      'UPDATE public."user" SET password = $1 WHERE user_id = $2',
+      [hashedPassword, userId]
+    );
+
+    console.log(`✅ Password changed for user ${userId}`);
+    res.json({ error: 0, result: 'Password changed successfully' });
+
+  } catch (error) {
+    console.error('changePassword error:', error);
+    res.json({ error: 1, result: 'An error occurred. Please try again.' });
+  }
+});
 
   return router;
 };
