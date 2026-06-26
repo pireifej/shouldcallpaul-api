@@ -125,37 +125,40 @@ router.post('/requestPasswordReset', async (req, res) => {
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }
-    .container { max-width: 600px; margin: 20px auto; background-color: white; padding: 30px; border-radius: 10px; }
-    .logo { text-align: center; margin-bottom: 20px; }
-    .logo img { max-width: 150px; height: auto; }
-    .content { line-height: 1.6; color: #333; }
-    .button-container { text-align: center; margin: 30px 0; }
-    .button { display: inline-block; padding: 15px 30px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
-    .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 12px; }
-    .warning { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin: 20px 0; }
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f5; }
+    .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; }
+    .logo { width: 80px; height: 80px; margin: 0 auto 15px; background-color: white; border-radius: 50%; padding: 10px; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; }
+    .content { padding: 40px 30px; line-height: 1.6; color: #333333; font-size: 16px; }
+    .button-container { text-align: center; margin: 30px 0; padding: 20px 0; }
+    .button { display: inline-block; padding: 14px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+    .warning { background-color: #fff8e1; border-left: 4px solid #f59e0b; padding: 14px 16px; margin: 20px 0; border-radius: 0 6px 6px 0; font-size: 15px; color: #555; }
+    .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666666; font-size: 14px; border-top: 1px solid #e0e0e0; }
+    .footer a { color: #667eea; text-decoration: none; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">
-      <img src="https://prayoverus.com/assets/img/logo/hope1.PNG" alt="Pray Over Us">
+  <div class="email-container">
+    <div class="header">
+      <img src="https://prayoverus.com/assets/img/logo/just-the-cross.png" alt="Pray Over Us" class="logo">
+      <h1>Pray Over Us</h1>
     </div>
     <div class="content">
       <p>Hi ${firstName},</p>
       <p>We received a request to reset your password for your Pray Over Us account.</p>
-      <p>Click the button below to reset your password:</p>
+      <p>Click the button below to set a new password. This link expires in <strong>1 hour</strong> and can only be used once.</p>
     </div>
     <div class="button-container">
-      <a href="${resetLink}" class="button">Reset Password</a>
-    </div>
-    <div class="warning">
-      <strong>⏰ This link expires in 1 hour</strong>
+      <a href="${resetLink}" class="button">Reset My Password</a>
     </div>
     <div class="content">
-      <p>If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.</p>
-      <p>For security, this link can only be used once.</p>
+      <div class="warning">
+        🔒 If you didn't request this, you can safely ignore this email — your password will not change.
+      </div>
     </div>
     <div class="footer">
       <p>This email was sent from Pray Over Us</p>

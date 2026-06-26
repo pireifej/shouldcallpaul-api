@@ -490,27 +490,48 @@ router.post('/createUser', authenticate, async (req, res) => {
       const passwordMessage = weSetPassword ? `Your temporary password is "${mypassword}"` : "";
       
       const emailTemplate = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2c3e50;">Welcome to 'Pray Over Us'</h2>
-          <p>Dear ${params.firstName},</p>
-          <p>You have joined the prayer community of faithfuls.</p>
-          <p>Post your prayer requests and pray for other people.</p>
-          ${passwordMessage ? `<div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0;">
-            <strong>Important:</strong> ${passwordMessage}
-          </div>` : ''}
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="https://www.prayoverus.com/index.html" 
-               style="background-color: #3498db; color: white; padding: 12px 24px; 
-                      text-decoration: none; border-radius: 5px; display: inline-block;">
-              Login now!
-            </a>
-          </div>
-          <p>Blessings,<br>The PrayOverUs Team</p>
-          <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-          <p style="font-size: 12px; color: #666;">
-            Sent from PrayOverUs.com registration system
-          </p>
-        </div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f5; }
+    .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; }
+    .logo { width: 80px; height: 80px; margin: 0 auto 15px; background-color: white; border-radius: 50%; padding: 10px; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; }
+    .content { padding: 40px 30px; line-height: 1.6; color: #333333; font-size: 16px; }
+    .button-container { text-align: center; margin: 30px 0; padding: 20px 0; }
+    .button { display: inline-block; padding: 14px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+    .password-box { background-color: #f0f4ff; border-left: 4px solid #667eea; padding: 14px 16px; margin: 20px 0; border-radius: 0 6px 6px 0; font-size: 15px; color: #333; }
+    .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666666; font-size: 14px; border-top: 1px solid #e0e0e0; }
+    .footer a { color: #667eea; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <img src="https://prayoverus.com/assets/img/logo/just-the-cross.png" alt="Pray Over Us" class="logo">
+      <h1>Pray Over Us</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${params.firstName},</p>
+      <p>Welcome to the <strong>Pray Over Us</strong> community! 🙏 We're so glad you're here.</p>
+      <p>You can now post your own prayer requests and pray for others in the community. You are not alone.</p>
+      ${passwordMessage ? `<div class="password-box"><strong>📋 Important:</strong> ${passwordMessage}</div>` : ''}
+      <p>Blessings,<br>The Pray Over Us Team</p>
+    </div>
+    <div class="button-container">
+      <a href="https://www.prayoverus.com" class="button">Open Pray Over Us</a>
+    </div>
+    <div class="footer">
+      <p>This email was sent from Pray Over Us</p>
+      <p><a href="https://prayoverus.com">Visit Our Website</a></p>
+    </div>
+  </div>
+</body>
+</html>
       `;
       
       const fromPerson = { 
