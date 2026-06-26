@@ -1,9 +1,10 @@
 'use strict';
 const express = require('express');
+const crypto = require('crypto');
 
 module.exports = function authRoutes(ctx) {
   const router = express.Router();
-  const { pool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, getBaseUrl, log } = ctx;
+  const { pool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, createGmailTransporter, getBaseUrl, log } = ctx;
 
 router.post('/login', authenticate, async (req, res) => {
   try {
