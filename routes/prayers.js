@@ -431,37 +431,153 @@ router.post('/prayFor', authenticate, async (req, res) => {
       // Badge checks (fire-and-forget — errors never block the response)
       let newBadge = null;
       try {
+        const uid = params.userId;
+        const utcHour = new Date().getUTCHours();
+
         // first_responder: one of first 3 to pray on this request
         const prayCountRes = await pool.query(
           'SELECT COUNT(*) FROM public.user_request WHERE request_id = $1', [params.requestId]
         );
         if (parseInt(prayCountRes.rows[0].count) <= 3) {
-          newBadge = await awardBadge(params.userId, 'first_responder') || newBadge;
+          newBadge = await awardBadge(uid, 'first_responder') || newBadge;
+        }
+
+        // total pray count — reused for first_step, the_encourager, intercessor
+        const totalPrayRes = await pool.query(
+          'SELECT COUNT(*) FROM public.user_request WHERE user_id = $1', [uid]
+        );
+        const totalPrays = parseInt(totalPrayRes.rows[0].count);
+
+        // first_step: very first prayer
+        if (totalPrays === 1) {
+          newBadge = await awardBadge(uid, 'first_step') || newBadge;
+        }
+
+        // the_encourager: 25+ distinct requests prayed for
+        if (totalPrays >= 25) {
+          newBadge = await awardBadge(uid, 'the_encourager') || newBadge;
+        }
+
+        // intercessor: 50+ total prayers
+        if (totalPrays >= 50) {
+          newBadge = await awardBadge(uid, 'intercessor') || newBadge;
+        }
+
+        // the_welcome_mat: prayed for requests from 5+ distinct people
+        const distinctPeopleRes = await pool.query(
+          `SELECT COUNT(DISTINCT r.user_id) AS cnt
+           FROM public.user_request ur
+           JOIN public.request r ON r.request_id = ur.request_id
+           WHERE ur.user_id = $1`,
+          [uid]
+        );
+        if (parseInt(distinctPeopleRes.rows[0].cnt) >= 5) {
+          newBadge = await awardBadge(uid, 'the_welcome_mat') || newBadge;
+        }
+
+        // faithful_friend: prayed for the same person's requests 3+ times
+        const faithfulRes = await pool.query(
+          `SELECT COUNT(ur.request_id) AS pray_count
+           FROM public.user_request ur
+           JOIN public.request r ON r.request_id = ur.request_id
+           WHERE ur.user_id = $1
+           GROUP BY r.user_id
+           ORDER BY pray_count DESC
+           LIMIT 1`,
+          [uid]
+        );
+        if (faithfulRes.rows.length > 0 && parseInt(faithfulRes.rows[0].pray_count) >= 3) {
+          newBadge = await awardBadge(uid, 'faithful_friend') || newBadge;
         }
 
         // midnight_intercessor: 5+ prayers between 11 PM–4 AM UTC
-        const utcHour = new Date().getUTCHours();
         if (utcHour >= 23 || utcHour < 4) {
           const nightRes = await pool.query(
             `SELECT COUNT(*) FROM public.user_request WHERE user_id = $1
              AND (EXTRACT(HOUR FROM timestamp) >= 23 OR EXTRACT(HOUR FROM timestamp) < 4)`,
-            [params.userId]
+            [uid]
           );
           if (parseInt(nightRes.rows[0].count) >= 5) {
-            newBadge = await awardBadge(params.userId, 'midnight_intercessor') || newBadge;
+            newBadge = await awardBadge(uid, 'midnight_intercessor') || newBadge;
           }
+        }
+
+        // night_owl: 10+ prayers between midnight and 4 AM UTC
+        if (utcHour < 4) {
+          const nightOwlRes = await pool.query(
+            `SELECT COUNT(*) FROM public.user_request WHERE user_id = $1
+             AND EXTRACT(HOUR FROM timestamp) < 4`,
+            [uid]
+          );
+          if (parseInt(nightOwlRes.rows[0].count) >= 10) {
+            newBadge = await awardBadge(uid, 'night_owl') || newBadge;
+          }
+        }
+
+        // early_riser: 5+ prayers before 7 AM UTC
+        if (utcHour < 7) {
+          const earlyRes = await pool.query(
+            `SELECT COUNT(*) FROM public.user_request WHERE user_id = $1
+             AND EXTRACT(HOUR FROM timestamp) < 7`,
+            [uid]
+          );
+          if (parseInt(earlyRes.rows[0].count) >= 5) {
+            newBadge = await awardBadge(uid, 'early_riser') || newBadge;
+          }
+        }
+
+        // weekend_warrior: prayed on both Saturday AND Sunday within the same 7-day window
+        const weekendRes = await pool.query(
+          `SELECT
+             COUNT(DISTINCT DATE(timestamp)) FILTER (WHERE EXTRACT(DOW FROM timestamp) = 6) AS sat_days,
+             COUNT(DISTINCT DATE(timestamp)) FILTER (WHERE EXTRACT(DOW FROM timestamp) = 0) AS sun_days
+           FROM public.user_request
+           WHERE user_id = $1 AND timestamp >= NOW() - INTERVAL '7 days'`,
+          [uid]
+        );
+        if (parseInt(weekendRes.rows[0].sat_days) >= 1 && parseInt(weekendRes.rows[0].sun_days) >= 1) {
+          newBadge = await awardBadge(uid, 'weekend_warrior') || newBadge;
+        }
+
+        // steadfast: prayed on each of at least 7 distinct days in the last 7 days
+        const steadfastRes = await pool.query(
+          `SELECT COUNT(DISTINCT DATE(timestamp AT TIME ZONE 'UTC')) AS day_count
+           FROM public.user_request
+           WHERE user_id = $1 AND timestamp >= NOW() - INTERVAL '7 days'`,
+          [uid]
+        );
+        if (parseInt(steadfastRes.rows[0].day_count) >= 7) {
+          newBadge = await awardBadge(uid, 'steadfast') || newBadge;
         }
 
         // global_heart: prayed for requests from 3+ distinct churches
         const churchRes = await pool.query(
-          `SELECT COUNT(DISTINCT u.church_id) FROM public.user_request ur
+          `SELECT COUNT(DISTINCT u.church_id) AS cnt
+           FROM public.user_request ur
            JOIN public.request r ON r.request_id = ur.request_id
            JOIN public."user" u ON u.user_id = r.user_id
            WHERE ur.user_id = $1 AND u.church_id IS NOT NULL`,
-          [params.userId]
+          [uid]
         );
-        if (parseInt(churchRes.rows[0].count) >= 3) {
-          newBadge = await awardBadge(params.userId, 'global_heart') || newBadge;
+        if (parseInt(churchRes.rows[0].cnt) >= 3) {
+          newBadge = await awardBadge(uid, 'global_heart') || newBadge;
+        }
+
+        // shepherds_heart: prayed for requests from every church in the app
+        const shepherdRes = await pool.query(
+          `SELECT
+             (SELECT COUNT(DISTINCT church_id) FROM public."user" WHERE church_id IS NOT NULL) AS total_churches,
+             COUNT(DISTINCT u.church_id) AS prayed_churches
+           FROM public.user_request ur
+           JOIN public.request r ON r.request_id = ur.request_id
+           JOIN public."user" u ON u.user_id = r.user_id
+           WHERE ur.user_id = $1 AND u.church_id IS NOT NULL`,
+          [uid]
+        );
+        const totalChurches = parseInt(shepherdRes.rows[0].total_churches);
+        const prayedChurches = parseInt(shepherdRes.rows[0].prayed_churches);
+        if (totalChurches > 0 && prayedChurches >= totalChurches) {
+          newBadge = await awardBadge(uid, 'shepherds_heart') || newBadge;
         }
       } catch (badgeErr) {
         console.warn('Badge check failed (non-blocking):', badgeErr.message);
@@ -944,6 +1060,29 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
         message: "Prayer shared with the community"
       });
 
+      // Badge checks for posting a prayer request (fire-and-forget)
+      Promise.resolve().then(async () => {
+        try {
+          // prolific: 10+ prayer requests posted
+          const requestCountRes = await pool.query(
+            `SELECT COUNT(*) FROM public.request WHERE user_id = $1`, [params.userId]
+          );
+          if (parseInt(requestCountRes.rows[0].count) >= 10) {
+            await awardBadge(params.userId, 'prolific');
+          }
+
+          // prayer_gallery: 5+ requests posted with images
+          const imageCountRes = await pool.query(
+            `SELECT COUNT(*) FROM public.request WHERE user_id = $1 AND picture IS NOT NULL`, [params.userId]
+          );
+          if (parseInt(imageCountRes.rows[0].count) >= 5) {
+            await awardBadge(params.userId, 'prayer_gallery');
+          }
+        } catch (badgeErr) {
+          console.warn('Post-request badge check failed:', badgeErr.message);
+        }
+      });
+
       // Async: translate request text and prayer to the other language (fire-and-forget)
       const otherLang = lang === 'es' ? 'en' : 'es';
       translateText(params.requestText, lang, otherLang, 'text').then(translatedText => {
@@ -1099,20 +1238,7 @@ router.post('/addComment', authenticate, async (req, res) => {
       [userId, requestId, comment.trim()]
     );
 
-    // deep_waters badge: 10+ total comments
-    let newBadge = null;
-    try {
-      const countRes = await pool.query(
-        'SELECT COUNT(*) FROM public.comments WHERE user_id = $1', [userId]
-      );
-      if (parseInt(countRes.rows[0].count) >= 10) {
-        newBadge = await awardBadge(userId, 'deep_waters');
-      }
-    } catch (badgeErr) {
-      console.warn('Badge check failed (non-blocking):', badgeErr.message);
-    }
-
-    res.json({ error: 0, result: "Comment added", new_badge: newBadge });
+    res.json({ error: 0, result: "Comment added" });
 
   } catch (error) {
     console.error('Error in /addComment:', error);
@@ -1804,14 +1930,42 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
       }
     }
 
-    // the_rejoicer badge: 5+ answered prayers
+    // Badge checks on answered prayer
     let newBadge = null;
     try {
+      // the_rejoicer: 5+ answered prayers
       const answeredRes = await pool.query(
         `SELECT COUNT(*) FROM public.request WHERE user_id = $1 AND active = 2`, [user_id]
       );
-      if (parseInt(answeredRes.rows[0].count) >= 5) {
-        newBadge = await awardBadge(user_id, 'the_rejoicer');
+      const answeredCount = parseInt(answeredRes.rows[0].count);
+      if (answeredCount >= 5) {
+        newBadge = await awardBadge(user_id, 'the_rejoicer') || newBadge;
+      }
+
+      // chain_breaker: first prayer ever marked answered
+      if (answeredCount === 1) {
+        newBadge = await awardBadge(user_id, 'chain_breaker') || newBadge;
+      }
+
+      // rainbow_promise: this request was answered within 7 days of being posted
+      const ageRes = await pool.query(
+        `SELECT request_date_time FROM public.request WHERE request_id = $1`, [request_id]
+      );
+      if (ageRes.rows.length > 0) {
+        const posted = new Date(ageRes.rows[0].request_date_time);
+        const daysSincePosted = (Date.now() - posted.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSincePosted <= 7) {
+          newBadge = await awardBadge(user_id, 'rainbow_promise') || newBadge;
+        }
+      }
+
+      // persistent: request was open for 30+ days before being answered
+      if (ageRes.rows.length > 0) {
+        const posted = new Date(ageRes.rows[0].request_date_time);
+        const daysSincePosted = (Date.now() - posted.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSincePosted >= 30) {
+          newBadge = await awardBadge(user_id, 'persistent') || newBadge;
+        }
       }
     } catch (badgeErr) {
       console.warn('Badge check failed (non-blocking):', badgeErr.message);
