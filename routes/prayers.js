@@ -328,21 +328,48 @@ router.post('/prayFor', authenticate, async (req, res) => {
       if (requestOwner?.prayer_emails && requestOwner?.email && !requestOwner?.email_bounced) {
         try {
           const emailTemplate = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2c3e50;">Someone prayed for your request!</h2>
-              <p>Dear ${requestOwner.real_name},</p>
-              <p><strong>${userWhoPrayed.real_name}</strong> just prayed for your prayer request:</p>
-              <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0;">
-                <em>"${requestOwner.request_text}"</em>
-              </div>
-              <p>You are not alone in your prayers. The PrayOverUs community is standing with you.</p>
-              <p>Blessings,<br>The PrayOverUs Team</p>
-              <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-              <p style="font-size: 12px; color: #666;">
-                This email was sent because you have prayer email notifications enabled. 
-                You can manage your settings in your PrayOverUs account.
-              </p>
-            </div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f5; }
+    .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; }
+    .logo { width: 80px; height: 80px; margin: 0 auto 15px; background-color: white; border-radius: 50%; padding: 10px; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; }
+    .content { padding: 40px 30px; line-height: 1.6; color: #333333; font-size: 16px; }
+    .quote-box { background-color: #f0f4ff; border-left: 4px solid #667eea; padding: 14px 16px; margin: 20px 0; border-radius: 0 6px 6px 0; font-style: italic; color: #444; }
+    .button-container { text-align: center; margin: 30px 0; padding: 20px 0; }
+    .button { display: inline-block; padding: 14px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+    .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666666; font-size: 14px; border-top: 1px solid #e0e0e0; }
+    .footer a { color: #667eea; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <img src="https://prayoverus.com/assets/img/logo/just-the-cross.png" alt="Pray Over Us" class="logo">
+      <h1>Pray Over Us</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${requestOwner.real_name},</p>
+      <p>🙏 <strong>${userWhoPrayed.real_name}</strong> just prayed for your request:</p>
+      <div class="quote-box">"${requestOwner.request_text}"</div>
+      <p>You are not alone. The Pray Over Us community is standing with you.</p>
+      <p>Blessings,<br>The Pray Over Us Team</p>
+    </div>
+    <div class="button-container">
+      <a href="https://www.prayoverus.com" class="button">Open the App</a>
+    </div>
+    <div class="footer">
+      <p>You received this because you have prayer email notifications enabled.</p>
+      <p><a href="https://prayoverus.com">Visit Our Website</a></p>
+    </div>
+  </div>
+</body>
+</html>
           `;
           
           const fromPerson = { 
@@ -1719,21 +1746,49 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
       if (person.prayer_emails && person.email && !person.email_bounced) {
         try {
           const emailTemplate = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2c3e50;">🙌 A prayer you prayed for has been answered!</h2>
-              <p>Dear ${person.real_name || 'Friend'},</p>
-              <p><strong>${requesterName}</strong> wanted you to know that their prayer request — <em>"${requestTitle}"</em> — has been answered!</p>
-              <p>Here's what they shared:</p>
-              <div style="background-color: #f0f9f0; padding: 15px; border-left: 4px solid #27ae60; margin: 20px 0; border-radius: 4px;">
-                <em>"${snippet}"</em>
-              </div>
-              <p>Your prayers made a difference. Thank you for being part of the PrayOverUs community.</p>
-              <p>God bless you,<br>The PrayOverUs Team</p>
-              <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-              <p style="font-size: 12px; color: #666;">
-                You received this because you prayed for this request. You can manage notification settings in your PrayOverUs account.
-              </p>
-            </div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f5; }
+    .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; }
+    .logo { width: 80px; height: 80px; margin: 0 auto 15px; background-color: white; border-radius: 50%; padding: 10px; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; }
+    .content { padding: 40px 30px; line-height: 1.6; color: #333333; font-size: 16px; }
+    .quote-box { background-color: #f0fff4; border-left: 4px solid #34d399; padding: 14px 16px; margin: 20px 0; border-radius: 0 6px 6px 0; font-style: italic; color: #444; }
+    .button-container { text-align: center; margin: 30px 0; padding: 20px 0; }
+    .button { display: inline-block; padding: 14px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+    .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666666; font-size: 14px; border-top: 1px solid #e0e0e0; }
+    .footer a { color: #667eea; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <img src="https://prayoverus.com/assets/img/logo/just-the-cross.png" alt="Pray Over Us" class="logo">
+      <h1>Pray Over Us</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${person.real_name || 'Friend'},</p>
+      <p>🙌 <strong>${requesterName}</strong> wanted you to know that a prayer you prayed for has been answered!</p>
+      <p>Here's what they shared:</p>
+      <div class="quote-box">"${snippet}"</div>
+      <p>Your prayers made a difference. Thank you for standing with this community.</p>
+      <p>God bless you,<br>The Pray Over Us Team</p>
+    </div>
+    <div class="button-container">
+      <a href="https://www.prayoverus.com" class="button">Open the App</a>
+    </div>
+    <div class="footer">
+      <p>You received this because you prayed for this request.</p>
+      <p><a href="https://prayoverus.com">Visit Our Website</a></p>
+    </div>
+  </div>
+</body>
+</html>
           `;
           await sendGmailSingle(
             emailTemplate,
