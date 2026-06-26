@@ -1,6 +1,27 @@
 'use strict';
 const express = require('express');
 
+function isSpam(text) {
+  if (!text || typeof text !== 'string') return { isSpam: false };
+  if (/[^\x00-\x7F]{10,}/.test(text)) {
+    return { isSpam: true, reason: 'Contains random character strings' };
+  }
+  if (/(.)\1{8,}/.test(text)) {
+    return { isSpam: true, reason: 'Suspicious text pattern detected' };
+  }
+  if (/\b[a-f0-9]{32,}\b/i.test(text)) {
+    return { isSpam: true, reason: 'Contains suspicious ID-like strings' };
+  }
+  const nonAlpha = (text.match(/[^a-zA-Z0-9\s]/g) || []).length;
+  if (nonAlpha / text.length > 0.4) {
+    return { isSpam: true, reason: 'Text has unusual character distribution' };
+  }
+  if (text.split(' ').some(w => w.length > 50)) {
+    return { isSpam: true, reason: 'Contains unusually long strings' };
+  }
+  return { isSpam: false };
+}
+
 module.exports = function resumeRoutes(ctx) {
   const router = express.Router();
   const { authenticate, sendGmailSingle, fs, path } = ctx;
