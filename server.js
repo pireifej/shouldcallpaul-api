@@ -1078,6 +1078,19 @@ cron.schedule('0 2 * * *', async () => {
 
 console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
 
+// ── Startup migration: add any missing columns ────────────────────────────────
+(async () => {
+  const migration = `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_bounced boolean DEFAULT false`;
+  for (const [name, p] of [['dev', pool], ['prod', auditPool]]) {
+    try {
+      await p.query(migration);
+      console.log(`✅ Startup migration (${name}): email_bounced column ready`);
+    } catch (err) {
+      console.error(`⚠️  Startup migration (${name}) failed (non-fatal):`, err.message);
+    }
+  }
+})();
+
 // ── Shared helper: send devotional push notification to all users ──
 // tracks which UTC dates have already had a notification sent this server session
 const devotionalNotificationSentDates = new Set();

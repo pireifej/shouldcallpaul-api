@@ -3,7 +3,7 @@ const express = require('express');
 
 module.exports = function adminRoutes(ctx) {
   const router = express.Router();
-  const { pool, authenticate, openai, sendGmailSingle, createGmailTransporter, sendPushNotification, runProdBackup, BACKUP_DIR, fs, path, log } = ctx;
+  const { pool, auditPool, authenticate, openai, sendGmailSingle, createGmailTransporter, sendPushNotification, runProdBackup, BACKUP_DIR, fs, path, log } = ctx;
 
 router.post('/getRequestCount', authenticate, async (req, res) => {
   try {
@@ -111,7 +111,7 @@ router.post('/sendBroadcastEmail', authenticate, async (req, res) => {
     let userRecipients = [];
     
     if (params.includeAllUsers) {
-      const usersQuery = 'SELECT email, user_name, real_name FROM public."user" WHERE email IS NOT NULL AND email != \'\'';
+      const usersQuery = 'SELECT email, user_name, real_name FROM public."user" WHERE email IS NOT NULL AND email != \'\' AND COALESCE(email_bounced, false) = false';
       const usersResult = await pool.query(usersQuery);
       
       userRecipients = usersResult.rows;
@@ -402,6 +402,57 @@ router.post('/sendBroadcastNotification', async (req, res) => {
   } catch (error) {
     console.error('Error sending broadcast notification:', error);
     res.status(500).json({ error: 1, result: error.message });
+  }
+});
+
+router.post('/admin/flagBouncedEmail', async (req, res) => {
+  log(req);
+  const { email, bounced = true } = req.body || {};
+  const key = req.body?.key || req.headers['x-admin-key'];
+  if (key !== process.env.ADMIN_BROADCAST_KEY) {
+    return res.status(403).json({ error: 1, result: 'Unauthorized' });
+  }
+  if (!email) return res.json({ error: 1, result: 'email is required' });
+
+  const db = auditPool || pool;
+  try {
+    const result = await db.query(
+      `UPDATE public."user" SET email_bounced = $1 WHERE LOWER(email) = LOWER($2) RETURNING user_id, user_name, real_name, fcm_token`,
+      [bounced, email]
+    );
+
+    if (result.rowCount === 0) {
+      return res.json({ error: 1, result: `No user found with email: ${email}` });
+    }
+
+    const user = result.rows[0];
+    console.log(`📭 email_bounced=${bounced} set for user ${user.user_id} (${email})`);
+
+    // If flagging as bounced and user has a push token, send them a nudge
+    if (bounced && user.fcm_token) {
+      try {
+        await sendPushNotification(
+          user.fcm_token,
+          'Action needed: Update your email',
+          'We couldn\'t deliver mail to your address. Please update your email in your profile settings.',
+          { type: 'email_bounced' }
+        );
+        console.log(`📲 Bounce nudge push sent to user ${user.user_id}`);
+      } catch (pushErr) {
+        console.error(`Push nudge failed for user ${user.user_id}:`, pushErr.message);
+      }
+    }
+
+    res.json({
+      error: 0,
+      result: `email_bounced=${bounced} set for ${email}`,
+      user_id: user.user_id,
+      user_name: user.user_name,
+      push_sent: bounced && !!user.fcm_token
+    });
+  } catch (err) {
+    console.error('flagBouncedEmail error:', err);
+    res.status(500).json({ error: 1, result: err.message });
   }
 });
 

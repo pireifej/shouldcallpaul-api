@@ -312,6 +312,7 @@ router.post('/updateUser', authenticate, async (req, res) => {
       updateFields.push(`email = $${paramIndex}`);
       queryParams.push(params.email);
       paramIndex++;
+      updateFields.push(`email_bounced = false`);
     }
     
     if (params.real_name !== undefined) {

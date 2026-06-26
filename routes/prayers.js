@@ -293,7 +293,8 @@ router.post('/prayFor', authenticate, async (req, res) => {
         SELECT 
           "user".user_id,
           "user".real_name, 
-          "user".email, 
+          "user".email,
+          "user".email_bounced,
           "user".picture,
           "user".fcm_token, 
           request.request_text,
@@ -324,7 +325,7 @@ router.post('/prayFor', authenticate, async (req, res) => {
       
       // Step 4: Send email notification if the request owner wants emails
       let emailResult = null;
-      if (requestOwner?.prayer_emails && requestOwner?.email) {
+      if (requestOwner?.prayer_emails && requestOwner?.email && !requestOwner?.email_bounced) {
         try {
           const emailTemplate = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -1676,7 +1677,8 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
        INNER JOIN public."user" ON "user".user_id = user_request.user_id
        LEFT JOIN public.settings ON settings.user_id = "user".user_id
        WHERE user_request.request_id = $1
-         AND user_request.user_id != $2`,
+         AND user_request.user_id != $2
+         AND COALESCE("user".email_bounced, false) = false`,
       [request_id, user_id]
     );
 
@@ -1714,7 +1716,7 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
       }
 
       // Email notification
-      if (person.prayer_emails && person.email) {
+      if (person.prayer_emails && person.email && !person.email_bounced) {
         try {
           const emailTemplate = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
