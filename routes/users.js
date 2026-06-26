@@ -594,6 +594,51 @@ router.get('/getUserBadges', authenticate, async (req, res) => {
   }
 });
 
+router.get('/getAllBadges', authenticate, async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    const result = await pool.query(`
+      SELECT
+        d.badge_key,
+        d.title,
+        d.description,
+        d.icon,
+        COUNT(b.user_id)::int AS total_earned
+      FROM public.badge_definitions d
+      LEFT JOIN public.badges b ON b.badge_key = d.badge_key
+      GROUP BY d.badge_key, d.title, d.description, d.icon
+      ORDER BY d.title
+    `);
+
+    let earnedKeys = new Map();
+    if (userId) {
+      const userBadges = await pool.query(
+        `SELECT badge_key, earned_at FROM public.badges WHERE user_id = $1`,
+        [userId]
+      );
+      userBadges.rows.forEach(row => earnedKeys.set(row.badge_key, row.earned_at));
+    }
+
+    const badges = result.rows.map(badge => ({
+      badge_key:     badge.badge_key,
+      title:         badge.title,
+      description:   badge.description,
+      icon:          badge.icon,
+      total_earned:  badge.total_earned,
+      ...(userId !== undefined && {
+        earned:      earnedKeys.has(badge.badge_key),
+        earned_at:   earnedKeys.get(badge.badge_key) || null
+      })
+    }));
+
+    res.json({ error: 0, total_badges: badges.length, badges });
+  } catch (error) {
+    console.error('Error in /getAllBadges:', error);
+    res.json({ error: 1, result: "Internal server error: " + error.message });
+  }
+});
+
 // POST /addComment - Add a comment to a prayer request
 
 router.post('/deleteUser', authenticate, async (req, res) => {
