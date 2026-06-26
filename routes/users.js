@@ -639,6 +639,27 @@ router.get('/getAllBadges', authenticate, async (req, res) => {
   }
 });
 
+router.get('/getBadgeDefinitions', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        d.badge_key,
+        d.title,
+        d.description,
+        d.icon,
+        COUNT(b.user_id)::int AS total_earned
+      FROM public.badge_definitions d
+      LEFT JOIN public.badges b ON b.badge_key = d.badge_key
+      GROUP BY d.badge_key, d.title, d.description, d.icon
+      ORDER BY d.title
+    `);
+    res.json({ error: 0, total_badges: result.rows.length, badges: result.rows });
+  } catch (error) {
+    console.error('Error in /getBadgeDefinitions:', error);
+    res.json({ error: 1, result: "Internal server error: " + error.message });
+  }
+});
+
 // POST /addComment - Add a comment to a prayer request
 
 router.post('/deleteUser', authenticate, async (req, res) => {
