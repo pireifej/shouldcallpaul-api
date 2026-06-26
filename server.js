@@ -867,45 +867,49 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
 
   console.log(`✅ Devotional saved for ${dateStr}: "${content.title}"`);
 
-  // Step 5: Generate TTS audio and save to disk (English only — Spanish TTS skipped for now)
-  if (lang === 'en') {
-    try {
-      const audioPath = path.join(DEVOTIONAL_AUDIO_DIR, `daily_bread_${dateStr}.mp3`);
-      const ttsScript = [
-        content.title,
-        content.bibleVerse && content.verseReference
-          ? `${content.bibleVerse} — ${content.verseReference}`
-          : (content.bibleVerse || content.verseReference || ''),
-        content.articleBody,
-        content.prayer ? `Today's closing prayer. ${content.prayer}` : ''
-      ].filter(Boolean).join('\n\n').slice(0, 4000);
+  // Step 5: Generate TTS audio and save to disk (English and Spanish)
+  const prayerIntro = { en: 'Today\'s closing prayer.', es: 'Oración de cierre de hoy.' };
+  const audioLang = lang === 'es' ? 'es' : 'en';
+  const cacheKey = audioLang === 'es' ? `${dateStr}_es` : dateStr;
+  const audioFileName = audioLang === 'es' ? `daily_bread_${dateStr}_es.mp3` : `daily_bread_${dateStr}.mp3`;
 
-      const ttsResponse = await openai.audio.speech.create({
-        model: 'tts-1-hd',
-        voice: 'nova',
-        input: ttsScript,
-        response_format: 'mp3'
-      });
-      const audioBuffer = Buffer.from(await ttsResponse.arrayBuffer());
-      fs.writeFileSync(audioPath, audioBuffer);
-      dailyBreadAudioCache.set(dateStr, audioBuffer);
-      console.log(`🔊 Devotional audio saved for ${dateStr} (${audioBuffer.length} bytes)`);
+  try {
+    const audioPath = path.join(DEVOTIONAL_AUDIO_DIR, audioFileName);
+    const ttsScript = [
+      content.title,
+      content.bibleVerse && content.verseReference
+        ? `${content.bibleVerse} — ${content.verseReference}`
+        : (content.bibleVerse || content.verseReference || ''),
+      content.articleBody,
+      content.prayer ? `${prayerIntro[audioLang]} ${content.prayer}` : ''
+    ].filter(Boolean).join('\n\n').slice(0, 4000);
 
-      // Cleanup: delete audio files older than 7 days
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - 7);
-      const files = fs.readdirSync(DEVOTIONAL_AUDIO_DIR);
-      for (const file of files) {
-        const match = file.match(/^daily_bread_(\d{4}-\d{2}-\d{2})\.mp3$/);
-        if (match && new Date(match[1]) < cutoff) {
-          fs.unlinkSync(path.join(DEVOTIONAL_AUDIO_DIR, file));
-          dailyBreadAudioCache.delete(match[1]);
-          console.log(`🗑️  Deleted old audio: ${file}`);
-        }
+    const ttsResponse = await openai.audio.speech.create({
+      model: 'tts-1-hd',
+      voice: 'nova',
+      input: ttsScript,
+      response_format: 'mp3'
+    });
+    const audioBuffer = Buffer.from(await ttsResponse.arrayBuffer());
+    fs.writeFileSync(audioPath, audioBuffer);
+    dailyBreadAudioCache.set(cacheKey, audioBuffer);
+    console.log(`🔊 Devotional audio saved for ${dateStr} [${audioLang}] (${audioBuffer.length} bytes)`);
+
+    // Cleanup: delete audio files older than 7 days
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 7);
+    const files = fs.readdirSync(DEVOTIONAL_AUDIO_DIR);
+    for (const file of files) {
+      const match = file.match(/^daily_bread_(\d{4}-\d{2}-\d{2})(?:_es)?\.mp3$/);
+      if (match && new Date(match[1]) < cutoff) {
+        fs.unlinkSync(path.join(DEVOTIONAL_AUDIO_DIR, file));
+        dailyBreadAudioCache.delete(match[1]);
+        dailyBreadAudioCache.delete(`${match[1]}_es`);
+        console.log(`🗑️  Deleted old audio: ${file}`);
       }
-    } catch (audioErr) {
-      console.warn(`⚠️  Audio generation failed for ${dateStr}: ${audioErr.message}`);
     }
+  } catch (audioErr) {
+    console.warn(`⚠️  Audio generation failed for ${dateStr} [${audioLang}]: ${audioErr.message}`);
   }
 
   return { content, theme, imageUrl };
