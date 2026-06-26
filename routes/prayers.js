@@ -426,9 +426,10 @@ router.post('/prayFor', authenticate, async (req, res) => {
 
         // global_heart: prayed for requests from 3+ distinct churches
         const churchRes = await pool.query(
-          `SELECT COUNT(DISTINCT r.church_id) FROM public.user_request ur
+          `SELECT COUNT(DISTINCT u.church_id) FROM public.user_request ur
            JOIN public.request r ON r.request_id = ur.request_id
-           WHERE ur.user_id = $1 AND r.church_id IS NOT NULL`,
+           JOIN public."user" u ON u.user_id = r.user_id
+           WHERE ur.user_id = $1 AND u.church_id IS NOT NULL`,
           [params.userId]
         );
         if (parseInt(churchRes.rows[0].count) >= 3) {

@@ -69,7 +69,13 @@ app.use((req, res, next) => {
   console.log(`   Content-Type: ${req.get('Content-Type') || 'none'}`);
 
   if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
-    console.log(`   Payload:`, req.body);
+    const SENSITIVE_FIELDS = new Set(['password', 'newPassword', 'confirmPassword', 'token']);
+    const safeBody = Object.fromEntries(
+      Object.entries(req.body || {}).map(([k, v]) =>
+        [k, SENSITIVE_FIELDS.has(k) ? '[REDACTED]' : v]
+      )
+    );
+    console.log(`   Payload:`, safeBody);
   }
 
   // Intercept response to capture status + write DB log
