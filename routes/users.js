@@ -405,8 +405,8 @@ router.post('/createUser', authenticate, async (req, res) => {
       }
     }
 
-    // Check if email already exists
-    const emailCheckQuery = 'SELECT user_id FROM public.user WHERE email = $1';
+    // Check if email already exists (case-insensitive)
+    const emailCheckQuery = 'SELECT user_id FROM public.user WHERE LOWER(email) = LOWER($1)';
     const emailCheckResult = await pool.query(emailCheckQuery, [params.email]);
     
     if (emailCheckResult.rows.length > 0) {
