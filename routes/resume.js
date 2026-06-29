@@ -132,7 +132,7 @@ router.get('/resume/:filename', async (req, res) => {
     
     // Add .json extension if not provided
     const jsonFilename = filename.endsWith('.json') ? filename : filename + '.json';
-    const filePath = path.join(__dirname, 'resume_data', jsonFilename);
+    const filePath = path.join(__dirname, '..', 'resume_data', jsonFilename);
     
     // Check if file exists
     if (!fs.existsSync(filePath)) {
