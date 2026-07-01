@@ -436,5 +436,124 @@ router.post('/socialLogin', authenticate, async (req, res) => {
   }
 });
 
+router.post('/googleLogin', authenticate, async (req, res) => {
+  try {
+    const { email, google_id, first_name, last_name, picture } = req.body;
+
+    if (!email) return res.json({ error: 1, result: "Required param 'email' missing" });
+    if (!google_id) return res.json({ error: 1, result: "Required param 'google_id' missing" });
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Shared query to fetch full user object matching /login format
+    const fetchUserQuery = `
+      SELECT
+        u.user_id, u.user_name, u.email, u.real_name, u.last_name,
+        u.user_title, u.user_about, u.location, u.picture, u.profile_picture_url,
+        u.church_id, u.active, u.auth_provider, u.google_id,
+        u.timestamp,
+        COALESCE(u.faith_points, 0) as faith_points,
+        COALESCE(u.rosary_count, 0) as rosary_count,
+        c.church_name,
+        (SELECT COUNT(*) FROM public.user_request WHERE user_id = u.user_id) as prayer_count,
+        (SELECT COUNT(*) FROM public.request WHERE user_id = u.user_id) as request_count
+      FROM public."user" u
+      LEFT JOIN public.church c ON c.church_id = u.church_id
+      WHERE LOWER(u.email) = $1
+      LIMIT 1
+    `;
+
+    // ── Step 1: Look up by email ─────────────────────────────────────────────
+    const existing = await pool.query(fetchUserQuery, [normalizedEmail]);
+
+    if (existing.rows.length > 0) {
+      const user = existing.rows[0];
+
+      if (!user.active) {
+        return res.json({ error: 1, result: "This account has been deactivated." });
+      }
+
+      // Store google_id if not already set
+      if (!user.google_id) {
+        await pool.query(
+          `UPDATE public."user" SET google_id = $1, auth_provider = 'google' WHERE user_id = $2`,
+          [String(google_id), user.user_id]
+        ).catch(e => console.warn('googleLogin: could not store google_id:', e.message));
+        user.google_id = String(google_id);
+        user.auth_provider = 'google';
+      }
+
+      const ranks = await loadFaithRanks();
+      user.faith_rank = computeRank(user.faith_points, ranks);
+      return res.json({ error: 0, result: [user], isNewUser: false });
+    }
+
+    // ── Step 2: No match — create new user ──────────────────────────────────
+    const username = Math.random().toString(36).slice(2, 7);
+    const placeholderPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), saltRounds);
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const { rows: [{ next_id }] } = await client.query(
+        `SELECT COALESCE(MAX(user_id), 0) + 1 as next_id FROM public."user"`
+      );
+
+      await client.query(`
+        INSERT INTO public."user" (
+          user_id, user_name, password, email, real_name, last_name,
+          location, user_title, user_about, picture, type, active,
+          auth_provider, google_id
+        ) VALUES ($1,$2,$3,$4,$5,$6,' ',' ',' ',$7,'standard',1,'google',$8)
+      `, [
+        next_id, username, placeholderPassword, normalizedEmail,
+        first_name || '', last_name || '',
+        picture || '', String(google_id)
+      ]);
+
+      await client.query(`
+        INSERT INTO public.settings
+          (user_id, use_alias, request_emails, prayer_emails, allow_comments, general_emails, summary_emails)
+        VALUES ($1, 1, 1, 1, 1, 1, 1)
+      `, [next_id]);
+
+      await client.query('COMMIT');
+
+      // Fire-and-forget: badge + welcome email
+      awardBadge(next_id, 'cornerstone').catch(() => {});
+      const welcomeHtml = `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;padding:20px;">
+        <h2>Welcome to Pray Over Us 🙏</h2>
+        <p>Hi ${first_name || 'friend'}, your account has been created with Google Sign-In.</p>
+        <p>Blessings,<br>The Pray Over Us Team</p>
+      </body></html>`;
+      sendGmailSingle(
+        welcomeHtml,
+        { email: 'prayoverus@gmail.com', name: 'PrayOverUs' },
+        { email: normalizedEmail, name: first_name || 'Friend' },
+        "Welcome to 'Pray Over Us'", null, null
+      ).catch(() => {});
+
+      // Fetch the newly created user with all computed fields
+      const newUserResult = await pool.query(fetchUserQuery, [normalizedEmail]);
+      const newUser = newUserResult.rows[0];
+      const ranks = await loadFaithRanks();
+      newUser.faith_rank = computeRank(newUser.faith_points, ranks);
+
+      return res.json({ error: 0, result: [newUser], isNewUser: true });
+
+    } catch (dbErr) {
+      await client.query('ROLLBACK');
+      throw dbErr;
+    } finally {
+      client.release();
+    }
+
+  } catch (error) {
+    console.error('googleLogin error:', error);
+    res.json({ error: 1, result: "An error occurred. Please try again." });
+  }
+});
+
   return router;
 };
