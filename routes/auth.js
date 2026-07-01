@@ -34,14 +34,15 @@ router.post('/login', authenticate, async (req, res) => {
         user_id,
         picture,
         church_id,
+        auth_provider,
         COALESCE(faith_points, 0) as faith_points,
         COALESCE(rosary_count, 0) as rosary_count
       FROM public."user" 
-      WHERE LOWER(email) LIKE LOWER($1)
+      WHERE LOWER(email) = LOWER($1)
       LIMIT 1
     `;
     
-    const result = await pool.query(query, ['%' + params.email + '%']);
+    const result = await pool.query(query, [params.email.trim()]);
     
     // Did not find email address in user list
     if (result.rows.length === 0) {
@@ -65,7 +66,10 @@ router.post('/login', authenticate, async (req, res) => {
       }
       
       if (!passwordMatch) {
-        return res.json({error: 1, result: "We have your email address! Maybe you forgot your password?"});
+        const providerHint = user.auth_provider && user.auth_provider !== 'email'
+          ? ` This account was created with ${user.auth_provider === 'google' ? 'Google' : user.auth_provider === 'facebook' ? 'Facebook' : user.auth_provider}. Try signing in that way.`
+          : ' Maybe you forgot your password?';
+        return res.json({error: 1, result: `We have your email address!${providerHint}`});
       }
       
       // Successful login - return user data with faith rank
@@ -307,6 +311,128 @@ router.post('/changePassword', authenticate, async (req, res) => {
   } catch (error) {
     console.error('changePassword error:', error);
     res.json({ error: 1, result: 'An error occurred. Please try again.' });
+  }
+});
+
+router.post('/socialLogin', authenticate, async (req, res) => {
+  try {
+    const { provider, email, firstName, lastName, picture, providerId } = req.body;
+
+    if (!provider || !email) {
+      return res.json({ error: 1, result: "Required params 'provider' and 'email' missing" });
+    }
+
+    const validProviders = ['google', 'facebook', 'apple'];
+    if (!validProviders.includes(provider.toLowerCase())) {
+      return res.json({ error: 1, result: `Unsupported provider '${provider}'` });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const providerKey = provider.toLowerCase();
+    const providerIdCol = providerKey === 'google' ? 'google_id' : providerKey === 'facebook' ? 'facebook_id' : null;
+
+    // ── Step 1: Look up existing user by email ──────────────────────────────
+    const existingResult = await pool.query(`
+      SELECT 
+        user_id, user_name, email, real_name, last_name, user_title, user_about,
+        location, active, timestamp, picture, church_id, auth_provider,
+        google_id, facebook_id,
+        COALESCE(faith_points, 0) as faith_points,
+        COALESCE(rosary_count, 0) as rosary_count
+      FROM public."user"
+      WHERE LOWER(email) = $1
+      LIMIT 1
+    `, [normalizedEmail]);
+
+    if (existingResult.rows.length > 0) {
+      const user = existingResult.rows[0];
+
+      if (!user.active) {
+        return res.json({ error: 1, result: "This account has been deactivated." });
+      }
+
+      // Optionally store provider ID for future fast lookups
+      if (providerId && providerIdCol && !user[providerIdCol]) {
+        await pool.query(
+          `UPDATE public."user" SET ${providerIdCol} = $1 WHERE user_id = $2`,
+          [String(providerId), user.user_id]
+        ).catch(e => console.warn(`Could not store ${providerIdCol}:`, e.message));
+      }
+
+      const ranks = await loadFaithRanks();
+      user.faith_rank = computeRank(user.faith_points, ranks);
+      delete user.password;
+      return res.json({ error: 0, result: [user], isNewUser: false });
+    }
+
+    // ── Step 2: No existing user — create one ───────────────────────────────
+    const username = Math.random().toString(36).slice(2, 7);
+    const placeholderPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), saltRounds);
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const maxIdResult = await client.query('SELECT COALESCE(MAX(user_id), 0) + 1 as next_id FROM public."user"');
+      const nextUserId = maxIdResult.rows[0].next_id;
+
+      const insertResult = await client.query(`
+        INSERT INTO public."user" (
+          user_id, user_name, password, email, real_name, last_name, location,
+          user_title, user_about, picture, type, active, auth_provider
+          ${providerIdCol ? ', ' + providerIdCol : ''}
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13${providerIdCol ? ',$14' : ''})
+        RETURNING user_id
+      `, [
+        nextUserId, username, placeholderPassword, normalizedEmail,
+        firstName || '', lastName || '', ' ', ' ', ' ',
+        picture || '', 'standard', 1, providerKey,
+        ...(providerIdCol && providerId ? [String(providerId)] : [])
+      ]);
+
+      const userId = insertResult.rows[0].user_id;
+
+      await client.query(`
+        INSERT INTO public.settings (user_id, use_alias, request_emails, prayer_emails, allow_comments, general_emails, summary_emails)
+        VALUES ($1, 1, 1, 1, 1, 1, 1)
+      `, [userId]);
+
+      await client.query('COMMIT');
+
+      // Award Cornerstone badge (new member)
+      awardBadge(userId, 'cornerstone').catch(() => {});
+
+      // Send welcome email (fire-and-forget)
+      const welcomeHtml = `
+<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+  <h2 style="color:#667eea;">Welcome to Pray Over Us 🙏</h2>
+  <p>Hi ${firstName || 'friend'},</p>
+  <p>Your account has been created using ${providerKey.charAt(0).toUpperCase() + providerKey.slice(1)}. You can now post prayer requests and pray for others in the community.</p>
+  <p>Blessings,<br>The Pray Over Us Team</p>
+</body></html>`;
+      sendGmailSingle(welcomeHtml, { email: 'prayoverus@gmail.com', name: 'PrayOverUs' }, { email: normalizedEmail, name: firstName || 'Friend' }, "Welcome to 'Pray Over Us'", null, null).catch(() => {});
+
+      const ranks = await loadFaithRanks();
+      const newUser = {
+        user_id: userId, user_name: username, email: normalizedEmail,
+        real_name: firstName || '', last_name: lastName || '',
+        picture: picture || '', church_id: null, auth_provider: providerKey,
+        faith_points: 0, rosary_count: 0, active: 1,
+      };
+      newUser.faith_rank = computeRank(0, ranks);
+
+      return res.json({ error: 0, result: [newUser], isNewUser: true });
+
+    } catch (dbErr) {
+      await client.query('ROLLBACK');
+      throw dbErr;
+    } finally {
+      client.release();
+    }
+
+  } catch (error) {
+    console.error('socialLogin error:', error);
+    res.json({ error: 1, result: "An error occurred. Please try again." });
   }
 });
 

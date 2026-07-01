@@ -408,11 +408,15 @@ router.post('/createUser', authenticate, async (req, res) => {
     }
 
     // Check if email already exists (case-insensitive)
-    const emailCheckQuery = 'SELECT user_id FROM public.user WHERE LOWER(email) = LOWER($1)';
+    const emailCheckQuery = 'SELECT user_id, auth_provider FROM public."user" WHERE LOWER(email) = LOWER($1)';
     const emailCheckResult = await pool.query(emailCheckQuery, [params.email]);
     
     if (emailCheckResult.rows.length > 0) {
-      return res.json({error: 1, result: "An account with this email address already exists"});
+      const existingProvider = emailCheckResult.rows[0].auth_provider;
+      const providerHint = existingProvider && existingProvider !== 'email'
+        ? ` Try signing in with ${existingProvider.charAt(0).toUpperCase() + existingProvider.slice(1)}.`
+        : '';
+      return res.json({error: 1, result: `An account with this email address already exists.${providerHint}`});
     }
 
     // Generate random username
