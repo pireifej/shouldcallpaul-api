@@ -11,6 +11,18 @@
             "gallery": [
                 "https://www.shouldcallpaul.com/img/hack/speech-sensei-stage.jpg"
             ],
+            "tech_stack": [
+                "Gemini 2.5 Flash",
+                "Gemini 2.5 Text-to-Speech",
+                "Gemini Imagen 3",
+                "Web Speech API",
+                "Twilio",
+                "Replit",
+                "A-Frame (WebVR)",
+                "Tailwind CSS",
+                "React 18",
+                "Node.js + Express"
+            ],
             "details": {
                 "date": "May 21, 2026",
                 "location": "Middletown, NJ",
@@ -25,6 +37,16 @@
             "desc": "<p>The Stroke Recovery Companion is a smart tool that records, analyzes, and motivates stroke survivors to perform doctor-recommended exercises, like head rotations and arm raises, accelerating recovery and improving independence.</p><p>With strokes affecting 1 in 4 adults globally, targeted exercise can cut recovery time by up to 30% and restore motor function more effectively.</p>",
             "powerpointLink": "",
             "link": "https://docs.google.com/presentation/d/1YBJNfOBWHlS_UQx8tdPgBLXWJdVd8cLj/edit?usp=sharing&ouid=112668354220077801813&rtpof=true&sd=true",
+            "tech_stack": [
+                "Cursor AI IDE",
+                "MongoDB Atlas",
+                "TensorFlow",
+                "ReactJS",
+                "Tailwind CSS",
+                "Camera (laptop webcam)",
+                "Microphone",
+                "Video Recording"
+            ],
             "details": {
                 "date": "May 16, 2025",
                 "location": "Middletown, NJ",
@@ -36,9 +58,17 @@
             "image": "img/hack/bread.png",
             "label": "Pain Busters",
             "type": "hackathon",
-            "desc": "<p>Proactive pain management through daily documenting. Uses AI to find trends and give specific recommendations to alleviate pain. Uses key factors that influence pain, including physical activity, diet, sleep, stress, environmental factors, hydration, medication, medical conditions and psychological factors.</p>",
             "powerpointLink": "docs/rearendengineers_demo.pdf",
             "link": "https://www.shouldcallpaul.com/pain.html?module=rearend",
+            "desc": "<p>Proactive pain management through daily documenting. Uses AI to find trends and give specific recommendations to alleviate pain. Uses key factors that influence pain, including physical activity, diet, sleep, stress, environmental factors, hydration, medication, medical conditions and psychological factors.</p>",
+            "tech_stack": [
+                "HTML5",
+                "CSS3",
+                "JavaScript",
+                "OpenAI ChatGPT API (real-time AI trend analysis and recommendations)",
+                "OpenWeatherMap API (real-time weather data)",
+                "IQAir / Air Quality Index API (real-time air quality data)"
+            ],
             "details": {
                 "date": "May 17, 2024",
                 "location": "Middletown, NJ",
@@ -50,8 +80,18 @@
             "image": "img/hack/lifewithastutter.png",
             "label": "Fluent Force",
             "type": "hackathon",
-            "desc": "<p>Bring awareness to and promote early intervention in children's stammers by profiling their speech patterns and apply metrics with thresholding to best characterize their impediment and provide the best treatment.</p>",
             "powerpointLink": "docs/fluentForce.pdf",
+            "desc": "<p>Bring awareness to and promote early intervention in children's stammers by profiling their speech patterns and apply metrics with thresholding to best characterize their impediment and provide the best treatment.</p>",
+            "tech_stack": [
+                "Python",
+                "Big Data (large dataset of real children's stuttering audio)",
+                "librosa (audio feature extraction and analysis)",
+                "Google Cloud Speech-to-Text API (audio parsing)",
+                "NumPy / SciPy (statistical analysis and threshold computation)",
+                "scikit-learn (classification and pattern recognition)",
+                "Disfluency Metrics (speech rate, repetition frequency, stutter duration)",
+                "Threshold-based Scoring Model (severity percentage output)"
+            ],
             "details": {
                 "date": "May 8, 2023",
                 "location": "Online",
@@ -63,8 +103,15 @@
             "image": "img/hack/hackthirdplace.png",
             "label": "Pencil It In",
             "type": "hackathon",
-            "desc": "<p>Pencil with standard thickness lead, self revolving gear to sharpen while using. Even distribution across tip. Family friendly, child safe and features to help parents such as a built-in timer to help parents manage kids' activities.</p>",
             "powerpointLink": "docs/pencilItIn.pdf",
+            "desc": "<p>Pencil with standard thickness lead, self revolving gear to sharpen while using. Even distribution across tip. Family friendly, child safe and features to help parents such as a built-in timer to help parents manage kids' activities.</p>",
+            "tech_stack": [
+                "Human-Centered Design / User Interviews",
+                "Design Thinking Methodology",
+                "Flowcharting / Process Mapping",
+                "Figma (UI/UX prototyping)",
+                "Miro (collaborative whiteboarding and flowcharts)"
+            ],
             "details": {
                 "date": "October 7, 2021",
                 "location": "AT&T Research in Middletown, NJ",
@@ -76,8 +123,19 @@
             "image": "img/hack/itcantwaitpng.png",
             "label": "It Can't Wait",
             "type": "hackathon",
-            "desc": "<p>Proactive AT&T customer service: search, collate & aggregate tweets praising or complaining about AT&T price, service and overall experience. Get tweets & reply to tweets *automatically* with suggested replies based on sentiment analysis and keywords.</p>",
             "powerpointLink": "docs/itCantWait.pdf",
+            "desc": "<p>Proactive AT&T customer service: search, collate & aggregate tweets praising or complaining about AT&T price, service and overall experience. Get tweets & reply to tweets *automatically* with suggested replies based on sentiment analysis and keywords.</p>",
+            "tech_stack": [
+                "Java",
+                "XML (Android UI layouts)",
+                "Android Studio",
+                "Android SDK",
+                "Twitter API v1.1 (tweet search, read & auto-reply)",
+                "Twitter4J (Java library for Twitter API integration)",
+                "Sentiment Analysis",
+                "Keyword Extraction / NLP",
+                "REST API integration"
+            ],
             "details": {
                 "date": "May 15, 2019",
                 "location": "AT&T Research in Middletown, NJ",
@@ -91,6 +149,15 @@
             "type": "hackathon",
             "powerpointLink": "docs/fraudFinder.pdf",
             "desc": "<p>Fraud cost U.S. retailers approximately $32 billion in 2014, up from $23 billion just one year earlier. Fraud Finder is here to stop it: Quickly determine fraudster in the store, Real-time customer identify check & retain fraudster image and White Pages database lookup</p>",
+            "tech_stack": [
+                "Java",
+                "XML (Android UI layouts)",
+                "Android Studio",
+                "Android SDK",
+                "Camera API (driver's license photo capture)",
+                "OCR / Optical Character Recognition (driver's license text parsing)",
+                "White Pages Pro API (real-time identity lookup)"
+            ],
             "details": {
                 "date": "May 5, 2019",
                 "location": "AT&T Research in Middletown, NJ",
@@ -104,6 +171,16 @@
             "type": "hackathon",
             "powerpointLink": "docs/polishedSpeaker.pdf",
             "desc": "<p>Collects data on presentation style to characterize a speaker and give recommendations for improvement</p>",
+            "tech_stack": [
+                "Java",
+                "XML (Android UI layouts)",
+                "Android SDK",
+                "Accelerometer",
+                "Gyroscope (phone angle / pivot detection)",
+                "Microphone / Audio Recording",
+                "Speech-to-Text (Android SpeechRecognizer API)",
+                "Natural Language Processing (NLP)"
+            ],
             "details": {
                 "date": "2017",
                 "location": "AT&T Research in Middletown, NJ",
@@ -116,6 +193,15 @@
             "label": "SMS Stalker",
             "type": "hackathon",
             "desc": "<p>Detects if the user is texting while driving. If so, alert is sent out and phone is disabled.</p>",
+            "tech_stack": [
+                "Java",
+                "XML (Android UI layouts)",
+                "Android SDK",
+                "GPS / Location Services",
+                "Accelerometer",
+                "SMS API",
+                "R (statistical analysis)"
+            ],
             "details": {
                 "date": "2015",
                 "location": "AT&T Research in Middletown, NJ",
