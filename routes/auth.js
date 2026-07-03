@@ -36,7 +36,9 @@ router.post('/login', authenticate, async (req, res) => {
         church_id,
         auth_provider,
         COALESCE(faith_points, 0) as faith_points,
-        COALESCE(rosary_count, 0) as rosary_count
+        COALESCE(rosary_count, 0) as rosary_count,
+        (SELECT COUNT(*) FROM public.user_request WHERE user_id = "user".user_id) as prayer_count,
+        (SELECT COUNT(*) FROM public.request WHERE user_id = "user".user_id) as request_count
       FROM public."user" 
       WHERE LOWER(email) = LOWER($1)
       LIMIT 1
