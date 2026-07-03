@@ -363,21 +363,30 @@ router.post('/registerFCMToken', authenticate, async (req, res) => {
     if (!params.userId || !params.fcmToken) {
       return res.json({ error: 1, result: "Required params 'userId' and 'fcmToken' missing" });
     }
-    
-    // Update the user's Expo push token in the database
-    // (fcm_token column name kept for backward compatibility)
-    const updateQuery = `
-      UPDATE public."user" 
-      SET fcm_token = $1, fcm_token_updated = NOW() 
-      WHERE user_id = $2
-      RETURNING user_id, real_name
-    `;
-    
-    const result = await pool.query(updateQuery, [params.fcmToken, params.userId]);
-    
-    if (result.rows.length === 0) {
+
+    // Check if this exact token is already stored for this user — if so, do nothing
+    const existing = await pool.query(
+      `SELECT fcm_token FROM public."user" WHERE user_id = $1`,
+      [params.userId]
+    );
+
+    if (existing.rows.length === 0) {
       return res.json({ error: 1, result: "User not found" });
     }
+
+    if (existing.rows[0].fcm_token === params.fcmToken) {
+      console.log(`⏭️  Push token unchanged for user ${params.userId} — skipping update`);
+      return res.json({ error: 0, result: "Push token already up to date", userId: params.userId });
+    }
+
+    // New token — replace whatever was there before (one token per user)
+    const result = await pool.query(
+      `UPDATE public."user"
+       SET fcm_token = $1, fcm_token_updated = NOW()
+       WHERE user_id = $2
+       RETURNING user_id, real_name`,
+      [params.fcmToken, params.userId]
+    );
     
     console.log(`✅ Expo push token registered for user ${result.rows[0].real_name} (ID: ${params.userId})`);
     

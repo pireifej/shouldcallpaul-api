@@ -1246,6 +1246,25 @@ cron.schedule('0 13 * * *', async () => {
 });
 console.log('⏰ Pending testimony reminder cron scheduled at 1:00 PM UTC (9 AM Eastern)');
 
+// ── Push token cleanup — 4:00 AM UTC daily ──────────────────────────────────
+// Removes push tokens that haven't been updated in 90+ days (stale/abandoned devices)
+cron.schedule('0 4 * * *', async () => {
+  try {
+    const result = await pool.query(`
+      UPDATE public."user"
+      SET fcm_token = NULL
+      WHERE fcm_token IS NOT NULL
+        AND fcm_token_updated < NOW() - INTERVAL '90 days'
+    `);
+    if (result.rowCount > 0) {
+      console.log(`🗑️  Push token cleanup: removed ${result.rowCount} stale token(s) older than 90 days`);
+    }
+  } catch (err) {
+    console.error('Push token cleanup cron error:', err.message);
+  }
+});
+console.log('⏰ Push token cleanup scheduled at 4:00 AM UTC (tokens older than 90 days)');
+
 // ──────────────────────────────────────────────────────────────────────────────
 
 // Start server on 0.0.0.0 for public accessibility
