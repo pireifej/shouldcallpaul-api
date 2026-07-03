@@ -555,5 +555,157 @@ router.post('/googleLogin', authenticate, async (req, res) => {
   }
 });
 
+// POST /appleLogin — Sign in with Apple
+// Apple only sends email + name on the FIRST login; subsequent logins only send apple_user_id + identity_token
+router.post('/appleLogin', authenticate, async (req, res) => {
+  try {
+    const { identity_token, apple_user_id, email, first_name, last_name } = req.body;
+
+    if (!identity_token) return res.json({ error: 1, result: "Required param 'identity_token' missing" });
+    if (!apple_user_id) return res.json({ error: 1, result: "Required param 'apple_user_id' missing" });
+
+    const normalizedEmail = email ? email.toLowerCase().trim() : null;
+
+    // Shared query — mirrors /googleLogin response shape
+    const fetchUserQuery = `
+      SELECT
+        u.user_id, u.user_name, u.email, u.real_name, u.last_name,
+        u.user_title, u.user_about, u.location, u.picture, u.profile_picture_url,
+        u.church_id, u.active, u.auth_provider, u.apple_id,
+        u.timestamp,
+        COALESCE(u.faith_points, 0) as faith_points,
+        COALESCE(u.rosary_count, 0) as rosary_count,
+        c.church_name,
+        (SELECT COUNT(*) FROM public.user_request WHERE user_id = u.user_id) as prayer_count,
+        (SELECT COUNT(*) FROM public.request WHERE user_id = u.user_id) as request_count
+      FROM public."user" u
+      LEFT JOIN public.church c ON c.church_id = u.church_id
+      WHERE u.apple_id = $1
+      LIMIT 1
+    `;
+
+    // ── Step 1: Look up by apple_user_id ─────────────────────────────────────
+    const byAppleId = await pool.query(fetchUserQuery, [apple_user_id]);
+
+    if (byAppleId.rows.length > 0) {
+      const user = byAppleId.rows[0];
+      if (!user.active) return res.json({ error: 1, result: "This account has been deactivated." });
+      const ranks = await loadFaithRanks();
+      user.faith_rank = computeRank(user.faith_points, ranks);
+      return res.json({ error: 0, result: [user], isNewUser: false });
+    }
+
+    // ── Step 2: Fall back to email lookup (handles first-login case) ─────────
+    if (normalizedEmail) {
+      const byEmail = await pool.query(`
+        SELECT
+          u.user_id, u.user_name, u.email, u.real_name, u.last_name,
+          u.user_title, u.user_about, u.location, u.picture, u.profile_picture_url,
+          u.church_id, u.active, u.auth_provider, u.apple_id,
+          u.timestamp,
+          COALESCE(u.faith_points, 0) as faith_points,
+          COALESCE(u.rosary_count, 0) as rosary_count,
+          c.church_name,
+          (SELECT COUNT(*) FROM public.user_request WHERE user_id = u.user_id) as prayer_count,
+          (SELECT COUNT(*) FROM public.request WHERE user_id = u.user_id) as request_count
+        FROM public."user" u
+        LEFT JOIN public.church c ON c.church_id = u.church_id
+        WHERE LOWER(u.email) = $1
+        LIMIT 1
+      `, [normalizedEmail]);
+
+      if (byEmail.rows.length > 0) {
+        const user = byEmail.rows[0];
+        if (!user.active) return res.json({ error: 1, result: "This account has been deactivated." });
+
+        // Store apple_id on the matched account
+        await pool.query(
+          `UPDATE public."user" SET apple_id = $1, auth_provider = 'apple' WHERE user_id = $2`,
+          [apple_user_id, user.user_id]
+        ).catch(e => console.warn('appleLogin: could not store apple_id:', e.message));
+        user.apple_id = apple_user_id;
+        user.auth_provider = 'apple';
+
+        const ranks = await loadFaithRanks();
+        user.faith_rank = computeRank(user.faith_points, ranks);
+        return res.json({ error: 0, result: [user], isNewUser: false });
+      }
+    }
+
+    // ── Step 3: No match — create new user ───────────────────────────────────
+    // Apple doesn't always send email; without it we can't create an account
+    if (!normalizedEmail) {
+      return res.json({
+        error: 1,
+        result: "No account found for this Apple ID. Please sign in with email/password or try again — Apple should provide your email on a fresh sign-in."
+      });
+    }
+
+    const username = Math.random().toString(36).slice(2, 7);
+    const placeholderPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), saltRounds);
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const { rows: [{ next_id }] } = await client.query(
+        `SELECT COALESCE(MAX(user_id), 0) + 1 as next_id FROM public."user"`
+      );
+
+      await client.query(`
+        INSERT INTO public."user" (
+          user_id, user_name, password, email, real_name, last_name,
+          location, user_title, user_about, picture, type, active,
+          auth_provider, apple_id
+        ) VALUES ($1,$2,$3,$4,$5,$6,' ',' ',' ',' ','standard',1,'apple',$7)
+      `, [
+        next_id, username, placeholderPassword, normalizedEmail,
+        first_name || '', last_name || '',
+        apple_user_id
+      ]);
+
+      await client.query(`
+        INSERT INTO public.settings
+          (user_id, use_alias, request_emails, prayer_emails, allow_comments, general_emails, summary_emails)
+        VALUES ($1, 1, 1, 1, 1, 1, 1)
+      `, [next_id]);
+
+      await client.query('COMMIT');
+
+      // Fire-and-forget: badge + welcome email
+      awardBadge(next_id, 'cornerstone').catch(() => {});
+      const welcomeHtml = `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;padding:20px;">
+        <h2>Welcome to Pray Over Us 🙏</h2>
+        <p>Hi ${first_name || 'friend'}, your account has been created with Apple Sign-In.</p>
+        <p>Blessings,<br>The Pray Over Us Team</p>
+      </body></html>`;
+      sendGmailSingle(
+        welcomeHtml,
+        { email: 'prayoverus@gmail.com', name: 'PrayOverUs' },
+        { email: normalizedEmail, name: first_name || 'Friend' },
+        "Welcome to 'Pray Over Us'", null, null
+      ).catch(() => {});
+
+      // Fetch the newly created user with all computed fields
+      const newUserResult = await pool.query(fetchUserQuery, [apple_user_id]);
+      const newUser = newUserResult.rows[0];
+      const ranks = await loadFaithRanks();
+      newUser.faith_rank = computeRank(newUser.faith_points, ranks);
+
+      return res.json({ error: 0, result: [newUser], isNewUser: true });
+
+    } catch (dbErr) {
+      await client.query('ROLLBACK');
+      throw dbErr;
+    } finally {
+      client.release();
+    }
+
+  } catch (error) {
+    console.error('appleLogin error:', error);
+    res.json({ error: 1, result: "An error occurred. Please try again." });
+  }
+});
+
   return router;
 };

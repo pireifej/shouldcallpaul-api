@@ -1084,13 +1084,18 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
 
 // ── Startup migration: add any missing columns ────────────────────────────────
 (async () => {
-  const migration = `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_bounced boolean DEFAULT false`;
+  const migrations = [
+    { col: 'email_bounced', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_bounced boolean DEFAULT false` },
+    { col: 'apple_id',      sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS apple_id TEXT` },
+  ];
   for (const [name, p] of [['dev', pool], ['prod', auditPool]]) {
-    try {
-      await p.query(migration);
-      console.log(`✅ Startup migration (${name}): email_bounced column ready`);
-    } catch (err) {
-      console.error(`⚠️  Startup migration (${name}) failed (non-fatal):`, err.message);
+    for (const { col, sql } of migrations) {
+      try {
+        await p.query(sql);
+        console.log(`✅ Startup migration (${name}): ${col} column ready`);
+      } catch (err) {
+        console.error(`⚠️  Startup migration (${name}): ${col} failed (non-fatal):`, err.message);
+      }
     }
   }
 })();
