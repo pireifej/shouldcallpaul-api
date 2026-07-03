@@ -1466,7 +1466,7 @@ router.post('/getPrayedFor', authenticate, async (req, res) => {
   }
 });
 
-// POST /getMyRequests - Get user's own active prayer requests (active = 1)
+// POST /getMyRequests - Get all of user's own prayer requests (active, answered, and archived)
 router.post('/getMyRequests', authenticate, async (req, res) => {
   log(req);
   const params = req.body;
@@ -1481,11 +1481,11 @@ router.post('/getMyRequests', authenticate, async (req, res) => {
   }
 
   try {
-    // PostgreSQL query with proper parameterization to prevent SQL injection
     const query = `
       SELECT DISTINCT 
         request.request_id,
         request.user_id,
+        request.active,
         COALESCE(CASE WHEN $2='es' THEN request.content_es ELSE request.content_en END, request.request_text) as request_text,
         request.fk_prayer_id,
         prayers.prayer_title,
@@ -1503,7 +1503,7 @@ router.post('/getMyRequests', authenticate, async (req, res) => {
       INNER JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
-      WHERE request.user_id = $1 AND request.active IN (1, 2)
+      WHERE request.user_id = $1
       ORDER BY timestamp_raw DESC
     `;
 
