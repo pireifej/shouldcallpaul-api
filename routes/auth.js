@@ -211,8 +211,10 @@ router.get('/reset', (req, res) => {
     .card { background: #fff; border-radius: 16px; padding: 40px 32px; max-width: 420px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.08); text-align: center; }
     .logo { font-size: 48px; margin-bottom: 12px; }
     h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
-    .subtitle { font-size: 15px; color: #666; margin-bottom: 28px; line-height: 1.5; }
-    .app-btn { display: inline-block; padding: 13px 32px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 15px; margin-bottom: 28px; }
+    .subtitle { font-size: 15px; color: #666; margin-bottom: 20px; line-height: 1.5; }
+    .spinner { width: 36px; height: 36px; border: 3px solid #e0e0e0; border-top-color: #667eea; border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .app-btn { display: inline-block; padding: 11px 28px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 14px; margin-bottom: 20px; }
     .divider { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; color: #aaa; font-size: 13px; }
     .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e0e0e0; }
     label { display: block; text-align: left; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
@@ -223,25 +225,42 @@ router.get('/reset', (req, res) => {
     .msg { margin-top: 16px; font-size: 14px; padding: 10px 14px; border-radius: 8px; display: none; }
     .msg.success { background: #e6f9f0; color: #1a7f4b; display: block; }
     .msg.error   { background: #fdecea; color: #b00020; display: block; }
+    #fallback { display: none; }
   </style>
 </head>
 <body>
 <div class="card">
   <div class="logo">🙏</div>
-  <h1>Reset Your Password</h1>
-  <p class="subtitle">If you have the app installed, tap below to open it and reset your password there.</p>
-  <a class="app-btn" href="${appLink}">Open in Pray Over Us</a>
-  <div class="divider">or reset here in your browser</div>
-  <form id="resetForm">
-    <label for="pw">New password</label>
-    <input type="password" id="pw" placeholder="At least 6 characters" required minlength="6">
-    <label for="pw2">Confirm password</label>
-    <input type="password" id="pw2" placeholder="Repeat new password" required minlength="6">
-    <button type="submit" id="submitBtn">Set New Password</button>
-    <div class="msg" id="msg"></div>
-  </form>
+  <div id="launching">
+    <h1>Opening Pray Over Us…</h1>
+    <p class="subtitle">Taking you to the app to reset your password.</p>
+    <div class="spinner"></div>
+  </div>
+  <div id="fallback">
+    <h1>Reset Your Password</h1>
+    <p class="subtitle">The app didn't open — no problem, reset your password right here.</p>
+    <a class="app-btn" href="${appLink}">Try opening the app again</a>
+    <div class="divider">or reset here in your browser</div>
+    <form id="resetForm">
+      <label for="pw">New password</label>
+      <input type="password" id="pw" placeholder="At least 6 characters" required minlength="6">
+      <label for="pw2">Confirm password</label>
+      <input type="password" id="pw2" placeholder="Repeat new password" required minlength="6">
+      <button type="submit" id="submitBtn">Set New Password</button>
+      <div class="msg" id="msg"></div>
+    </form>
+  </div>
 </div>
 <script>
+  // Immediately try to open the app
+  window.location.href = '${appLink}';
+
+  // If the user is still here after 2.5s, the app didn't open — show the web form
+  setTimeout(function() {
+    document.getElementById('launching').style.display = 'none';
+    document.getElementById('fallback').style.display = 'block';
+  }, 2500);
+
   document.getElementById('resetForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const pw  = document.getElementById('pw').value;
