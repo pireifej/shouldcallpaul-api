@@ -194,7 +194,7 @@ router.post('/requestPasswordReset', async (req, res) => {
   }
 });
 
-// GET /reset - Redirect page that bounces email link into the app's custom scheme
+// GET /reset - Try to open the app via deep link; fall back to a web reset form
 router.get('/reset', (req, res) => {
   const token = req.query.token;
   if (!token) return res.status(400).send('Missing token.');
@@ -203,13 +203,85 @@ router.get('/reset', (req, res) => {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Redirecting…</title>
-  <meta http-equiv="refresh" content="0;url=${appLink}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reset Password – Pray Over Us</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f5f5f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .card { background: #fff; border-radius: 16px; padding: 40px 32px; max-width: 420px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.08); text-align: center; }
+    .logo { font-size: 48px; margin-bottom: 12px; }
+    h1 { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+    .subtitle { font-size: 15px; color: #666; margin-bottom: 28px; line-height: 1.5; }
+    .app-btn { display: inline-block; padding: 13px 32px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 15px; margin-bottom: 28px; }
+    .divider { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; color: #aaa; font-size: 13px; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e0e0e0; }
+    label { display: block; text-align: left; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+    input[type=password] { width: 100%; padding: 12px 14px; border: 1.5px solid #ddd; border-radius: 10px; font-size: 15px; outline: none; transition: border-color .2s; margin-bottom: 14px; }
+    input[type=password]:focus { border-color: #667eea; }
+    button[type=submit] { width: 100%; padding: 13px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; border-radius: 25px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    button[type=submit]:disabled { opacity: .6; cursor: default; }
+    .msg { margin-top: 16px; font-size: 14px; padding: 10px 14px; border-radius: 8px; display: none; }
+    .msg.success { background: #e6f9f0; color: #1a7f4b; display: block; }
+    .msg.error   { background: #fdecea; color: #b00020; display: block; }
+  </style>
 </head>
-<body style="font-family:Arial,sans-serif;text-align:center;padding:60px 20px;">
-  <p>Opening Pray Over Us…</p>
-  <p><a href="${appLink}">Tap here if the app doesn't open automatically.</a></p>
-  <script>window.location.href = "${appLink}";</script>
+<body>
+<div class="card">
+  <div class="logo">🙏</div>
+  <h1>Reset Your Password</h1>
+  <p class="subtitle">If you have the app installed, tap below to open it and reset your password there.</p>
+  <a class="app-btn" href="${appLink}">Open in Pray Over Us</a>
+  <div class="divider">or reset here in your browser</div>
+  <form id="resetForm">
+    <label for="pw">New password</label>
+    <input type="password" id="pw" placeholder="At least 6 characters" required minlength="6">
+    <label for="pw2">Confirm password</label>
+    <input type="password" id="pw2" placeholder="Repeat new password" required minlength="6">
+    <button type="submit" id="submitBtn">Set New Password</button>
+    <div class="msg" id="msg"></div>
+  </form>
+</div>
+<script>
+  document.getElementById('resetForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const pw  = document.getElementById('pw').value;
+    const pw2 = document.getElementById('pw2').value;
+    const msg = document.getElementById('msg');
+    const btn = document.getElementById('submitBtn');
+    msg.className = 'msg';
+    msg.style.display = 'none';
+    if (pw !== pw2) {
+      msg.textContent = 'Passwords do not match.';
+      msg.className = 'msg error';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      const res = await fetch('/resetPassword', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: '${token}', newPassword: pw })
+      });
+      const data = await res.json();
+      if (data.error === 0) {
+        msg.textContent = 'Password updated! You can now log in to the app.';
+        msg.className = 'msg success';
+        document.getElementById('resetForm').style.display = 'none';
+      } else {
+        msg.textContent = data.result || 'Something went wrong. Please request a new reset link.';
+        msg.className = 'msg error';
+        btn.disabled = false;
+        btn.textContent = 'Set New Password';
+      }
+    } catch(err) {
+      msg.textContent = 'Network error. Please try again.';
+      msg.className = 'msg error';
+      btn.disabled = false;
+      btn.textContent = 'Set New Password';
+    }
+  });
+</script>
 </body>
 </html>`);
 });
