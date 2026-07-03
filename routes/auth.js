@@ -265,9 +265,11 @@ router.get('/reset', (req, res) => {
       });
       const data = await res.json();
       if (data.error === 0) {
-        msg.textContent = 'Password updated! You can now log in to the app.';
-        msg.className = 'msg success';
-        document.getElementById('resetForm').style.display = 'none';
+        document.querySelector('.card').innerHTML = \`
+          <div style="font-size:64px;margin-bottom:16px;">✅</div>
+          <h1 style="font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:10px;">Password Updated!</h1>
+          <p style="font-size:15px;color:#555;line-height:1.6;">Your password has been changed successfully.<br>You can now log in to the Pray Over Us app with your new password.</p>
+        \`;
       } else {
         msg.textContent = data.result || 'Something went wrong. Please request a new reset link.';
         msg.className = 'msg error';
