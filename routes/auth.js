@@ -232,14 +232,13 @@ router.get('/reset', (req, res) => {
 <div class="card">
   <div class="logo">🙏</div>
   <div id="launching">
-    <h1>Opening Pray Over Us…</h1>
-    <p class="subtitle">Taking you to the app to reset your password.</p>
+    <h1>Reset Your Password</h1>
+    <p class="subtitle">How would you like to reset your password?</p>
     <div class="spinner"></div>
   </div>
   <div id="fallback">
     <h1>Reset Your Password</h1>
-    <p class="subtitle">The app didn't open — no problem, reset your password right here.</p>
-    <a class="app-btn" href="${appLink}">Try opening the app again</a>
+    <a class="app-btn" href="${appLink}">Open in Pray Over Us App</a>
     <div class="divider">or reset here in your browser</div>
     <form id="resetForm">
       <label for="pw">New password</label>
@@ -252,14 +251,13 @@ router.get('/reset', (req, res) => {
   </div>
 </div>
 <script>
-  // Immediately try to open the app
-  window.location.href = '${appLink}';
-
-  // If the user is still here after 2.5s, the app didn't open — show the web form
+  // Show a brief spinner, then reveal both options — let the user choose one path
+  // (auto-firing the deep link caused the app to open the reset screen even when
+  //  the user reset via the web form, leaving a stale screen in the app)
   setTimeout(function() {
     document.getElementById('launching').style.display = 'none';
     document.getElementById('fallback').style.display = 'block';
-  }, 2500);
+  }, 800);
 
   document.getElementById('resetForm').addEventListener('submit', async function(e) {
     e.preventDefault();
