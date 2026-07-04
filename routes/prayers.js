@@ -666,13 +666,13 @@ const prayerImageUpload = multer({
     fileSize: 5 * 1024 * 1024 // 5MB limit
   },
   fileFilter: function (req, file, cb) {
-    const allowedTypes = ['.jpg', '.jpeg', '.png', '.webp'];
+    const allowedTypes = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'];
     const ext = path.extname(file.originalname).toLowerCase();
     
     if (allowedTypes.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Only JPG, PNG, and WEBP formats are allowed'));
+      cb(new Error('Only JPG, PNG, WEBP, and HEIC formats are allowed'));
     }
   }
 });
@@ -696,8 +696,8 @@ async function handleEditRequest(req, res, multerError) {
       if (multerError.code === 'LIMIT_FILE_SIZE') {
         return res.json({ error: 1, result: 'Image size exceeds 5MB limit' });
       }
-      if (multerError.message === 'Only JPG, PNG, and WEBP formats are allowed') {
-        return res.json({ error: 1, result: 'Only JPG, PNG, and WEBP formats are allowed' });
+      if (multerError.message === 'Only JPG, PNG, WEBP, and HEIC formats are allowed') {
+        return res.json({ error: 1, result: 'Only JPG, PNG, WEBP, and HEIC formats are allowed' });
       }
       console.error('Image upload error:', multerError);
       return res.json({ error: 1, result: 'Failed to upload image' });
@@ -856,8 +856,8 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
         return res.json({ error: 1, result: 'Image size exceeds 5MB limit' });
       }
       
-      if (multerError.message === 'Only JPG, PNG, and WEBP formats are allowed') {
-        return res.json({ error: 1, result: 'Only JPG, PNG, and WEBP formats are allowed' });
+      if (multerError.message === 'Only JPG, PNG, WEBP, and HEIC formats are allowed') {
+        return res.json({ error: 1, result: 'Only JPG, PNG, WEBP, and HEIC formats are allowed' });
       }
       
       console.error('Image upload error:', multerError);

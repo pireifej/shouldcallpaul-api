@@ -860,13 +860,13 @@ const profilePictureUpload = multer({
     fileSize: 5 * 1024 * 1024 // 5MB limit
   },
   fileFilter: function (req, file, cb) {
-    const allowedTypes = ['.jpg', '.jpeg', '.png', '.webp'];
+    const allowedTypes = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'];
     const ext = path.extname(file.originalname).toLowerCase();
     
     if (allowedTypes.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Only JPG, PNG, and WEBP formats are allowed'));
+      cb(new Error('Only JPG, PNG, WEBP, and HEIC formats are allowed'));
     }
   }
 });
@@ -882,8 +882,8 @@ router.post('/uploadProfilePicture', authenticate, (req, res) => {
           return res.json({ error: 1, result: 'File size exceeds 5MB limit' });
         }
         
-        if (err.message === 'Only JPG, PNG, and WEBP formats are allowed') {
-          return res.json({ error: 1, result: 'Only JPG, PNG, and WEBP formats are allowed' });
+        if (err.message === 'Only JPG, PNG, WEBP, and HEIC formats are allowed') {
+          return res.json({ error: 1, result: 'Only JPG, PNG, WEBP, and HEIC formats are allowed' });
         }
         
         console.error('Upload error:', err);
