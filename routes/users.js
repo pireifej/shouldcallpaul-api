@@ -866,7 +866,7 @@ const profilePictureUpload = multer({
     if (allowedTypes.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Only JPG, PNG, WEBP, and HEIC formats are allowed'));
+      cb(new Error('That image format isn\'t supported. Please use a photo from your camera roll.'));
     }
   }
 });
@@ -882,8 +882,8 @@ router.post('/uploadProfilePicture', authenticate, (req, res) => {
           return res.json({ error: 1, result: 'File size exceeds 5MB limit' });
         }
         
-        if (err.message === 'Only JPG, PNG, WEBP, and HEIC formats are allowed') {
-          return res.json({ error: 1, result: 'Only JPG, PNG, WEBP, and HEIC formats are allowed' });
+        if (err.message.includes('image format')) {
+          return res.json({ error: 1, result: err.message });
         }
         
         console.error('Upload error:', err);
