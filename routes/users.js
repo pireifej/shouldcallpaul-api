@@ -2,6 +2,7 @@
 const express = require('express');
 const { promisify } = require('util');
 const { exec } = require('child_process');
+const crypto = require('crypto');
 
 module.exports = function usersRoutes(ctx) {
   const router = express.Router();
@@ -459,8 +460,8 @@ router.post('/createUser', authenticate, async (req, res) => {
         INSERT INTO public.user (
           user_id, user_name, password, email, real_name, last_name, location, 
           user_title, user_about, picture, gender, phone, type, 
-          contacted_timestamp, active, church_id, custom_church_name
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+          contacted_timestamp, active, church_id, custom_church_name, email_verified
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
         RETURNING user_id
       `;
       
@@ -481,7 +482,8 @@ router.post('/createUser', authenticate, async (req, res) => {
         null,
         1,
         params.church_id ?? null,
-        params.custom_church_name || null
+        params.custom_church_name || null,
+        false
       ];
       
       const userResult = await client.query(userInsertQuery, userValues);
@@ -501,6 +503,15 @@ router.post('/createUser', authenticate, async (req, res) => {
       // Commit transaction
       await client.query('COMMIT');
       
+      // Generate email verification token
+      const verifyToken = crypto.randomBytes(32).toString('hex');
+      const verifyExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      await pool.query(
+        `INSERT INTO public.email_verification_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
+        [userId, verifyToken, verifyExpires]
+      );
+      const verifyLink = `https://shouldcallpaul.replit.app/verifyEmail?token=${verifyToken}`;
+
       // Send welcome email
       const passwordMessage = weSetPassword ? `Your temporary password is "${mypassword}"` : "";
       
@@ -519,6 +530,8 @@ router.post('/createUser', authenticate, async (req, res) => {
     .content { padding: 40px 30px; line-height: 1.6; color: #333333; font-size: 16px; }
     .button-container { text-align: center; margin: 30px 0; padding: 20px 0; }
     .button { display: inline-block; padding: 14px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+    .verify-box { background-color: #f0fff4; border: 1px solid #86efac; border-radius: 8px; padding: 20px 24px; margin: 24px 0; text-align: center; }
+    .verify-btn { display: inline-block; padding: 12px 32px; background: #22c55e; color: #ffffff; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 15px; }
     .password-box { background-color: #f0f4ff; border-left: 4px solid #667eea; padding: 14px 16px; margin: 20px 0; border-radius: 0 6px 6px 0; font-size: 15px; color: #333; }
     .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666666; font-size: 14px; border-top: 1px solid #e0e0e0; }
     .footer a { color: #667eea; text-decoration: none; }
@@ -535,6 +548,11 @@ router.post('/createUser', authenticate, async (req, res) => {
       <p>Welcome to the <strong>Pray Over Us</strong> community! 🙏 We're so glad you're here.</p>
       <p>You can now post your own prayer requests and pray for others in the community. You are not alone.</p>
       ${passwordMessage ? `<div class="password-box"><strong>📋 Important:</strong> ${passwordMessage}</div>` : ''}
+      <div class="verify-box">
+        <p style="margin: 0 0 12px; font-weight: 600; color: #166534;">One quick step — confirm your email:</p>
+        <a href="${verifyLink}" class="verify-btn">✅ Confirm My Email</a>
+        <p style="margin: 12px 0 0; font-size: 13px; color: #666;">This link expires in 7 days.</p>
+      </div>
       <p>Blessings,<br>The Pray Over Us Team</p>
     </div>
     <div class="button-container">

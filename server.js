@@ -1085,8 +1085,17 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
 // ── Startup migration: add any missing columns ────────────────────────────────
 (async () => {
   const migrations = [
-    { col: 'email_bounced', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_bounced boolean DEFAULT false` },
-    { col: 'apple_id',      sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS apple_id TEXT` },
+    { col: 'email_bounced',  sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_bounced boolean DEFAULT false` },
+    { col: 'apple_id',       sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS apple_id TEXT` },
+    { col: 'email_verified', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_verified boolean DEFAULT true` },
+    { col: 'email_verification_tokens_table', sql: `CREATE TABLE IF NOT EXISTS public.email_verification_tokens (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL,
+      token VARCHAR(255) UNIQUE NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      expires_at TIMESTAMP NOT NULL,
+      used BOOLEAN DEFAULT false
+    )` },
   ];
   for (const [name, p] of [['dev', pool], ['prod', auditPool]]) {
     for (const { col, sql } of migrations) {

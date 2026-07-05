@@ -111,7 +111,7 @@ router.post('/sendBroadcastEmail', authenticate, async (req, res) => {
     let userRecipients = [];
     
     if (params.includeAllUsers) {
-      const usersQuery = 'SELECT email, user_name, real_name FROM public."user" WHERE email IS NOT NULL AND email != \'\' AND COALESCE(email_bounced, false) = false';
+      const usersQuery = 'SELECT email, user_name, real_name FROM public."user" WHERE email IS NOT NULL AND email != \'\' AND COALESCE(email_bounced, false) = false AND COALESCE(email_verified, true) = true';
       const usersResult = await pool.query(usersQuery);
       
       userRecipients = usersResult.rows;
