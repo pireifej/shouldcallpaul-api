@@ -433,8 +433,8 @@ router.post('/admin/flagBouncedEmail', async (req, res) => {
       try {
         await sendPushNotification(
           user.fcm_token,
-          'Action needed: Update your email',
-          'We couldn\'t deliver mail to your address. Please update your email in your profile settings.',
+          '📭 We couldn\'t reach you by email',
+          'Email us at prayoverus@gmail.com with your correct email address and we\'ll update it for you.',
           { type: 'email_bounced' }
         );
         console.log(`📲 Bounce nudge push sent to user ${user.user_id}`);
