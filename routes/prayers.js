@@ -1503,7 +1503,7 @@ router.post('/getMyRequests', authenticate, async (req, res) => {
       INNER JOIN public."user" ON "user".user_id = request.user_id
       LEFT JOIN public.settings ON settings.user_id = "user".user_id
       LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
-      WHERE request.user_id = $1
+      WHERE request.user_id = $1 AND request.active != 3
       ORDER BY timestamp_raw DESC
     `;
 
@@ -1695,7 +1695,8 @@ router.post('/getCommunityWall', authenticate, async (req, res) => {
   }
 });
 
-// POST /deleteRequestById - Delete a request by ID (owner only)
+// POST /deleteRequestById - Soft-delete a request by ID (owner only, active=3 = user-deleted)
+// active=3 is hidden from community wall (which filters active=1) and from Mine tab
 router.post('/deleteRequestById', authenticate, async (req, res) => {
   try {
     const params = req.body;
@@ -1722,9 +1723,9 @@ router.post('/deleteRequestById', authenticate, async (req, res) => {
       return res.json({ error: 1, result: "You can only delete your own prayer requests" });
     }
     
-    // Delete the request
+    // Soft-delete: set active=3 (user-deleted). Invisible on community wall and Mine tab.
     const deleteResult = await pool.query(
-      `DELETE FROM public.request WHERE request_id = $1 RETURNING request_id, request_title`,
+      `UPDATE public.request SET active = 3 WHERE request_id = $1 RETURNING request_id, request_title`,
       [params.request_id]
     );
     
