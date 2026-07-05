@@ -42,5 +42,27 @@ router.get('/getAllChurches', async (req, res) => {
 });
 
 
+// GET /getStats - Public stats (no authentication required)
+router.get('/getStats', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        (SELECT COUNT(*) FROM public.user_request) AS "totalPrayers",
+        (SELECT COUNT(*) FROM public.request)      AS "totalRequests",
+        (SELECT COUNT(*) FROM public."user")       AS "totalUsers"
+    `);
+    const row = result.rows[0];
+    res.json({
+      error: 0,
+      totalPrayers: parseInt(row.totalPrayers),
+      totalRequests: parseInt(row.totalRequests),
+      totalUsers: parseInt(row.totalUsers)
+    });
+  } catch (err) {
+    console.error('Error fetching stats:', err);
+    res.status(500).json({ error: 1, result: 'Database error: ' + err.message });
+  }
+});
+
   return router;
 };
