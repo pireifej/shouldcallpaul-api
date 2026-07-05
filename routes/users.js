@@ -5,7 +5,7 @@ const { exec } = require('child_process');
 
 module.exports = function usersRoutes(ctx) {
   const router = express.Router();
-  const { pool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, uploadImage, getRandomString, multer, path, log } = ctx;
+  const { pool, auditPool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, uploadImage, getRandomString, multer, path, log } = ctx;
 
 router.post('/getUserByEmail', authenticate, async (req, res) => {
   try {

@@ -1695,52 +1695,47 @@ router.post('/getCommunityWall', authenticate, async (req, res) => {
   }
 });
 
-// POST /deleteRequestById - Delete a request by ID
+// POST /deleteRequestById - Delete a request by ID (owner only)
 router.post('/deleteRequestById', authenticate, async (req, res) => {
   try {
     const params = req.body;
     
-    // Validate required parameters
-    const requiredParams = ["request_id"];
-    for (let i = 0; i < requiredParams.length; i++) {
-      const requiredParam = requiredParams[i];
-      if (!params[requiredParam]) {
-        return res.json({ error: "Required param '" + requiredParam + "' missing" });
-      }
+    if (!params.request_id) {
+      return res.json({ error: 1, result: "Required param 'request_id' missing" });
+    }
+    if (!params.userId) {
+      return res.json({ error: 1, result: "Required param 'userId' missing" });
     }
     
-    // Check if request exists first
-    const checkQuery = `
-      SELECT request_id, request_title, user_id 
-      FROM public.request 
-      WHERE request_id = $1
-    `;
-    
-    const checkResult = await pool.query(checkQuery, [params.request_id]);
+    // Check if request exists and belongs to the caller
+    const checkResult = await pool.query(
+      `SELECT request_id, request_title, user_id FROM public.request WHERE request_id = $1`,
+      [params.request_id]
+    );
     
     if (checkResult.rows.length === 0) {
-      return res.json({ error: "Request with ID " + params.request_id + " not found" });
+      return res.json({ error: 1, result: "Request not found" });
+    }
+
+    const request = checkResult.rows[0];
+    if (String(request.user_id) !== String(params.userId)) {
+      return res.json({ error: 1, result: "You can only delete your own prayer requests" });
     }
     
-    // Delete the request from the database
-    const deleteQuery = `
-      DELETE FROM public.request 
-      WHERE request_id = $1 
-      RETURNING request_id, request_title
-    `;
-    
-    const deleteResult = await pool.query(deleteQuery, [params.request_id]);
+    // Delete the request
+    const deleteResult = await pool.query(
+      `DELETE FROM public.request WHERE request_id = $1 RETURNING request_id, request_title`,
+      [params.request_id]
+    );
     
     if (deleteResult.rows.length === 0) {
-      return res.json({ error: "Failed to delete request" });
+      return res.json({ error: 1, result: "Failed to delete request" });
     }
     
     const deletedRequest = deleteResult.rows[0];
-    
-    // Return success response
     res.json({ 
       error: 0, 
-      message: "Request deleted successfully",
+      result: "Request deleted successfully",
       deleted_request: {
         request_id: deletedRequest.request_id,
         request_title: deletedRequest.request_title
@@ -1749,7 +1744,7 @@ router.post('/deleteRequestById', authenticate, async (req, res) => {
     
   } catch (error) {
     console.error('Delete request error:', error);
-    res.status(500).json({ error: 'Internal server error: ' + error.message });
+    res.status(500).json({ error: 1, result: 'Internal server error: ' + error.message });
   }
 });
 
