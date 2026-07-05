@@ -433,6 +433,11 @@ router.post('/prayFor', authenticate, async (req, res) => {
       try {
         const uid = params.userId;
         const utcHour = new Date().getUTCHours();
+        // Use user's local time for time-of-day badge checks if tz is provided
+        const userTz = params.tz || null;
+        const localHour = userTz
+          ? parseInt(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: userTz }).format(new Date()), 10)
+          : utcHour;
 
         // first_responder: one of first 3 to pray on this request
         const prayCountRes = await pool.query(
@@ -490,36 +495,48 @@ router.post('/prayFor', authenticate, async (req, res) => {
           newBadge = await awardBadge(uid, 'faithful_friend') || newBadge;
         }
 
-        // midnight_intercessor: 5+ prayers between 11 PM–4 AM UTC
-        if (utcHour >= 23 || utcHour < 4) {
+        // midnight_intercessor: 5+ prayers between 11 PM–4 AM (user's local time)
+        if (localHour >= 23 || localHour < 4) {
+          const tzExpr = userTz
+            ? `EXTRACT(HOUR FROM timestamp AT TIME ZONE 'UTC' AT TIME ZONE $2)`
+            : `EXTRACT(HOUR FROM timestamp)`;
+          const nightArgs = userTz ? [uid, userTz] : [uid];
           const nightRes = await pool.query(
             `SELECT COUNT(*) FROM public.user_request WHERE user_id = $1
-             AND (EXTRACT(HOUR FROM timestamp) >= 23 OR EXTRACT(HOUR FROM timestamp) < 4)`,
-            [uid]
+             AND (${tzExpr} >= 23 OR ${tzExpr} < 4)`,
+            nightArgs
           );
           if (parseInt(nightRes.rows[0].count) >= 5) {
             newBadge = await awardBadge(uid, 'midnight_intercessor') || newBadge;
           }
         }
 
-        // night_owl: 10+ prayers between midnight and 4 AM UTC
-        if (utcHour < 4) {
+        // night_owl: 10+ prayers between midnight and 4 AM (user's local time)
+        if (localHour < 4) {
+          const tzExpr = userTz
+            ? `EXTRACT(HOUR FROM timestamp AT TIME ZONE 'UTC' AT TIME ZONE $2)`
+            : `EXTRACT(HOUR FROM timestamp)`;
+          const nightOwlArgs = userTz ? [uid, userTz] : [uid];
           const nightOwlRes = await pool.query(
             `SELECT COUNT(*) FROM public.user_request WHERE user_id = $1
-             AND EXTRACT(HOUR FROM timestamp) < 4`,
-            [uid]
+             AND ${tzExpr} < 4`,
+            nightOwlArgs
           );
           if (parseInt(nightOwlRes.rows[0].count) >= 10) {
             newBadge = await awardBadge(uid, 'night_owl') || newBadge;
           }
         }
 
-        // early_riser: 5+ prayers before 7 AM UTC
-        if (utcHour < 7) {
+        // early_riser: 5+ prayers before 7 AM (user's local time)
+        if (localHour < 7) {
+          const tzExpr = userTz
+            ? `EXTRACT(HOUR FROM timestamp AT TIME ZONE 'UTC' AT TIME ZONE $2)`
+            : `EXTRACT(HOUR FROM timestamp)`;
+          const earlyArgs = userTz ? [uid, userTz] : [uid];
           const earlyRes = await pool.query(
             `SELECT COUNT(*) FROM public.user_request WHERE user_id = $1
-             AND EXTRACT(HOUR FROM timestamp) < 7`,
-            [uid]
+             AND ${tzExpr} < 7`,
+            earlyArgs
           );
           if (parseInt(earlyRes.rows[0].count) >= 5) {
             newBadge = await awardBadge(uid, 'early_riser') || newBadge;
