@@ -808,5 +808,43 @@ router.post('/appleLogin', authenticate, async (req, res) => {
     res.redirect(`prayoverus://auth?${params}`);
   });
 
+  // POST /auth/google/token - Exchange Google OAuth code for tokens + user info
+  router.post('/auth/google/token', async (req, res) => {
+    try {
+      const { code, codeVerifier, redirectUri } = req.body;
+      if (!code || !redirectUri) {
+        return res.status(400).json({ error: 'code and redirectUri are required' });
+      }
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+      if (!clientSecret) {
+        return res.status(500).json({ error: 'Server not configured for Google OAuth' });
+      }
+      const params = new URLSearchParams({
+        code,
+        client_id: '798628803696-b9b82e0mer9c3cm7rpngmpr9eet2hilj.apps.googleusercontent.com',
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      });
+      if (codeVerifier) params.set('code_verifier', codeVerifier);
+      const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString(),
+      });
+      const tokenData = await tokenRes.json();
+      if (!tokenData.access_token) {
+        return res.status(400).json({ error: tokenData.error, error_description: tokenData.error_description });
+      }
+      const userInfoRes = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      });
+      const userInfo = await userInfoRes.json();
+      res.json({ access_token: tokenData.access_token, ...userInfo });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   return router;
 };
