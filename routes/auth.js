@@ -802,5 +802,11 @@ router.post('/appleLogin', authenticate, async (req, res) => {
   }
 });
 
+  // GET /auth/google/callback - Relay Google OAuth callback to app's custom scheme
+  router.get('/auth/google/callback', (req, res) => {
+    const params = new URLSearchParams(req.query).toString();
+    res.redirect(`prayoverus://auth?${params}`);
+  });
+
   return router;
 };
