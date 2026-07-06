@@ -35,6 +35,7 @@ router.post('/login', authenticate, async (req, res) => {
         picture,
         church_id,
         auth_provider,
+        has_password,
         COALESCE(faith_points, 0) as faith_points,
         COALESCE(rosary_count, 0) as rosary_count,
         (SELECT COUNT(*) FROM public.user_request WHERE user_id = "user".user_id) as prayer_count,
@@ -58,6 +59,13 @@ router.post('/login', authenticate, async (req, res) => {
       return res.json({error: 1, result: "Account has been deactivated."});
     }
     
+    // Block OAuth-only accounts from email/password login
+    if (user.has_password === false) {
+      const providerNames = { google: 'Google', apple: 'Apple', facebook: 'Facebook' };
+      const providerLabel = providerNames[user.auth_provider] || (user.auth_provider ? user.auth_provider.charAt(0).toUpperCase() + user.auth_provider.slice(1) : 'social sign-in');
+      return res.json({ error: 1, result: `This email is linked to a ${providerLabel} account. Please sign in with ${providerLabel} instead.` });
+    }
+
     const hash = user.password;
     delete user.password; // Remove password from response
     
@@ -381,12 +389,18 @@ router.post('/changePassword', authenticate, async (req, res) => {
     }
 
     const userResult = await pool.query(
-      'SELECT user_id, password FROM public."user" WHERE user_id = $1',
+      'SELECT user_id, password, has_password, auth_provider FROM public."user" WHERE user_id = $1',
       [userId]
     );
 
     if (userResult.rows.length === 0) {
       return res.json({ error: 1, result: 'User not found' });
+    }
+
+    if (userResult.rows[0].has_password === false) {
+      const providerNames = { google: 'Google', apple: 'Apple', facebook: 'Facebook' };
+      const providerLabel = providerNames[userResult.rows[0].auth_provider] || 'social sign-in';
+      return res.json({ error: 1, result: `This account uses ${providerLabel} sign-in and does not have a password to change.` });
     }
 
     const passwordMatch = await bcrypt.compare(currentPassword, userResult.rows[0].password);
@@ -430,7 +444,7 @@ router.post('/socialLogin', authenticate, async (req, res) => {
     const existingResult = await pool.query(`
       SELECT 
         user_id, user_name, email, real_name, last_name, user_title, user_about,
-        location, active, timestamp, picture, church_id, auth_provider,
+        location, active, timestamp, picture, church_id, auth_provider, has_password,
         google_id, facebook_id,
         COALESCE(faith_points, 0) as faith_points,
         COALESCE(rosary_count, 0) as rosary_count
@@ -474,14 +488,14 @@ router.post('/socialLogin', authenticate, async (req, res) => {
       const insertResult = await client.query(`
         INSERT INTO public."user" (
           user_id, user_name, password, email, real_name, last_name, location,
-          user_title, user_about, picture, type, active, auth_provider
+          user_title, user_about, picture, type, active, auth_provider, has_password
           ${providerIdCol ? ', ' + providerIdCol : ''}
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13${providerIdCol ? ',$14' : ''})
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14${providerIdCol ? ',$15' : ''})
         RETURNING user_id
       `, [
         nextUserId, username, placeholderPassword, normalizedEmail,
         firstName || '', lastName || '', ' ', ' ', ' ',
-        picture || '', 'standard', 1, providerKey,
+        picture || '', 'standard', 1, providerKey, false,
         ...(providerIdCol && providerId ? [String(providerId)] : [])
       ]);
 
@@ -511,7 +525,7 @@ router.post('/socialLogin', authenticate, async (req, res) => {
       const newUser = {
         user_id: userId, user_name: username, email: normalizedEmail,
         real_name: firstName || '', last_name: lastName || '',
-        picture: picture || '', church_id: null, auth_provider: providerKey,
+        picture: picture || '', church_id: null, auth_provider: providerKey, has_password: false,
         faith_points: 0, rosary_count: 0, active: 1,
       };
       newUser.faith_rank = computeRank(0, ranks);
@@ -545,7 +559,7 @@ router.post('/googleLogin', authenticate, async (req, res) => {
       SELECT
         u.user_id, u.user_name, u.email, u.real_name, u.last_name,
         u.user_title, u.user_about, u.location, u.picture, u.profile_picture_url,
-        u.church_id, u.active, u.auth_provider, u.google_id,
+        u.church_id, u.active, u.auth_provider, u.has_password, u.google_id,
         u.timestamp,
         COALESCE(u.faith_points, 0) as faith_points,
         COALESCE(u.rosary_count, 0) as rosary_count,
@@ -599,8 +613,8 @@ router.post('/googleLogin', authenticate, async (req, res) => {
         INSERT INTO public."user" (
           user_id, user_name, password, email, real_name, last_name,
           location, user_title, user_about, picture, type, active,
-          auth_provider, google_id
-        ) VALUES ($1,$2,$3,$4,$5,$6,' ',' ',' ',$7,'standard',1,'google',$8)
+          auth_provider, has_password, google_id
+        ) VALUES ($1,$2,$3,$4,$5,$6,' ',' ',' ',$7,'standard',1,'google',false,$8)
       `, [
         next_id, username, placeholderPassword, normalizedEmail,
         first_name || '', last_name || '',
@@ -666,7 +680,7 @@ router.post('/appleLogin', authenticate, async (req, res) => {
       SELECT
         u.user_id, u.user_name, u.email, u.real_name, u.last_name,
         u.user_title, u.user_about, u.location, u.picture, u.profile_picture_url,
-        u.church_id, u.active, u.auth_provider, u.apple_id,
+        u.church_id, u.active, u.auth_provider, u.has_password, u.apple_id,
         u.timestamp,
         COALESCE(u.faith_points, 0) as faith_points,
         COALESCE(u.rosary_count, 0) as rosary_count,
@@ -696,7 +710,7 @@ router.post('/appleLogin', authenticate, async (req, res) => {
         SELECT
           u.user_id, u.user_name, u.email, u.real_name, u.last_name,
           u.user_title, u.user_about, u.location, u.picture, u.profile_picture_url,
-          u.church_id, u.active, u.auth_provider, u.apple_id,
+          u.church_id, u.active, u.auth_provider, u.has_password, u.apple_id,
           u.timestamp,
           COALESCE(u.faith_points, 0) as faith_points,
           COALESCE(u.rosary_count, 0) as rosary_count,
@@ -751,8 +765,8 @@ router.post('/appleLogin', authenticate, async (req, res) => {
         INSERT INTO public."user" (
           user_id, user_name, password, email, real_name, last_name,
           location, user_title, user_about, picture, type, active,
-          auth_provider, apple_id
-        ) VALUES ($1,$2,$3,$4,$5,$6,' ',' ',' ',' ','standard',1,'apple',$7)
+          auth_provider, has_password, apple_id
+        ) VALUES ($1,$2,$3,$4,$5,$6,' ',' ',' ',' ','standard',1,'apple',false,$7)
       `, [
         next_id, username, placeholderPassword, normalizedEmail,
         first_name || '', last_name || '',

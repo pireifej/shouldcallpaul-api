@@ -34,6 +34,8 @@ router.post('/getUserByEmail', authenticate, async (req, res) => {
         timestamp,
         user_id,
         picture,
+        auth_provider,
+        has_password,
         COALESCE(faith_points, 0) as faith_points
       FROM public."user" 
       WHERE LOWER(email) = LOWER($1)
@@ -152,6 +154,7 @@ router.post('/getUser', authenticate, async (req, res) => {
           "user".church_id,
           "user".faith_points,
           "user".auth_provider,
+          "user".has_password,
           COALESCE("user".rosary_count, 0) as rosary_count,
           church.church_name,
           settings.use_alias,
@@ -188,6 +191,7 @@ router.post('/getUser', authenticate, async (req, res) => {
           "user".church_id,
           "user".faith_points,
           "user".auth_provider,
+          "user".has_password,
           COALESCE("user".rosary_count, 0) as rosary_count,
           church.church_name,
           settings.use_alias,
@@ -237,6 +241,8 @@ router.post('/getUsersByChurch', authenticate, async (req, res) => {
         "user".last_name,
         COALESCE("user".profile_picture_url, "user".picture) as picture,
         COALESCE("user".faith_points, 0) as faith_points,
+        "user".auth_provider,
+        "user".has_password,
         "user".user_title as title,
         "user".user_about as about,
         church.church_name,
@@ -366,16 +372,17 @@ router.post('/updateEmail', authenticate, async (req, res) => {
 
     // Fetch current user to check auth_provider
     const userRes = await pool.query(
-      `SELECT user_id, auth_provider FROM public."user" WHERE user_id = $1`,
+      `SELECT user_id, auth_provider, has_password FROM public."user" WHERE user_id = $1`,
       [userId]
     );
     if (userRes.rows.length === 0) {
       return res.json({ error: 1, result: "User not found" });
     }
 
-    const provider = userRes.rows[0].auth_provider || 'email';
-    if (provider !== 'email') {
-      return res.json({ error: 1, result: "Email cannot be changed for social sign-in accounts" });
+    if (userRes.rows[0].has_password === false) {
+      const providerNames = { google: 'Google', apple: 'Apple', facebook: 'Facebook' };
+      const providerLabel = providerNames[userRes.rows[0].auth_provider] || 'social sign-in';
+      return res.json({ error: 1, result: `This account uses ${providerLabel} sign-in. Email cannot be changed here.` });
     }
 
     // Check newEmail isn't already taken by another account
@@ -506,8 +513,8 @@ router.post('/createUser', authenticate, async (req, res) => {
         INSERT INTO public.user (
           user_id, user_name, password, email, real_name, last_name, location, 
           user_title, user_about, picture, gender, phone, type, 
-          contacted_timestamp, active, church_id, custom_church_name, email_verified
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+          contacted_timestamp, active, church_id, custom_church_name, email_verified, has_password
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
         RETURNING user_id
       `;
       
@@ -529,7 +536,8 @@ router.post('/createUser', authenticate, async (req, res) => {
         1,
         params.church_id ?? null,
         params.custom_church_name || null,
-        false
+        false,
+        true
       ];
       
       const userResult = await client.query(userInsertQuery, userValues);
