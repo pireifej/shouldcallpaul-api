@@ -1087,7 +1087,9 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
   const migrations = [
     { col: 'email_bounced',  sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_bounced boolean DEFAULT false` },
     { col: 'apple_id',       sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS apple_id TEXT` },
-    { col: 'email_verified', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_verified boolean DEFAULT true` },
+    { col: 'email_verified',  sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_verified boolean DEFAULT true` },
+    { col: 'auth_provider',  sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(20) DEFAULT 'email'` },
+    { col: 'auth_provider_backfill', sql: `UPDATE public."user" SET auth_provider = 'email' WHERE auth_provider IS NULL` },
     { col: 'email_verification_tokens_table', sql: `CREATE TABLE IF NOT EXISTS public.email_verification_tokens (
       id SERIAL PRIMARY KEY,
       user_id INTEGER NOT NULL,

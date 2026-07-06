@@ -151,6 +151,7 @@ router.post('/getUser', authenticate, async (req, res) => {
           "user".profile_picture_url,
           "user".church_id,
           "user".faith_points,
+          "user".auth_provider,
           COALESCE("user".rosary_count, 0) as rosary_count,
           church.church_name,
           settings.use_alias,
@@ -186,6 +187,7 @@ router.post('/getUser', authenticate, async (req, res) => {
           "user".profile_picture_url,
           "user".church_id,
           "user".faith_points,
+          "user".auth_provider,
           COALESCE("user".rosary_count, 0) as rosary_count,
           church.church_name,
           settings.use_alias,
@@ -350,6 +352,50 @@ router.post('/updateUser', authenticate, async (req, res) => {
     
   } catch (error) {
     console.error('Database update error:', error);
+    res.status(500).json({ error: 1, result: 'Internal server error' });
+  }
+});
+
+// POST /updateEmail - Update email for email/password accounts only
+router.post('/updateEmail', authenticate, async (req, res) => {
+  try {
+    const { userId, newEmail } = req.body;
+
+    if (!userId) return res.json({ error: 1, result: "Required param 'userId' missing" });
+    if (!newEmail) return res.json({ error: 1, result: "Required param 'newEmail' missing" });
+
+    // Fetch current user to check auth_provider
+    const userRes = await pool.query(
+      `SELECT user_id, auth_provider FROM public."user" WHERE user_id = $1`,
+      [userId]
+    );
+    if (userRes.rows.length === 0) {
+      return res.json({ error: 1, result: "User not found" });
+    }
+
+    const provider = userRes.rows[0].auth_provider || 'email';
+    if (provider !== 'email') {
+      return res.json({ error: 1, result: "Email cannot be changed for social sign-in accounts" });
+    }
+
+    // Check newEmail isn't already taken by another account
+    const taken = await pool.query(
+      `SELECT user_id FROM public."user" WHERE LOWER(email) = LOWER($1) AND user_id != $2`,
+      [newEmail, userId]
+    );
+    if (taken.rows.length > 0) {
+      return res.json({ error: 1, result: "That email address is already in use by another account" });
+    }
+
+    await pool.query(
+      `UPDATE public."user" SET email = $1, email_bounced = false, email_verified = false WHERE user_id = $2`,
+      [newEmail.trim(), userId]
+    );
+
+    res.json({ error: 0, result: "Email updated successfully" });
+
+  } catch (error) {
+    console.error('updateEmail error:', error);
     res.status(500).json({ error: 1, result: 'Internal server error' });
   }
 });
