@@ -35,7 +35,7 @@ router.post('/getUserByEmail', authenticate, async (req, res) => {
         user_id,
         picture,
         auth_provider,
-        has_password,
+        COALESCE(has_password, (password IS NOT NULL AND LENGTH(password) > 0)) as has_password,
         COALESCE(faith_points, 0) as faith_points
       FROM public."user" 
       WHERE LOWER(email) = LOWER($1)
@@ -154,7 +154,7 @@ router.post('/getUser', authenticate, async (req, res) => {
           "user".church_id,
           "user".faith_points,
           "user".auth_provider,
-          "user".has_password,
+          COALESCE("user".has_password, ("user".password IS NOT NULL AND LENGTH("user".password) > 0)) as has_password,
           COALESCE("user".rosary_count, 0) as rosary_count,
           church.church_name,
           settings.use_alias,
@@ -191,7 +191,7 @@ router.post('/getUser', authenticate, async (req, res) => {
           "user".church_id,
           "user".faith_points,
           "user".auth_provider,
-          "user".has_password,
+          COALESCE("user".has_password, ("user".password IS NOT NULL AND LENGTH("user".password) > 0)) as has_password,
           COALESCE("user".rosary_count, 0) as rosary_count,
           church.church_name,
           settings.use_alias,
@@ -242,7 +242,7 @@ router.post('/getUsersByChurch', authenticate, async (req, res) => {
         COALESCE("user".profile_picture_url, "user".picture) as picture,
         COALESCE("user".faith_points, 0) as faith_points,
         "user".auth_provider,
-        "user".has_password,
+        COALESCE("user".has_password, ("user".password IS NOT NULL AND LENGTH("user".password) > 0)) as has_password,
         "user".user_title as title,
         "user".user_about as about,
         church.church_name,
