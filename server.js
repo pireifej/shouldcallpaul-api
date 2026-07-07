@@ -299,6 +299,19 @@ Instructions for Generating the Prayer:
   } catch (openaiErr) {
     console.warn('⚠️ OpenAI error in generatePrayer:', openaiErr.message);
     chatResult = {};
+    // Fire-and-forget alert email
+    sendGmailSingle(
+      `<p><strong>OpenAI failed in generatePrayer</strong></p>
+       <p><strong>Error:</strong> ${openaiErr.message}</p>
+       <p><strong>Request text:</strong> ${requestText}</p>
+       <p><strong>Author:</strong> ${realName}</p>
+       <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+       <p>A fallback generic prayer was used instead.</p>`,
+      { name: 'Pray Over Us Server', email: process.env.GMAIL_USER },
+      { name: 'Paul', email: 'programmerpauly@gmail.com' },
+      '⚠️ OpenAI Prayer Generation Failed',
+      null, null
+    ).catch(e => console.error('Failed to send OpenAI alert email:', e.message));
   }
 
   if (!chatResult.choices || chatResult.choices.length === 0) {
