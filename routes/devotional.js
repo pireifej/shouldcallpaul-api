@@ -150,10 +150,10 @@ router.post('/readDailyBread', authenticate, async (req, res) => {
 
 router.get('/getDailyDevotional', async (req, res) => {
   try {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
     let result = await pool.query(
-      'SELECT * FROM public.daily_devotional WHERE date = $1',
-      [today]
+      'SELECT * FROM public.daily_devotional WHERE date = $1 AND lang = $2',
+      [today, 'en']
     );
 
     // Today's article is missing — auto-generate it now (first caller triggers it, everyone else benefits)
@@ -162,8 +162,8 @@ router.get('/getDailyDevotional', async (req, res) => {
       try {
         await generateDailyDevotional(new Date());
         result = await pool.query(
-          'SELECT * FROM public.daily_devotional WHERE date = $1',
-          [today]
+          'SELECT * FROM public.daily_devotional WHERE date = $1 AND lang = $2',
+          [today, 'en']
         );
         // If it's past 8 AM Eastern (12:00 PM UTC), the scheduled notification
         // already missed — send it now as a catch-up for all users
@@ -199,7 +199,7 @@ router.get('/getDailyDevotional', async (req, res) => {
 router.post('/getDailyDevotional', authenticate, async (req, res) => {
   try {
     const lang = (req.body && req.body.lang === 'es') ? 'es' : 'en';
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 
     let result = await pool.query(
       'SELECT * FROM public.daily_devotional WHERE date = $1 AND lang = $2',

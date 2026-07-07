@@ -927,9 +927,9 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
 
   return { content, theme, imageUrl };
 }
-// Daily cron: generate EN + ES devotionals at 12:05 AM UTC every day
-cron.schedule('5 0 * * *', async () => {
-  const today = new Date().toISOString().slice(0, 10);
+// Daily cron: generate EN + ES devotionals at 4:05 AM UTC (= midnight:05 AM Eastern)
+cron.schedule('5 4 * * *', async () => {
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   const now = new Date();
   try {
     const existing = await pool.query(
@@ -970,7 +970,7 @@ cron.schedule('5 0 * * *', async () => {
   }
 });
 
-console.log('📖 Daily devotional generation scheduled at 12:05 AM UTC');
+console.log('📖 Daily devotional generation scheduled at 4:05 AM UTC (midnight Eastern)');
 // ─── DATABASE BACKUP SYSTEM ───────────────────────────────────────────────────
 
 const BACKUP_DIR = path.join(__dirname, 'backups', 'prod');
