@@ -835,33 +835,52 @@ router.post('/appleLogin', authenticate, async (req, res) => {
       if (!code || !redirectUri) {
         return res.status(400).json({ error: 'code and redirectUri are required' });
       }
-      const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      if (!clientSecret) {
-        return res.status(500).json({ error: 'Server not configured for Google OAuth' });
-      }
+
+      const isIOS = redirectUri.startsWith('com.googleusercontent.apps');
+      const IOS_CLIENT_ID = '798628803696-2sodci2f99h4ojbhiqm851im6bgjuiqg.apps.googleusercontent.com';
+      const WEB_CLIENT_ID = '798628803696-b9b82e0mer9c3cm7rpngmpr9eet2hilj.apps.googleusercontent.com';
+
+      const clientId = isIOS ? IOS_CLIENT_ID : WEB_CLIENT_ID;
+
       const params = new URLSearchParams({
         code,
-        client_id: '798628803696-b9b82e0mer9c3cm7rpngmpr9eet2hilj.apps.googleusercontent.com',
-        client_secret: clientSecret,
+        client_id: clientId,
         redirect_uri: redirectUri,
         grant_type: 'authorization_code',
       });
+
+      if (!isIOS) {
+        const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+        if (!clientSecret) {
+          return res.status(500).json({ error: 'Server not configured for Google OAuth' });
+        }
+        params.set('client_secret', clientSecret);
+      }
+
       if (codeVerifier) params.set('code_verifier', codeVerifier);
+
+      console.log(`🔑 Google token exchange — platform: ${isIOS ? 'iOS' : 'Android/Web'}, client_id: ${clientId}, redirect_uri: ${redirectUri}`);
+
       const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params.toString(),
       });
       const tokenData = await tokenRes.json();
+
       if (!tokenData.access_token) {
-        return res.status(400).json({ error: tokenData.error, error_description: tokenData.error_description });
+        console.error(`❌ Google token exchange failed (${isIOS ? 'iOS' : 'Android/Web'}):`, JSON.stringify(tokenData));
+        return res.status(400).json({ error: tokenData.error, error_description: tokenData.error_description, raw: tokenData });
       }
+
       const userInfoRes = await fetch('https://www.googleapis.com/userinfo/v2/me', {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },
       });
       const userInfo = await userInfoRes.json();
+      console.log(`✅ Google token exchange success (${isIOS ? 'iOS' : 'Android/Web'}) for: ${userInfo.email}`);
       res.json({ access_token: tokenData.access_token, ...userInfo });
     } catch (err) {
+      console.error('❌ /auth/google/token exception:', err.message);
       res.status(500).json({ error: err.message });
     }
   });
