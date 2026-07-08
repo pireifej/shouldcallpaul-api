@@ -1112,6 +1112,16 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
         return pool.query(`UPDATE public.prayers SET ${col} = $1 WHERE prayer_id = $2`, [translatedPrayer, prayerId]);
       }).catch(e => console.error(`Prayer translation error (prayer ${prayerId}):`, e.message));
 
+      // Determine whether to skip notification dispatch (test/silent posts)
+      const sendEmailRaw = params.sendEmail;
+      const sendEmailFalse = sendEmailRaw === false || sendEmailRaw === "false";
+      const isTestTruthy = params.isTest === true || params.isTest === "true";
+      const skipNotifications = sendEmailFalse || isTestTruthy;
+
+      if (skipNotifications) {
+        console.log(`🔕 Skipping notifications for request ${requestId} (sendEmail=${sendEmailRaw}, isTest=${params.isTest})`);
+      }
+
       // Step 7: Send notification email to admin
       const notificationHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -1156,63 +1166,67 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
         name: "Paul"
       };
 
-      sendGmailSingle(
-        notificationHtml,
-        fromPerson,
-        toPerson,
-        `New Prayer Request: ${params.requestTitle}`,
-        null,
-        null
-      ).catch(emailError => {
-        console.error('Admin notification email failed:', emailError);
-      });
+      if (!skipNotifications) {
+        sendGmailSingle(
+          notificationHtml,
+          fromPerson,
+          toPerson,
+          `New Prayer Request: ${params.requestTitle}`,
+          null,
+          null
+        ).catch(emailError => {
+          console.error('Admin notification email failed:', emailError);
+        });
+      }
 
       // Send push notifications to all users (except the poster)
-      try {
-        const allUsersQuery = `
-          SELECT user_id, fcm_token, real_name
-          FROM public."user"
-          WHERE fcm_token IS NOT NULL
-            AND user_id != $1
-        `;
-        const allUsersResult = await pool.query(allUsersQuery, [params.userId]);
-        
-        if (allUsersResult.rows.length > 0) {
-          console.log(`📢 Sending new request notifications to ${allUsersResult.rows.length} users`);
+      if (!skipNotifications) {
+        try {
+          const allUsersQuery = `
+            SELECT user_id, fcm_token, real_name
+            FROM public."user"
+            WHERE fcm_token IS NOT NULL
+              AND user_id != $1
+          `;
+          const allUsersResult = await pool.query(allUsersQuery, [params.userId]);
           
-          const notificationTitle = "New Prayer Request 🙏";
-          const notificationBody = `${realName} shared a prayer request`;
-          const notificationData = {
-            type: 'new_request',
-            requestId: requestId.toString(),
-            posterName: realName
-          };
-          
-          // Send notifications to each user (could batch for large numbers)
-          for (const user of allUsersResult.rows) {
-            try {
-              const pushResult = await sendPushNotification(
-                user.fcm_token,
-                notificationTitle,
-                notificationBody,
-                notificationData
-              );
-              
-              // Remove invalid tokens
-              if (pushResult.shouldRemoveToken) {
-                await pool.query(
-                  'UPDATE public."user" SET fcm_token = NULL WHERE user_id = $1',
-                  [user.user_id]
+          if (allUsersResult.rows.length > 0) {
+            console.log(`📢 Sending new request notifications to ${allUsersResult.rows.length} users`);
+            
+            const notificationTitle = "New Prayer Request 🙏";
+            const notificationBody = `${realName} shared a prayer request`;
+            const notificationData = {
+              type: 'new_request',
+              requestId: requestId.toString(),
+              posterName: realName
+            };
+            
+            // Send notifications to each user (could batch for large numbers)
+            for (const user of allUsersResult.rows) {
+              try {
+                const pushResult = await sendPushNotification(
+                  user.fcm_token,
+                  notificationTitle,
+                  notificationBody,
+                  notificationData
                 );
-                console.log(`🗑️ Removed invalid token for user ${user.user_id}`);
+                
+                // Remove invalid tokens
+                if (pushResult.shouldRemoveToken) {
+                  await pool.query(
+                    'UPDATE public."user" SET fcm_token = NULL WHERE user_id = $1',
+                    [user.user_id]
+                  );
+                  console.log(`🗑️ Removed invalid token for user ${user.user_id}`);
+                }
+              } catch (pushError) {
+                console.error(`Failed to send notification to user ${user.user_id}:`, pushError);
               }
-            } catch (pushError) {
-              console.error(`Failed to send notification to user ${user.user_id}:`, pushError);
             }
           }
+        } catch (notifyError) {
+          console.error('Error sending new request notifications:', notifyError);
         }
-      } catch (notifyError) {
-        console.error('Error sending new request notifications:', notifyError);
       }
 
       // Clean up idempotency file
