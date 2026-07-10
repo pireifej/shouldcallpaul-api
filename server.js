@@ -702,8 +702,34 @@ const DEVOTIONAL_THEMES = [
   'Grace', 'Strength', 'Hope', 'Forgiveness', 'Gratitude', 'Faith', 'Love',
   'Peace', 'Patience', 'Courage', 'Humility', 'Joy', 'Mercy', 'Trust',
   'Perseverance', 'Wisdom', 'Compassion', 'Renewal', 'Surrender', 'Light',
-  'Healing', 'Purpose', 'Community', 'Silence', 'Abundance'
+  'Healing', 'Purpose', 'Community', 'Silence', 'Abundance',
+  'Endurance', 'Contentment', 'Generosity', 'Integrity', 'Obedience',
+  'Sacrifice', 'Restoration', 'Unity', 'Discipline', 'Stewardship',
+  'Reverence', 'Kindness', 'Justice', 'Wonder', 'Simplicity',
+  'Devotion', 'Praise', 'Rest', 'Guidance', 'Provision',
+  'Comfort', 'Boldness', 'Reconciliation', 'Diligence', 'Contemplation',
+  'Belonging', 'Fellowship', 'Repentance', 'Awe', 'Servanthood'
 ];
+
+// Return the pool of themes to randomly choose from, excluding themes used
+// in the last N devotionals so consecutive days feel fresh and varied.
+async function getAvailableThemePool(lang, lookbackDays = 15) {
+  try {
+    const recentResult = await pool.query(
+      `SELECT theme FROM public.daily_devotional
+       WHERE lang = $1
+       ORDER BY date DESC
+       LIMIT $2`,
+      [lang, lookbackDays]
+    );
+    const recentThemes = new Set(recentResult.rows.map(r => r.theme));
+    const available = DEVOTIONAL_THEMES.filter(t => !recentThemes.has(t));
+    return available.length > 0 ? available : DEVOTIONAL_THEMES;
+  } catch (err) {
+    console.warn('⚠️  Failed to fetch recent devotional themes, using full pool:', err.message);
+    return DEVOTIONAL_THEMES;
+  }
+}
 
 // Compute Easter Sunday for a given year — returns a UTC midnight Date
 function getEaster(year) {
@@ -799,9 +825,15 @@ async function generateDailyDevotional(targetDate, lang = 'en', { sharedTheme = 
 
   // Check for a holiday/event on this date
   const holiday = getHolidayTheme(targetDate);
-  const theme = sharedTheme || (holiday
-    ? holiday.theme
-    : DEVOTIONAL_THEMES[Math.floor(Math.random() * DEVOTIONAL_THEMES.length)]);
+  let theme = sharedTheme;
+  if (!theme) {
+    if (holiday) {
+      theme = holiday.theme;
+    } else {
+      const themePool = await getAvailableThemePool(lang);
+      theme = themePool[Math.floor(Math.random() * themePool.length)];
+    }
+  }
   const holidayContext = holiday
     ? `Today is ${holiday.event}. Please incorporate this occasion naturally and meaningfully into the devotional.`
     : '';
@@ -1113,6 +1145,16 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
       expires_at TIMESTAMP NOT NULL,
       used BOOLEAN DEFAULT false
     )` },
+    { col: 'pending_prayer_notifications_table', sql: `CREATE TABLE IF NOT EXISTS public.pending_prayer_notifications (
+      id SERIAL PRIMARY KEY,
+      owner_user_id INTEGER NOT NULL,
+      request_id INTEGER NOT NULL,
+      prayer_user_id INTEGER,
+      prayer_user_name TEXT,
+      request_title TEXT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      notified BOOLEAN DEFAULT false
+    )` },
   ];
   for (const [name, p] of [['dev', pool], ['prod', auditPool]]) {
     for (const { col, sql } of migrations) {
@@ -1209,6 +1251,120 @@ cron.schedule('0 3 * * *', async () => {
   }
 });
 console.log('⏰ Auto-archive cron scheduled at 3:00 AM UTC (requests older than 60 days)');
+
+// ── Daily prayer-notification digest — 1:00 AM UTC daily (9 PM Eastern) ──
+// Instead of emailing a request owner every single time someone prays for
+// them (which can swamp inboxes), we queue each event during the day and
+// send ONE summary email per owner, only if at least one person prayed.
+cron.schedule('0 1 * * *', async () => {
+  console.log('📬 Running daily prayer notification digest...');
+  try {
+    const pendingResult = await pool.query(`
+      SELECT
+        p.id, p.owner_user_id, p.request_id, p.prayer_user_name, p.request_title,
+        u.real_name, u.email, u.email_bounced,
+        COALESCE(s.prayer_emails, 1) != 0 as prayer_emails
+      FROM public.pending_prayer_notifications p
+      INNER JOIN public."user" u ON u.user_id = p.owner_user_id
+      LEFT JOIN public.settings s ON s.user_id = p.owner_user_id
+      WHERE p.notified = false
+    `);
+
+    if (pendingResult.rows.length === 0) {
+      console.log('📬 No pending prayer notifications to digest today.');
+      return;
+    }
+
+    // Group by owner
+    const byOwner = new Map();
+    for (const row of pendingResult.rows) {
+      if (!byOwner.has(row.owner_user_id)) byOwner.set(row.owner_user_id, []);
+      byOwner.get(row.owner_user_id).push(row);
+    }
+
+    let sentCount = 0;
+    const allIds = pendingResult.rows.map(r => r.id);
+
+    for (const [ownerId, events] of byOwner.entries()) {
+      const owner = events[0];
+      if (!owner.prayer_emails || !owner.email || owner.email_bounced) continue;
+
+      const prayerNames = [...new Set(events.map(e => e.prayer_user_name))];
+      const totalPrayers = events.length;
+      const namesList = prayerNames.length <= 5
+        ? prayerNames.join(', ')
+        : `${prayerNames.slice(0, 5).join(', ')} and ${prayerNames.length - 5} other(s)`;
+
+      const emailTemplate = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f5; }
+    .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; }
+    .logo { width: 80px; height: 80px; margin: 0 auto 15px; background-color: white; border-radius: 50%; padding: 10px; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; }
+    .content { padding: 40px 30px; line-height: 1.6; color: #333333; font-size: 16px; }
+    .quote-box { background-color: #f0f4ff; border-left: 4px solid #667eea; padding: 14px 16px; margin: 20px 0; border-radius: 0 6px 6px 0; font-style: italic; color: #444; }
+    .button-container { text-align: center; margin: 30px 0; padding: 20px 0; }
+    .button { display: inline-block; padding: 14px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 25px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+    .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #666666; font-size: 14px; border-top: 1px solid #e0e0e0; }
+    .footer a { color: #667eea; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <img src="https://prayoverus.com/assets/img/logo/just-the-cross.png" alt="Pray Over Us" class="logo">
+      <h1>Pray Over Us</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${owner.real_name},</p>
+      <p>🙏 Today, ${prayerNames.length === 1 ? '1 person' : `${prayerNames.length} people`} prayed for you${totalPrayers > prayerNames.length ? ` (${totalPrayers} total prayers)` : ''}: <strong>${namesList}</strong>.</p>
+      <p>You are not alone. The Pray Over Us community is standing with you.</p>
+      <p>Blessings,<br>The Pray Over Us Team</p>
+    </div>
+    <div class="button-container">
+      <a href="https://www.prayoverus.com" class="button">Open the App</a>
+    </div>
+    <div class="footer">
+      <p>You received this daily summary because you have prayer email notifications enabled.</p>
+      <p><a href="https://prayoverus.com">Visit Our Website</a></p>
+    </div>
+  </div>
+</body>
+</html>
+      `;
+
+      try {
+        await sendGmailSingle(
+          emailTemplate,
+          { email: "prayoverus@gmail.com", name: "PrayOverUs" },
+          { email: owner.email, name: owner.real_name },
+          `${totalPrayers === 1 ? 'Someone' : `${totalPrayers} people`} prayed for you today 🙏`,
+          null,
+          null
+        );
+        sentCount++;
+      } catch (digestEmailError) {
+        console.error(`Failed to send digest email to user ${ownerId}:`, digestEmailError.message);
+      }
+    }
+
+    await pool.query(
+      `UPDATE public.pending_prayer_notifications SET notified = true WHERE id = ANY($1::int[])`,
+      [allIds]
+    );
+
+    console.log(`📬 Daily prayer digest complete: ${sentCount} summary email(s) sent, ${allIds.length} event(s) processed.`);
+  } catch (error) {
+    console.error('Daily prayer digest cron error:', error.message);
+  }
+});
+console.log('⏰ Daily prayer notification digest scheduled at 1:00 AM UTC (9 PM Eastern)');
 
 // ── Pending testimony reminders — 1:00 PM UTC daily (9 AM Eastern) ──
 // Notifies users with open requests at 7-day intervals (covers 7, 14, 30-day milestones)
