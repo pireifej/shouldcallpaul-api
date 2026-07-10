@@ -1155,10 +1155,11 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
       if (!skipNotifications) {
         try {
           const allUsersQuery = `
-            SELECT user_id, fcm_token, real_name
+            SELECT DISTINCT ON (fcm_token) user_id, fcm_token, real_name
             FROM public."user"
             WHERE fcm_token IS NOT NULL
               AND user_id != $1
+            ORDER BY fcm_token, user_id
           `;
           const allUsersResult = await pool.query(allUsersQuery, [params.userId]);
           
@@ -1818,8 +1819,10 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
     );
 
     // Find all distinct users who prayed for this request (excluding the requester)
+    // DISTINCT ON (fcm_token) prevents duplicate notifications to the same device
+    // when one person has multiple accounts sharing a token.
     const prayersResult = await pool.query(
-      `SELECT DISTINCT
+      `SELECT DISTINCT ON ("user".fcm_token)
          "user".user_id,
          "user".real_name,
          "user".email,
@@ -1831,7 +1834,8 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
        LEFT JOIN public.settings ON settings.user_id = "user".user_id
        WHERE user_request.request_id = $1
          AND user_request.user_id != $2
-         AND COALESCE("user".email_bounced, false) = false`,
+         AND COALESCE("user".email_bounced, false) = false
+       ORDER BY "user".fcm_token, "user".user_id`,
       [request_id, user_id]
     );
 

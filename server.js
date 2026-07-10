@@ -1183,11 +1183,12 @@ async function sendDailyDevotionalNotification(reason) {
   console.log(`📲 Sending daily devotional push notification (${reason})...`);
   try {
     const tokenResult = await pool.query(`
-      SELECT user_id, fcm_token
+      SELECT DISTINCT ON (fcm_token) user_id, fcm_token
       FROM public.user
       WHERE fcm_token IS NOT NULL
         AND fcm_token != ''
         AND fcm_token LIKE 'ExponentPushToken%'
+      ORDER BY fcm_token, user_id
     `);
 
     if (tokenResult.rows.length === 0) {
@@ -1390,6 +1391,15 @@ cron.schedule('0 13 * * *', async () => {
         AND u.fcm_token != ''
       GROUP BY u.user_id, u.fcm_token, s.push_notifications
     `);
+
+    // Deduplicate by fcm_token — one physical device should get at most one reminder
+    const seenTokens = new Set();
+    const dedupedRows = result.rows.filter(r => {
+      if (seenTokens.has(r.fcm_token)) return false;
+      seenTokens.add(r.fcm_token);
+      return true;
+    });
+    result.rows = dedupedRows;
 
     console.log(`🙏 Found ${result.rows.length} user(s) with qualifying prayer requests`);
 
