@@ -180,6 +180,44 @@ router.post('/testGeneratePrayer', authenticate, async (req, res) => {
   }
 });
 
+// POST /checkPrayerContent - Check if a prayer request is primarily material/consumer-focused
+router.post('/checkPrayerContent', authenticate, async (req, res) => {
+  const safe = { flagged: false, suggestion: null };
+  try {
+    const { requestText } = req.body;
+    if (!requestText || typeof requestText !== 'string' || !requestText.trim()) {
+      return res.json(safe);
+    }
+
+    const prompt = `You are a helper for a Christian prayer app. Read this prayer request and determine if it is primarily asking for a material possession or consumer product (not a spiritual, health, relationship, or life-circumstances need). If it is material, suggest a brief, heartfelt rephrasing that addresses the deeper spiritual need behind it (gratitude, contentment, provision, etc.). Keep the suggestion under 3 sentences and in first-person prayer form. Respond in JSON only, with exactly two fields: "flagged" (boolean) and "suggestion" (string if flagged, null if not).
+
+Prayer request: "${requestText.trim().replace(/"/g, '\\"')}"`;
+
+    const gptCall = openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 150,
+      response_format: { type: 'json_object' }
+    });
+
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 4000)
+    );
+
+    const completion = await Promise.race([gptCall, timeout]);
+    const raw = completion.choices?.[0]?.message?.content || '{}';
+    const parsed = JSON.parse(raw);
+
+    return res.json({
+      flagged: parsed.flagged === true,
+      suggestion: parsed.flagged === true ? (parsed.suggestion || null) : null
+    });
+  } catch (err) {
+    console.error('checkPrayerContent error (returning safe default):', err.message);
+    return res.json(safe);
+  }
+});
+
 // POST /regeneratePrayer - Regenerate prayer for an existing request and update the database
 router.post('/regeneratePrayer', authenticate, async (req, res) => {
   try {
