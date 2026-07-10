@@ -371,6 +371,7 @@ router.post('/prayFor', authenticate, async (req, res) => {
           const notificationBody = `${userWhoPrayed.real_name} just prayed for your request`;
           const notificationData = {
             type: 'prayer',
+            screen: 'RequestDetail',
             requestId: params.requestId.toString(),
             userId: requestOwner.user_id.toString(),
             prayerUserName: userWhoPrayed.real_name
@@ -1168,6 +1169,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
             const notificationBody = `${realName} shared a prayer request`;
             const notificationData = {
               type: 'new_request',
+              screen: 'RequestDetail',
               requestId: requestId.toString(),
               posterName: realName
             };
@@ -1851,7 +1853,7 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
             person.fcm_token,
             `${requesterName}'s prayer was answered! 🙌`,
             `"${requestTitle}" — tap to read their testimony`,
-            { type: 'prayer_answered', requestId: request_id.toString(), requesterId: user_id.toString() }
+            { type: 'prayer_answered', screen: 'RequestDetail', requestId: request_id.toString(), requesterId: user_id.toString() }
           );
           if (pushResult.shouldRemoveToken) {
             await pool.query(
