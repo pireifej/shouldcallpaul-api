@@ -600,7 +600,7 @@ router.post('/googleLogin', authenticate, async (req, res) => {
     }
 
     // ── Step 2: No match — create new user ──────────────────────────────────
-    const username = Math.random().toString(36).slice(2, 7);
+    const username = 'gg_' + crypto.randomBytes(5).toString('hex');
     const placeholderPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
     const client = await pool.connect();
 
@@ -661,8 +661,8 @@ router.post('/googleLogin', authenticate, async (req, res) => {
     }
 
   } catch (error) {
-    console.error('googleLogin error:', error);
-    res.json({ error: 1, result: "An error occurred. Please try again." });
+    console.error('googleLogin error:', error.message, error.stack);
+    res.json({ error: 1, result: "An error occurred. Please try again.", detail: error.message });
   }
 });
 
