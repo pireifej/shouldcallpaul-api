@@ -476,7 +476,7 @@ router.post('/socialLogin', authenticate, async (req, res) => {
 
     // ── Step 2: No existing user — create one ───────────────────────────────
     const username = Math.random().toString(36).slice(2, 7);
-    const placeholderPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), saltRounds);
+    const placeholderPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
     const client = await pool.connect();
 
     try {
@@ -601,7 +601,7 @@ router.post('/googleLogin', authenticate, async (req, res) => {
 
     // ── Step 2: No match — create new user ──────────────────────────────────
     const username = Math.random().toString(36).slice(2, 7);
-    const placeholderPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), saltRounds);
+    const placeholderPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
     const client = await pool.connect();
 
     try {
@@ -748,16 +748,18 @@ router.post('/appleLogin', authenticate, async (req, res) => {
     }
 
     // ── Step 3: No match — create new user ───────────────────────────────────
-    // Apple doesn't always send email; without it we can't create an account
-    if (!normalizedEmail) {
-      return res.json({
-        error: 1,
-        result: "No account found for this Apple ID. Please sign in with email/password or try again — Apple should provide your email on a fresh sign-in."
-      });
-    }
+    // Apple only sends email+name on the very first authorization. On any
+    // subsequent attempt (e.g. after a failed review attempt) it sends neither.
+    // So we must be able to create an account without an email.
+    // Use a deterministic placeholder so the same Apple ID always resolves to
+    // the same synthetic address if re-created, and never blocks sign-in.
+    const accountEmail = normalizedEmail
+      || `apple_${apple_user_id.replace(/[^a-zA-Z0-9]/g, '')}@privaterelay.appleid.com`;
 
-    const username = Math.random().toString(36).slice(2, 7);
-    const placeholderPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), saltRounds);
+    // Use a collision-resistant username: "ap_" + 10 random hex chars
+    const username = 'ap_' + crypto.randomBytes(5).toString('hex');
+    const displayName = (first_name || '').trim() || 'Apple User';
+    const placeholderPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
     const client = await pool.connect();
 
     try {
@@ -774,8 +776,8 @@ router.post('/appleLogin', authenticate, async (req, res) => {
           auth_provider, has_password, apple_id
         ) VALUES ($1,$2,$3,$4,$5,$6,' ',' ',' ',' ','standard',1,'apple',false,$7)
       `, [
-        next_id, username, placeholderPassword, normalizedEmail,
-        first_name || '', last_name || '',
+        next_id, username, placeholderPassword, accountEmail,
+        displayName, last_name || '',
         apple_user_id
       ]);
 
@@ -787,19 +789,22 @@ router.post('/appleLogin', authenticate, async (req, res) => {
 
       await client.query('COMMIT');
 
-      // Fire-and-forget: badge + welcome email
+      // Fire-and-forget: badge + welcome email (skip if synthetic relay address)
       awardBadge(next_id, 'cornerstone').catch(() => {});
-      const welcomeHtml = `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;padding:20px;">
-        <h2>Welcome to Pray Over Us 🙏</h2>
-        <p>Hi ${first_name || 'friend'}, your account has been created with Apple Sign-In.</p>
-        <p>Blessings,<br>The Pray Over Us Team</p>
-      </body></html>`;
-      sendGmailSingle(
-        welcomeHtml,
-        { email: 'prayoverus@gmail.com', name: 'PrayOverUs' },
-        { email: normalizedEmail, name: first_name || 'Friend' },
-        "Welcome to 'Pray Over Us'", null, null
-      ).catch(() => {});
+      const isRealEmail = normalizedEmail && !normalizedEmail.includes('@privaterelay');
+      if (isRealEmail) {
+        const welcomeHtml = `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;padding:20px;">
+          <h2>Welcome to Pray Over Us 🙏</h2>
+          <p>Hi ${displayName}, your account has been created with Apple Sign-In.</p>
+          <p>Blessings,<br>The Pray Over Us Team</p>
+        </body></html>`;
+        sendGmailSingle(
+          welcomeHtml,
+          { email: 'prayoverus@gmail.com', name: 'PrayOverUs' },
+          { email: accountEmail, name: displayName },
+          "Welcome to 'Pray Over Us'", null, null
+        ).catch(() => {});
+      }
 
       // Fetch the newly created user with all computed fields
       const newUserResult = await pool.query(fetchUserQuery, [apple_user_id]);
@@ -817,8 +822,8 @@ router.post('/appleLogin', authenticate, async (req, res) => {
     }
 
   } catch (error) {
-    console.error('appleLogin error:', error);
-    res.json({ error: 1, result: "An error occurred. Please try again." });
+    console.error('appleLogin error:', error.message, error.stack);
+    res.json({ error: 1, result: "An error occurred. Please try again.", detail: error.message });
   }
 });
 
