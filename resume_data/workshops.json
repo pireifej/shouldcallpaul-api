@@ -1,6 +1,19 @@
 {
     "records": [
         {
+            "image": "",
+            "gallery": [],
+            "label": "Mastering the 30-Second Elevator Speech for Networking Success",
+            "type": "workshops",
+            "details": {
+                "date": "July 9, 2026",
+                "location": "Hyderabad Spice, Matawan, NJ",
+                "duration": "1.5 hours (12:00 – 1:30 PM)"
+            },
+            "desc": "<p>A workshop presented at the <strong>Matawan-Aberdeen Chamber of Commerce</strong> luncheon at Hyderabad Spice in Matawan, NJ. Attendees learned how to craft and deliver a compelling 30-second elevator speech for networking success.</p>",
+            "category": "speaking"
+        },
+        {
             "image": "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-teaching.jpg",
             "gallery": [
                 "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-signage.jpg",
