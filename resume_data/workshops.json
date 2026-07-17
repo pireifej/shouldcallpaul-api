@@ -1,8 +1,10 @@
 {
     "records": [
         {
-            "image": "",
-            "gallery": [],
+            "image": "https://res.cloudinary.com/dclyvhsee/image/upload/v1784296951/resume/macoc_elevator_speech_main.jpg",
+            "gallery": [
+                "https://res.cloudinary.com/dclyvhsee/image/upload/v1784296951/resume/macoc_elevator_speech_speaking.jpg"
+            ],
             "label": "Mastering the 30-Second Elevator Speech for Networking Success",
             "type": "workshops",
             "details": {
