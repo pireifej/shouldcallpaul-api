@@ -159,7 +159,7 @@ router.post('/testGeneratePrayer', authenticate, async (req, res) => {
     }
     
     // Use the shared generatePrayer function
-    const result = await generatePrayer(params.requestText, params.authorName, params.lang || 'en');
+    const result = await generatePrayer(params.requestText, params.authorName, params.lang || 'en', params.requestTitle || '');
     
     if (result.error) {
       return res.json({ error: result.error });
@@ -232,7 +232,7 @@ router.post('/regeneratePrayer', authenticate, async (req, res) => {
     
     // Step 1: Get the request details from database (LEFT JOIN to handle requests without users)
     const requestQuery = `
-      SELECT r.request_text, r.user_id, u.real_name, u.user_name
+      SELECT r.request_text, r.request_title, r.user_id, u.real_name, u.user_name
       FROM public.request r
       LEFT JOIN public."user" u ON r.user_id = u.user_id
       WHERE r.request_id = $1
@@ -245,10 +245,11 @@ router.post('/regeneratePrayer', authenticate, async (req, res) => {
     }
     
     const requestText = requestResult.rows[0].request_text;
+    const requestTitle = requestResult.rows[0].request_title || '';
     const realName = requestResult.rows[0].real_name || requestResult.rows[0].user_name || "Someone";
     
     // Step 2: Generate prayer using shared function
-    const prayerGenResult = await generatePrayer(requestText, realName, params.lang || 'en');
+    const prayerGenResult = await generatePrayer(requestText, realName, params.lang || 'en', requestTitle);
     
     if (prayerGenResult.error) {
       return res.json({ error: prayerGenResult.error });
@@ -1039,7 +1040,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
 
     // Step 3: Generate prayer using shared function
     try {
-      const prayerGenResult = await generatePrayer(params.requestText, realName, params.lang || 'en');
+      const prayerGenResult = await generatePrayer(params.requestText, realName, params.lang || 'en', params.requestTitle || '');
       
       if (prayerGenResult.error) {
         res.json({ error: prayerGenResult.error });

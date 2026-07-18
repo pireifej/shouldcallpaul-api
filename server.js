@@ -242,22 +242,24 @@ async function awardBadge(userId, badgeKey) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function generatePrayer(requestText, authorName, lang = 'en') {
+async function generatePrayer(requestText, authorName, lang = 'en', requestTitle = '') {
   const realName = authorName || "Someone";
-  
+  const subject = requestTitle || 'the person or situation mentioned in the request';
+
   const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.
 
 User Request: ${requestText}
+Subject of this prayer: ${subject}
 Author of Request: ${realName}
 
 IMPORTANT - Identify the Correct Prayer Subject:
-The "Author of Request" is the person MAKING the request, but NOT necessarily the person to pray for. You must carefully read the request text to determine the correct subject:
+The "Subject of this prayer" field explicitly identifies WHO or WHAT ${realName} is praying for. Always intercede for that subject — do NOT assume ${realName} is the one experiencing the situation unless the subject field or request text clearly says so.
 
-- If the request mentions another person (e.g., "my husband", "my mother", "my friend John"), pray for THAT person (use their specific name if provided)
-  Example: "Pray for my husband Jiri for good health" → Pray for Jiri, NOT ${realName}
+- If the subject is another person (e.g., "My aunt", "Mother in Law", "My friend John"), pray for THAT person
+  Example: Subject "Mother in Law" + "She's battling cancer" → Pray for ${realName}'s mother-in-law, NOT ${realName}
   
-- If the request says "pray for me", "I need...", "help me...", then pray for the author: ${realName}
-  Example: "Pray for me to find strength" → Pray for ${realName}
+- If the subject refers to the author themselves (e.g., "My anxiety", "My job"), pray for ${realName}
+  Example: Subject "My anxiety" + "I need peace" → Pray for ${realName}
 
 CRITICAL - DO NOT INVENT NAMES:
 - NEVER make up or invent names that are not explicitly provided in the request text
