@@ -42,7 +42,6 @@ router.post('/getRequestById', authenticate, async (req, res) => {
         request.my_church_only,
         request.active,
         request.fk_prayer_id,
-        request.other_person_email,
         settings.use_alias,
         settings.allow_comments,
         request.timestamp as timestamp,
@@ -964,9 +963,9 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
     const insertQuery = `
       INSERT INTO public.request (
         user_id, request_text, request_title, picture, fk_prayer_id,
-        other_person_email, active, my_church_only, timestamp, updated_timestamp,
+        active, my_church_only, timestamp, updated_timestamp,
         content_en, content_es
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW(), $9, $10)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), $8, $9)
       RETURNING request_id
     `;
 
@@ -988,11 +987,10 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
       params.requestTitle,                    // $3
       pictureUrl,                             // $4
       params.prayerId || null,                // $5
-      params.otherPersonEmail || null,        // $6
-      1,                                      // $7 - active (1 for true in smallint)
-      myChurchOnly,                           // $8 - my_church_only flag
-      lang === 'en' ? params.requestText : null,  // $9 - content_en
-      lang === 'es' ? params.requestText : null   // $10 - content_es
+      1,                                      // $6 - active (1 for true in smallint)
+      myChurchOnly,                           // $7 - my_church_only flag
+      lang === 'en' ? params.requestText : null,  // $8 - content_en
+      lang === 'es' ? params.requestText : null   // $9 - content_es
     ];
 
     const insertResult = await pool.query(insertQuery, queryParams);
@@ -2007,21 +2005,16 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
       }
 
       // rainbow_promise: this request was answered within 7 days of being posted
+      // persistent: request was open for 30+ days before being answered
       const ageRes = await pool.query(
-        `SELECT request_date_time FROM public.request WHERE request_id = $1`, [request_id]
+        `SELECT timestamp FROM public.request WHERE request_id = $1`, [request_id]
       );
-      if (ageRes.rows.length > 0) {
-        const posted = new Date(ageRes.rows[0].request_date_time);
+      if (ageRes.rows.length > 0 && ageRes.rows[0].timestamp) {
+        const posted = new Date(ageRes.rows[0].timestamp);
         const daysSincePosted = (Date.now() - posted.getTime()) / (1000 * 60 * 60 * 24);
         if (daysSincePosted <= 7) {
           newBadge = await awardBadge(user_id, 'rainbow_promise') || newBadge;
         }
-      }
-
-      // persistent: request was open for 30+ days before being answered
-      if (ageRes.rows.length > 0) {
-        const posted = new Date(ageRes.rows[0].request_date_time);
-        const daysSincePosted = (Date.now() - posted.getTime()) / (1000 * 60 * 60 * 24);
         if (daysSincePosted >= 30) {
           newBadge = await awardBadge(user_id, 'persistent') || newBadge;
         }
