@@ -256,11 +256,12 @@ router.post('/regeneratePrayer', authenticate, async (req, res) => {
     }
 
     const newPrayer = prayerGenResult.processedPrayer;
+    const lang = params.lang || 'en';
 
     // Step 3: Insert the new prayer into prayers table
     const prayerInsertQuery = `
-      INSERT INTO public.prayers (prayer_title, prayer_text, prayer_text_me, tags, active, prayer_file_name) 
-      VALUES ($1, $2, $3, $4, $5, $6) 
+      INSERT INTO public.prayers (prayer_title, prayer_text, prayer_text_me, tags, active, prayer_file_name, prayer_en, prayer_es) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
       RETURNING prayer_id
     `;
 
@@ -270,19 +271,25 @@ router.post('/regeneratePrayer', authenticate, async (req, res) => {
       newPrayer,
       'openAI',
       1,
-      'openAI'
+      'openAI',
+      lang === 'en' ? newPrayer : null,
+      lang === 'es' ? newPrayer : null
     ]);
 
     const prayerId = dbInsertResult.rows[0].prayer_id;
 
-    // Step 5: Update the request with the new prayer ID
-    const updateQuery = `
-      UPDATE public.request 
-      SET fk_prayer_id = $1 
-      WHERE request_id = $2
-    `;
+    // Step 4: Update the request with the new prayer ID
+    await pool.query(
+      `UPDATE public.request SET fk_prayer_id = $1 WHERE request_id = $2`,
+      [prayerId, requestId]
+    );
 
-    await pool.query(updateQuery, [prayerId, requestId]);
+    // Step 5: Fire-and-forget translate to the other language
+    const otherLang = lang === 'es' ? 'en' : 'es';
+    translateText(newPrayer, lang, otherLang, 'prayer_html').then(translatedPrayer => {
+      const col = otherLang === 'es' ? 'prayer_es' : 'prayer_en';
+      return pool.query(`UPDATE public.prayers SET ${col} = $1 WHERE prayer_id = $2`, [translatedPrayer, prayerId]);
+    }).catch(e => console.error(`regeneratePrayer translation error (prayer ${prayerId}):`, e.message));
 
     // Step 6: Return success response
     res.json({
