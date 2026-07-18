@@ -1456,13 +1456,10 @@ Rules:
 - Total length: 180–220 words.
 - Output plain text with a blank line between each section.${spanishInstruction}`;
 
-    const chatResponse = await fetch(`http://localhost:${PORT}/getChatCompletion`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': req.headers.authorization },
-      body: JSON.stringify({ content: prompt })
+    const chatResult = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }]
     });
-
-    const chatResult = await chatResponse.json();
 
     if (!chatResult.choices || chatResult.choices.length === 0) {
       return res.json({ error: 1, result: "Prayer generation failed. Please try again." });
