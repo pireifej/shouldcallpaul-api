@@ -1388,12 +1388,12 @@ router.post('/getPrayerAudio', authenticate, async (req, res) => {
 
 router.post('/getDetailedPrayerByRequestId', authenticate, async (req, res) => {
   try {
-    const { requestId, lang = 'en' } = req.body;
+    const { requestId, lang = 'en', forceRegenerate = false } = req.body;
     if (!requestId) return res.json({ error: 1, result: "Required param 'requestId' missing" });
 
     const cacheCol = lang === 'es' ? 'detailed_prayer_es' : 'detailed_prayer';
 
-    // Check DB cache first
+    // Check DB cache first (skip if forceRegenerate)
     const cacheCheck = await pool.query(
       `SELECT ${cacheCol} FROM public.request WHERE request_id = $1`,
       [requestId]
@@ -1403,8 +1403,16 @@ router.post('/getDetailedPrayerByRequestId', authenticate, async (req, res) => {
       return res.json({ error: 1, result: "Request not found" });
     }
 
-    if (cacheCheck.rows[0][cacheCol]) {
+    if (cacheCheck.rows[0][cacheCol] && !forceRegenerate) {
       return res.json({ error: 0, result: cacheCheck.rows[0][cacheCol] });
+    }
+
+    // Clear cache if forceRegenerate
+    if (forceRegenerate) {
+      await pool.query(
+        `UPDATE public.request SET ${cacheCol} = NULL WHERE request_id = $1`,
+        [requestId]
+      );
     }
 
     // Fetch request text + author name for generation
