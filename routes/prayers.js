@@ -1409,7 +1409,7 @@ router.post('/getDetailedPrayerByRequestId', authenticate, async (req, res) => {
 
     // Fetch request text + author name for generation
     const dataQuery = await pool.query(
-      `SELECT r.request_text, u.real_name
+      `SELECT r.request_text, r.request_title, u.real_name
        FROM public.request r
        JOIN public."user" u ON r.user_id = u.user_id
        WHERE r.request_id = $1`,
@@ -1420,15 +1420,18 @@ router.post('/getDetailedPrayerByRequestId', authenticate, async (req, res) => {
       return res.json({ error: 1, result: "Request not found" });
     }
 
-    const { request_text, real_name } = dataQuery.rows[0];
+    const { request_text, request_title, real_name } = dataQuery.rows[0];
     const authorName = real_name || "Someone";
     const spanishInstruction = lang === 'es'
       ? '\n\nIMPORTANT: Write this entire prayer in Spanish (Latin American Spanish). Every word must be in Spanish.'
       : '';
 
+    const subject = request_title || 'the person or situation mentioned';
+
     const prompt = `You are an expert prayer writer composing a rich, extended Catholic-style intercessory prayer.
 
 Prayer Request: ${request_text}
+Subject of this prayer: ${subject}
 Submitted by: ${authorName}
 
 Write a detailed prayer in 4 sections:
@@ -1438,6 +1441,7 @@ Write a detailed prayer in 4 sections:
 4. Closing — A confident, surrendering conclusion that trusts in God's will (1 paragraph)
 
 Rules:
+- The "Subject" field identifies WHO or WHAT ${authorName} is praying for. Intercede for that subject — do NOT assume ${authorName} is the one experiencing the situation unless the request text clearly says so.
 - Use markdown-style bold (**text**) for all names (including divine names: God, Lord, Jesus, Holy Spirit, Mary, Father) and key intercession words (heal, protect, guide, bless, comfort, strengthen, peace, grace, mercy, love, hope, faith, wisdom, courage).
 - DO NOT invent names not in the request text. Use possessive phrases (e.g. "${authorName}'s mother") instead.
 - Do NOT end with "Amen".
