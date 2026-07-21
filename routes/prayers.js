@@ -1669,6 +1669,9 @@ router.post('/getCommunityWall', authenticate, async (req, res) => {
         request.request_id,
         request.user_id,
         COALESCE(CASE WHEN $2='es' THEN request.content_es ELSE request.content_en END, request.request_text) as request_text,
+        request.content_en as content_en_raw,
+        request.content_es as content_es_raw,
+        request.request_text as original_request_text,
         request.fk_prayer_id,
         prayers.prayer_title,
         request.request_title,
@@ -1734,16 +1737,57 @@ router.post('/getCommunityWall', authenticate, async (req, res) => {
 
     const result = await pool.query(query, queryParams);
     const ranks = await loadFaithRanks();
+
+    // Detect rows where the target-language column was missing (COALESCE fell back to original_request_text).
+    // Translate those in parallel now so the caller gets the right language, then save back fire-and-forget.
+    const needsTranslation = result.rows.filter(row => {
+      const targetColMissing = lang === 'es' ? !row.content_es_raw : !row.content_en_raw;
+      return targetColMissing;
+    });
+
+    if (needsTranslation.length > 0) {
+      const srcLang = lang === 'es' ? 'en' : 'es';
+      const dbCol   = lang === 'es' ? 'content_es' : 'content_en';
+
+      const translations = await Promise.all(
+        needsTranslation.map(row =>
+          translateText(row.original_request_text, srcLang, lang, 'text')
+            .then(translated => ({ requestId: row.request_id, translated }))
+            .catch(() => ({ requestId: row.request_id, translated: null }))
+        )
+      );
+
+      // Apply translations to rows and save back to DB (fire-and-forget)
+      const translationMap = {};
+      translations.forEach(t => { if (t.translated) translationMap[t.requestId] = t.translated; });
+
+      result.rows.forEach(row => {
+        if (translationMap[row.request_id]) {
+          row.request_text = translationMap[row.request_id];
+        }
+      });
+
+      // Persist so next load is instant
+      translations.forEach(({ requestId, translated }) => {
+        if (!translated) return;
+        pool.query(`UPDATE public.request SET ${dbCol} = $1 WHERE request_id = $2`, [translated, requestId])
+          .catch(e => console.error(`Wall translation save error (request ${requestId}):`, e.message));
+      });
+    }
+
     const rows = result.rows.map(row => {
-      if (row.prayed_by_people && Array.isArray(row.prayed_by_people)) {
-        row.prayed_by_people = row.prayed_by_people.map(person => {
+      // Strip internal helper columns before sending to client
+      const { content_en_raw, content_es_raw, original_request_text, ...clean } = row;
+
+      if (clean.prayed_by_people && Array.isArray(clean.prayed_by_people)) {
+        clean.prayed_by_people = clean.prayed_by_people.map(person => {
           if (person) {
             person.faith_rank = computeRank(person.faith_points, ranks);
           }
           return person;
         }).filter(Boolean);
       }
-      return row;
+      return clean;
     });
     res.json(rows);
 
