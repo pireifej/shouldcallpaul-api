@@ -227,9 +227,6 @@ router.post('/admin/createBlogArticle', authenticate, upload.single('image'), as
     </style>
 </head>
 <body>
-    <h1>${title}</h1>
-    <p class="byline">by ${authorName} for Urban Telegraph</p>
-
 ${htmlContent}
 </body>
 </html>`;
