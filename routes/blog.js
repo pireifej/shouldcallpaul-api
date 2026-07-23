@@ -3,7 +3,7 @@ const express = require('express');
 
 module.exports = function blogRoutes(ctx) {
   const router = express.Router();
-  const { pool, authenticate, openai, uploadImageFromUrl, multer, path, log } = ctx;
+  const { pool, authenticate, openai, uploadImage, uploadImageFromUrl, multer, path, log } = ctx;
 
 router.post('/getAllBlogArticles', authenticate, async (req, res) => {
   try {
