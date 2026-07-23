@@ -286,7 +286,7 @@ router.patch('/admin/editBlogArticle', authenticate, upload.single('image'), asy
     // Handle optional new image upload to Cloudinary
     let newImageUrl = null;
     if (req.file) {
-      newImageUrl = await uploadImage(req.file.buffer, req.file.mimetype, 'blog_articles');
+      newImageUrl = await uploadImage(req.file.buffer, 'blog_articles');
     }
 
     // Content is stored in DB — no flat file write needed
