@@ -37,6 +37,9 @@ router.post('/getRequestById', authenticate, async (req, res) => {
         request.request_id,
         request.user_id,
         COALESCE(CASE WHEN $1='es' THEN request.content_es ELSE request.content_en END, request.request_text) as request_text,
+        request.content_en as content_en_raw,
+        request.content_es as content_es_raw,
+        request.request_text as original_request_text,
         request.request_title,
         request.picture as request_picture,
         request.my_church_only,
@@ -66,6 +69,26 @@ router.post('/getRequestById', authenticate, async (req, res) => {
     }
     
     const request = result.rows[0];
+
+    // If the target-language column was missing, translate now and save back so next call is instant
+    const targetColMissing = lang === 'es' ? !request.content_es_raw : !request.content_en_raw;
+    if (targetColMissing && request.original_request_text) {
+      const srcLang = lang === 'es' ? 'en' : 'es';
+      const dbCol   = lang === 'es' ? 'content_es' : 'content_en';
+      try {
+        const translated = await translateText(request.original_request_text, srcLang, lang, 'text');
+        request.request_text = translated;
+        pool.query(`UPDATE public.request SET ${dbCol} = $1 WHERE request_id = $2`, [translated, requestId])
+          .catch(e => console.error(`getRequestById translation save error (request ${requestId}):`, e.message));
+      } catch (e) {
+        console.error(`getRequestById translation error (request ${requestId}):`, e.message);
+      }
+    }
+
+    // Strip internal helper columns before sending to client
+    delete request.content_en_raw;
+    delete request.content_es_raw;
+    delete request.original_request_text;
     
     // Get prayed_by_names (who prayed for this request)
     const prayedByQuery = `
