@@ -134,6 +134,7 @@ router.post('/getRequestById', authenticate, async (req, res) => {
         displayName = `${row.name} prayed ${count} times`;
       }
       return {
+        user_id: row.user_id,
         name: displayName,
         picture: row.picture,
         faith_points: row.faith_points || 0,
@@ -1510,37 +1511,45 @@ Rules:
   }
 });
 
-// POST /getPrayedFor - Get all requests that a user has prayed for
+// POST /getPrayedFor - Get all requests that a user has prayed for (works for any userId)
 router.post('/getPrayedFor', authenticate, async (req, res) => {
   try {
     log(req);
     const params = req.body;
-    
-    // Validate required parameters
-    const requiredParams = ["userId"];
-    for (let i = 0; i < requiredParams.length; i++) {
-      const requiredParam = requiredParams[i];
-      if (!params[requiredParam]) {
-        return res.json({error: 1, result: "Required params '" + requiredParam + "' missing"});
-      }
+
+    if (!params.userId) {
+      return res.json({ error: 1, result: "Required param 'userId' missing" });
     }
-    
-    // PostgreSQL query to get all requests the user has prayed for
+
+    const lang = ['en', 'es'].includes(params.lang) ? params.lang : 'en';
+
     const query = `
-      SELECT DISTINCT 
-        r.*,
-        u.picture,
-        u.real_name as first_name
+      SELECT DISTINCT
+        r.request_id,
+        r.user_id,
+        COALESCE(CASE WHEN $2='es' THEN r.content_es ELSE r.content_en END, r.request_text) as request_text,
+        r.request_title,
+        r.picture as request_picture,
+        r.active,
+        r.timestamp,
+        r.fk_prayer_id,
+        COALESCE(CASE WHEN $2='es' THEN p.prayer_es ELSE p.prayer_en END, p.prayer_text) as prayer_text,
+        u.user_name,
+        u.real_name,
+        u.picture as user_picture,
+        u.church_id
       FROM public.request r
       INNER JOIN public.user_request ur ON r.request_id = ur.request_id
       INNER JOIN public."user" u ON r.user_id = u.user_id
+      LEFT JOIN public.prayers p ON p.prayer_id = r.fk_prayer_id
       WHERE ur.user_id = $1
+        AND r.active != 3
       ORDER BY r.timestamp DESC
     `;
-    
-    const result = await pool.query(query, [params.userId]);
+
+    const result = await pool.query(query, [params.userId, lang]);
     res.json(result.rows);
-    
+
   } catch (error) {
     console.error('Database query error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -1590,6 +1599,54 @@ router.post('/getMyRequests', authenticate, async (req, res) => {
 
     const lang = ['en', 'es'].includes(params.lang) ? params.lang : 'en';
     const result = await pool.query(query, [params.userId, lang]);
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('Database query error:', err);
+    res.json({ error: 1, result: "Database error: " + err.message });
+  }
+});
+
+// POST /getUserRequests - Get another user's publicly visible active prayer requests (for profile pages)
+// Params: targetUserId (whose posts to show), userId (logged-in user), lang
+router.post('/getUserRequests', authenticate, async (req, res) => {
+  log(req);
+  const params = req.body;
+
+  if (!params.targetUserId) {
+    return res.json({ error: 1, result: "Required param 'targetUserId' missing" });
+  }
+
+  try {
+    const lang = ['en', 'es'].includes(params.lang) ? params.lang : 'en';
+
+    const query = `
+      SELECT DISTINCT
+        request.request_id,
+        request.user_id,
+        COALESCE(CASE WHEN $2='es' THEN request.content_es ELSE request.content_en END, request.request_text) as request_text,
+        request.request_title,
+        request.picture as request_picture,
+        request.active,
+        request.timestamp,
+        request.fk_prayer_id,
+        COALESCE(CASE WHEN $2='es' THEN prayers.prayer_es ELSE prayers.prayer_en END, prayers.prayer_text) as prayer_text,
+        "user".user_name,
+        "user".real_name,
+        "user".picture as user_picture,
+        "user".church_id,
+        settings.use_alias,
+        settings.allow_comments
+      FROM public.request
+      INNER JOIN public."user" ON "user".user_id = request.user_id
+      LEFT JOIN public.settings ON settings.user_id = "user".user_id
+      LEFT JOIN public.prayers ON prayers.prayer_id = request.fk_prayer_id
+      WHERE request.user_id = $1
+        AND request.active = 1
+      ORDER BY request.timestamp DESC
+    `;
+
+    const result = await pool.query(query, [params.targetUserId, lang]);
     res.json(result.rows);
 
   } catch (err) {
@@ -1729,6 +1786,7 @@ router.post('/getCommunityWall', authenticate, async (req, res) => {
           ) FILTER (WHERE user_real_name IS NOT NULL) as prayed_by_names,
           JSONB_AGG(
             JSONB_BUILD_OBJECT(
+              'user_id', praying_user_id,
               'name', CASE 
                 WHEN user_prayer_count = 1 THEN user_real_name
                 WHEN user_prayer_count = 2 THEN user_real_name || ' prayed twice'
