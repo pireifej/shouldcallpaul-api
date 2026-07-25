@@ -203,23 +203,33 @@ router.post('/testGeneratePrayer', authenticate, async (req, res) => {
   }
 });
 
-// POST /checkPrayerContent - Check if a prayer request is primarily material/consumer-focused
+// POST /checkPrayerContent - Check prayer request against content guidelines
 router.post('/checkPrayerContent', authenticate, async (req, res) => {
-  const safe = { flagged: false, suggestion: null };
+  const safe = { flagged: false, type: null, suggestion: null };
   try {
     const { requestText } = req.body;
     if (!requestText || typeof requestText !== 'string' || !requestText.trim()) {
       return res.json(safe);
     }
 
-    const prompt = `You are a helper for a Christian prayer app. Read this prayer request and determine if it is primarily asking for a material possession or consumer product (not a spiritual, health, relationship, or life-circumstances need). If it is material, suggest a brief, heartfelt rephrasing that addresses the deeper spiritual need behind it (gratitude, contentment, provision, etc.). Keep the suggestion under 3 sentences and in first-person prayer form. Respond in JSON only, with exactly two fields: "flagged" (boolean) and "suggestion" (string if flagged, null if not).
+    const prompt = `You are a content reviewer for a Christian prayer app. Read the prayer request below and check it against the following rules in order. Stop at the first rule that applies and return that result.
+
+RULE 1 — SAFETY: Does the request describe or hint at violence, domestic abuse, physical harm, or a dangerous situation involving the user or someone they know (e.g. a parent hitting another parent, threats, abuse)? If yes: flagged=true, type="safety", suggestion="It sounds like someone may be in an unsafe situation. Please consider calling 911 or the National Domestic Violence Hotline at 1-800-799-7233 if anyone is in danger. We are praying for you."
+
+RULE 2 — SPOUSE/RELATIONSHIP ENTITLEMENT: Is the request primarily focused on receiving a specific romantic partner or husband/wife from God as if it is owed or destined (e.g. "my kingdom husband", "my future husband", treating a spouse as a guaranteed item to receive)? Minor mentions of relationships are fine — only flag if getting the partner is the central ask. If yes: flagged=true, type="suggestion", suggestion=[a brief, gentle rephrasing under 3 sentences in first-person prayer form that shifts focus from receiving a specific person to trusting God's timing and being spiritually prepared for love].
+
+RULE 3 — MATERIAL/CONSUMER: Is the request primarily about acquiring a specific material product or consumer item (clothes, shoes, electronics, car, etc.)? If the material item is a small part of a larger spiritual or emotional need (e.g. anxiety about spending), do NOT flag — only flag if the purchase itself is the main ask. If yes: flagged=true, type="suggestion", suggestion=[a brief, heartfelt rephrasing under 3 sentences in first-person prayer form that addresses the deeper spiritual need — provision, contentment, gratitude — without focusing on the product].
+
+RULE 4 — NO FLAG: If none of the above apply (including standard Christian language like "giving in to the flesh", struggles with sin, grief, illness, relationships, life circumstances), return flagged=false, type=null, suggestion=null.
+
+Respond in JSON only with exactly three fields: "flagged" (boolean), "type" (string or null), "suggestion" (string or null).
 
 Prayer request: "${requestText.trim().replace(/"/g, '\\"')}"`;
 
     const gptCall = openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 150,
+      max_tokens: 200,
       response_format: { type: 'json_object' }
     });
 
@@ -231,9 +241,11 @@ Prayer request: "${requestText.trim().replace(/"/g, '\\"')}"`;
     const raw = completion.choices?.[0]?.message?.content || '{}';
     const parsed = JSON.parse(raw);
 
+    const flagged = parsed.flagged === true;
     return res.json({
-      flagged: parsed.flagged === true,
-      suggestion: parsed.flagged === true ? (parsed.suggestion || null) : null
+      flagged,
+      type: flagged ? (parsed.type || null) : null,
+      suggestion: flagged ? (parsed.suggestion || null) : null
     });
   } catch (err) {
     console.error('checkPrayerContent error (returning safe default):', err.message);
