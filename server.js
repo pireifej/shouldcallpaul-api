@@ -530,6 +530,7 @@ const blogRoutes       = require('./routes/blog');
 const adminRoutes      = require('./routes/admin');
 const resumeRoutes     = require('./routes/resume');
 const rosaryRoutes     = require('./routes/rosary');
+const moderationRoutes = require('./routes/moderation');
 
 const rooms = new Map(); // code -> room object
 
@@ -1116,6 +1117,7 @@ app.use(blogRoutes(ctx));
 app.use(adminRoutes(ctx));
 app.use(resumeRoutes(ctx));
 app.use(rosaryRoutes(ctx));
+app.use(moderationRoutes(ctx));
 
 // Daily backup at 2:00 AM UTC
 cron.schedule('0 2 * * *', async () => {
@@ -1156,6 +1158,20 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
       request_title TEXT,
       created_at TIMESTAMP DEFAULT NOW(),
       notified BOOLEAN DEFAULT false
+    )` },
+    { col: 'content_reports_table', sql: `CREATE TABLE IF NOT EXISTS public.content_reports (
+      id SERIAL PRIMARY KEY,
+      request_id INTEGER NOT NULL,
+      reported_by INTEGER NOT NULL,
+      reported_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT NOW()
+    )` },
+    { col: 'user_blocks_table', sql: `CREATE TABLE IF NOT EXISTS public.user_blocks (
+      id SERIAL PRIMARY KEY,
+      blocker_id INTEGER NOT NULL,
+      blocked_id INTEGER NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW(),
+      UNIQUE (blocker_id, blocked_id)
     )` },
   ];
   for (const [name, p] of [['dev', pool], ['prod', auditPool]]) {
