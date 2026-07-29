@@ -531,6 +531,7 @@ const adminRoutes      = require('./routes/admin');
 const resumeRoutes     = require('./routes/resume');
 const rosaryRoutes     = require('./routes/rosary');
 const moderationRoutes = require('./routes/moderation');
+const speakerRoutes    = require('./routes/speaker');
 
 const rooms = new Map(); // code -> room object
 
@@ -1118,6 +1119,7 @@ app.use(adminRoutes(ctx));
 app.use(resumeRoutes(ctx));
 app.use(rosaryRoutes(ctx));
 app.use(moderationRoutes(ctx));
+app.use(speakerRoutes(ctx));
 
 // Daily backup at 2:00 AM UTC
 cron.schedule('0 2 * * *', async () => {
