@@ -2078,36 +2078,45 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
       ? answered_message.trim().slice(0, 197) + '…'
       : answered_message.trim();
 
-    let pushCount = 0;
-    let emailCount = 0;
+    // Respond immediately — notifications and badges run in the background
+    res.json({
+      error: 0,
+      result: "Your prayer has been marked as answered",
+      notified: prayers.length
+    });
 
-    for (const person of prayers) {
-      // Push notification
-      if (person.push_notifications && person.fcm_token) {
-        try {
-          const pushResult = await sendPushNotification(
-            person.fcm_token,
-            `${requesterName}'s prayer was answered! 🙌`,
-            `"${requestTitle}" — tap to read their testimony`,
-            { type: 'prayer_answered', screen: 'RequestDetail', requestId: request_id.toString(), requesterId: user_id.toString() }
-          );
-          if (pushResult.shouldRemoveToken) {
-            await pool.query(
-              'UPDATE public."user" SET fcm_token = NULL WHERE user_id = $1',
-              [person.user_id]
+    // Fire-and-forget: push notifications, emails, badge checks
+    setImmediate(async () => {
+      let pushCount = 0;
+      let emailCount = 0;
+
+      for (const person of prayers) {
+        // Push notification
+        if (person.push_notifications && person.fcm_token) {
+          try {
+            const pushResult = await sendPushNotification(
+              person.fcm_token,
+              `${requesterName}'s prayer was answered! 🙌`,
+              `"${requestTitle}" — tap to read their testimony`,
+              { type: 'prayer_answered', screen: 'RequestDetail', requestId: request_id.toString(), requesterId: user_id.toString() }
             );
-          } else {
-            pushCount++;
+            if (pushResult.shouldRemoveToken) {
+              await pool.query(
+                'UPDATE public."user" SET fcm_token = NULL WHERE user_id = $1',
+                [person.user_id]
+              );
+            } else {
+              pushCount++;
+            }
+          } catch (pushErr) {
+            console.error(`Failed push for user ${person.user_id}:`, pushErr.message);
           }
-        } catch (pushErr) {
-          console.error(`Failed push for user ${person.user_id}:`, pushErr.message);
         }
-      }
 
-      // Email notification
-      if (person.prayer_emails && person.email && !person.email_bounced) {
-        try {
-          const emailTemplate = `
+        // Email notification
+        if (person.prayer_emails && person.email && !person.email_bounced) {
+          try {
+            const emailTemplate = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -2151,65 +2160,45 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
   </div>
 </body>
 </html>
-          `;
-          await sendGmailSingle(
-            emailTemplate,
-            { email: 'prayoverus@gmail.com', name: 'PrayOverUs' },
-            { email: person.email, name: person.real_name || 'Friend' },
-            `🙌 ${requesterName}'s prayer was answered`,
-            null, null
-          );
-          emailCount++;
-        } catch (emailErr) {
-          console.error(`Failed email for user ${person.user_id}:`, emailErr.message);
+            `;
+            await sendGmailSingle(
+              emailTemplate,
+              { email: 'prayoverus@gmail.com', name: 'PrayOverUs' },
+              { email: person.email, name: person.real_name || 'Friend' },
+              `🙌 ${requesterName}'s prayer was answered`,
+              null, null
+            );
+            emailCount++;
+          } catch (emailErr) {
+            console.error(`Failed email for user ${person.user_id}:`, emailErr.message);
+          }
         }
       }
-    }
 
-    // Badge checks on answered prayer
-    let newBadge = null;
-    try {
-      // the_rejoicer: 5+ answered prayers
-      const answeredRes = await pool.query(
-        `SELECT COUNT(*) FROM public.request WHERE user_id = $1 AND active = 2`, [user_id]
-      );
-      const answeredCount = parseInt(answeredRes.rows[0].count);
-      if (answeredCount >= 5) {
-        newBadge = await awardBadge(user_id, 'the_rejoicer') || newBadge;
-      }
+      // Badge checks
+      try {
+        let newBadge = null;
+        const answeredRes = await pool.query(
+          `SELECT COUNT(*) FROM public.request WHERE user_id = $1 AND active = 2`, [user_id]
+        );
+        const answeredCount = parseInt(answeredRes.rows[0].count);
+        if (answeredCount >= 5) newBadge = await awardBadge(user_id, 'the_rejoicer') || newBadge;
+        if (answeredCount === 1) newBadge = await awardBadge(user_id, 'chain_breaker') || newBadge;
 
-      // chain_breaker: first prayer ever marked answered
-      if (answeredCount === 1) {
-        newBadge = await awardBadge(user_id, 'chain_breaker') || newBadge;
-      }
-
-      // rainbow_promise: this request was answered within 7 days of being posted
-      // persistent: request was open for 30+ days before being answered
-      const ageRes = await pool.query(
-        `SELECT timestamp FROM public.request WHERE request_id = $1`, [request_id]
-      );
-      if (ageRes.rows.length > 0 && ageRes.rows[0].timestamp) {
-        const posted = new Date(ageRes.rows[0].timestamp);
-        const daysSincePosted = (Date.now() - posted.getTime()) / (1000 * 60 * 60 * 24);
-        if (daysSincePosted <= 7) {
-          newBadge = await awardBadge(user_id, 'rainbow_promise') || newBadge;
+        const ageRes = await pool.query(
+          `SELECT timestamp FROM public.request WHERE request_id = $1`, [request_id]
+        );
+        if (ageRes.rows.length > 0 && ageRes.rows[0].timestamp) {
+          const posted = new Date(ageRes.rows[0].timestamp);
+          const daysSincePosted = (Date.now() - posted.getTime()) / (1000 * 60 * 60 * 24);
+          if (daysSincePosted <= 7) newBadge = await awardBadge(user_id, 'rainbow_promise') || newBadge;
+          if (daysSincePosted >= 30) newBadge = await awardBadge(user_id, 'persistent') || newBadge;
         }
-        if (daysSincePosted >= 30) {
-          newBadge = await awardBadge(user_id, 'persistent') || newBadge;
-        }
+      } catch (badgeErr) {
+        console.warn('Badge check failed (non-blocking):', badgeErr.message);
       }
-    } catch (badgeErr) {
-      console.warn('Badge check failed (non-blocking):', badgeErr.message);
-    }
 
-    console.log(`✅ Prayer ${request_id} marked answered by user ${user_id} — ${pushCount} pushes, ${emailCount} emails sent`);
-    res.json({
-      error: 0,
-      result: "Your prayer has been marked as answered",
-      notified: prayers.length,
-      pushCount,
-      emailCount,
-      new_badge: newBadge
+      console.log(`✅ Prayer ${request_id} answered — ${pushCount} pushes, ${emailCount} emails sent to ${prayers.length} people`);
     });
 
   } catch (error) {
