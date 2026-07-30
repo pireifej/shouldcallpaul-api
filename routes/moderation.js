@@ -31,7 +31,6 @@ module.exports = function moderationRoutes(ctx) {
             text: `A prayer request has been reported.\n\nRequest ID: ${requestId}\nReported by user ID: ${reportedBy}\nReported at: ${reportedAt || new Date().toISOString()}\n\nPlease review this request in the admin panel.`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #e74c3c;">🚩 Content Reported</h2>
                 <p>A prayer request has been flagged for review.</p>
                 <table style="border-collapse: collapse; width: 100%;">
                   <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Request ID</td><td style="padding: 8px; border: 1px solid #ddd;">#${requestId}</td></tr>
@@ -81,7 +80,6 @@ module.exports = function moderationRoutes(ctx) {
             text: `A user has been blocked.\n\nBlocker user ID: ${blockerId}\nBlocked user ID: ${blockedId}\nTimestamp: ${new Date().toISOString()}`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #e67e22;">🚫 User Blocked</h2>
                 <p>A user has blocked another user.</p>
                 <table style="border-collapse: collapse; width: 100%;">
                   <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Blocker (user ID)</td><td style="padding: 8px; border: 1px solid #ddd;">${blockerId}</td></tr>
