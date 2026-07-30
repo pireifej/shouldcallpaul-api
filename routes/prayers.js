@@ -44,6 +44,7 @@ router.post('/getRequestById', authenticate, async (req, res) => {
         request.picture as request_picture,
         request.my_church_only,
         request.active,
+        request.answered_message,
         request.fk_prayer_id,
         settings.use_alias,
         settings.allow_comments,
@@ -161,7 +162,9 @@ router.post('/getRequestById', authenticate, async (req, res) => {
     request.prayed_by_people = prayedByPeople;
     request.prayer_count = prayedByResult.rows.reduce((sum, row) => sum + parseInt(row.pray_count), 0);
     request.user_has_prayed = userHasPrayed;
-    
+    request.is_answered = request.active === 2;
+    request.answered_message = request.answered_message || null;
+
     res.json({ error: 0, request: request });
     
   } catch (error) {
