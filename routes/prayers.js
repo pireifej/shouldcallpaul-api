@@ -975,6 +975,15 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
         }
     }
 
+    // Check if user is allowed to post requests
+    const canPostCheck = await pool.query(
+      `SELECT can_post FROM public."user" WHERE user_id = $1`,
+      [params.userId]
+    );
+    if (canPostCheck.rows.length > 0 && canPostCheck.rows[0].can_post === false) {
+      return res.json({ error: 1, result: "Your account has been restricted from posting new prayer requests." });
+    }
+
     // Validate that request doesn't contain email addresses or websites
     const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
     const urlPattern = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.(com|org|net|edu|gov|io|co|us|info|biz|me|app|dev|ai|tech|online|site|xyz|uk|ca|au|de|fr|in|br|jp|ru|cn|it|es|nl|se|no|dk|fi|pl|be|ch|at|cz|gr|pt|ie|nz|sg|hk|my|za|mx|ar|cl|pe|ve|co\.uk|co\.in|co\.jp|co\.nz|co\.za|ca\.gov|ac\.uk|edu\.au|gov\.uk|org\.uk|net\.au|gov\.au))\b/i;

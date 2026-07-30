@@ -1175,6 +1175,7 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
       created_at TIMESTAMP DEFAULT NOW(),
       UNIQUE (blocker_id, blocked_id)
     )` },
+    { col: 'can_post', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS can_post boolean DEFAULT true` },
   ];
   for (const [name, p] of [['dev', pool], ['prod', auditPool]]) {
     for (const { col, sql } of migrations) {
