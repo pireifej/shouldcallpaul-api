@@ -1523,6 +1523,48 @@ Rules:
   }
 });
 
+// POST /getPrayer - Get best available prayer for a request (extended if cached, else standard)
+router.post('/getPrayer', authenticate, async (req, res) => {
+  try {
+    const { requestId, lang = 'en' } = req.body;
+    if (!requestId) return res.json({ error: 1, prayerText: null, result: "Required param 'requestId' missing" });
+
+    const extendedCol = lang === 'es' ? 'detailed_prayer_es' : 'detailed_prayer';
+    const standardCol = lang === 'es'
+      ? 'COALESCE(p.prayer_es, p.prayer_text)'
+      : 'COALESCE(p.prayer_en, p.prayer_text)';
+
+    const result = await pool.query(`
+      SELECT
+        r.${extendedCol} as extended_prayer,
+        ${standardCol} as standard_prayer
+      FROM public.request r
+      LEFT JOIN public.prayers p ON p.prayer_id = r.fk_prayer_id
+      WHERE r.request_id = $1
+    `, [requestId]);
+
+    if (result.rows.length === 0) {
+      return res.json({ error: 1, prayerText: null, result: "Request not found" });
+    }
+
+    const { extended_prayer, standard_prayer } = result.rows[0];
+
+    if (extended_prayer) {
+      return res.json({ error: 0, prayerText: extended_prayer, isExtended: true });
+    }
+
+    if (standard_prayer) {
+      return res.json({ error: 0, prayerText: standard_prayer, isExtended: false });
+    }
+
+    return res.json({ error: 1, prayerText: null });
+
+  } catch (error) {
+    console.error('Error in /getPrayer:', error);
+    res.json({ error: 1, prayerText: null, result: "Internal server error" });
+  }
+});
+
 // POST /getPrayedFor - Get all requests that a user has prayed for (works for any userId)
 router.post('/getPrayedFor', authenticate, async (req, res) => {
   try {
