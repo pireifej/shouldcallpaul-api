@@ -26,7 +26,7 @@ module.exports = function moderationRoutes(ctx) {
           const transporter = createGmailTransporter();
           await transporter.sendMail({
             from: `"Pray Over Us" <${process.env.GMAIL_USER}>`,
-            to: process.env.GMAIL_USER,
+            to: 'prayoverus@gmail.com',
             subject: `🚩 Content reported — prayer #${requestId}`,
             text: `A prayer request has been reported.\n\nRequest ID: ${requestId}\nReported by user ID: ${reportedBy}\nReported at: ${reportedAt || new Date().toISOString()}\n\nPlease review this request in the admin panel.`,
             html: `
@@ -76,7 +76,7 @@ module.exports = function moderationRoutes(ctx) {
           const transporter = createGmailTransporter();
           await transporter.sendMail({
             from: `"Pray Over Us" <${process.env.GMAIL_USER}>`,
-            to: process.env.GMAIL_USER,
+            to: 'prayoverus@gmail.com',
             subject: `🚫 User blocked — user #${blockedId}`,
             text: `A user has been blocked.\n\nBlocker user ID: ${blockerId}\nBlocked user ID: ${blockedId}\nTimestamp: ${new Date().toISOString()}`,
             html: `
