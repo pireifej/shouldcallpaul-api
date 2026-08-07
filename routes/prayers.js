@@ -215,6 +215,33 @@ router.post('/checkPrayerContent', authenticate, async (req, res) => {
       return res.json(safe);
     }
 
+    // ── Crisis pre-filter (keyword-based, runs before OpenAI) ──────────────────
+    // Phrase-based to avoid false positives on common Christian language
+    // ("dying to myself", "death of a loved one", "Lord take me home", etc.)
+    const lc = requestText.toLowerCase();
+    const crisisPhrases = [
+      'end my life', 'ending my life',
+      'kill myself', 'killing myself',
+      'take my own life', 'taking my own life',
+      'want to die', 'wanting to die',
+      'don\'t want to be here', 'do not want to be here',
+      'no reason to live', 'not worth living',
+      'suicidal', 'suicide',
+      'hurt myself', 'hurting myself', 'harm myself', 'harming myself',
+      'cutting myself', 'cut myself',
+      'self-harm', 'self harm',
+      'overdose on', 'overdosing on',
+      'better off dead', 'better off without me',
+    ];
+    if (crisisPhrases.some(phrase => lc.includes(phrase))) {
+      return res.json({
+        flagged: true,
+        type: 'crisis',
+        suggestion: 'It sounds like you may be carrying something very heavy right now. You are not alone, and your life matters deeply. If you are having thoughts of harming yourself, please reach out — call or text 988 (Suicide & Crisis Lifeline) or text HOME to 741741. We are still here praying for you. 🙏'
+      });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     const prompt = `You are a content reviewer for a Christian prayer app. Read the prayer request below and check it against the following rules in order. Stop at the first rule that applies and return that result.
 
 RULE 1 — SAFETY: Does the request describe or hint at violence, domestic abuse, physical harm, or a dangerous situation involving the user or someone they know (e.g. a parent hitting another parent, threats, abuse)? If yes: flagged=true, type="safety", suggestion="It sounds like someone may be in an unsafe situation. Please consider calling 911 or the National Domestic Violence Hotline at 1-800-799-7233 if anyone is in danger. We are praying for you."
