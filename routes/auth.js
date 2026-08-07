@@ -545,7 +545,7 @@ router.post('/socialLogin', authenticate, async (req, res) => {
   }
 });
 
-router.post('/googleLogin', authenticate, async (req, res) => {
+router.post('/googleLogin', async (req, res) => {
   try {
     const { email, google_id, first_name, last_name, picture } = req.body;
 
@@ -668,7 +668,7 @@ router.post('/googleLogin', authenticate, async (req, res) => {
 
 // POST /appleLogin — Sign in with Apple
 // Apple only sends email + name on the FIRST login; subsequent logins only send apple_user_id + identity_token
-router.post('/appleLogin', authenticate, async (req, res) => {
+router.post('/appleLogin', async (req, res) => {
   try {
     const { identity_token, apple_user_id, email, first_name, last_name } = req.body;
 
