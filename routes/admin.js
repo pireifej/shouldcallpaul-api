@@ -3,7 +3,7 @@ const express = require('express');
 
 module.exports = function adminRoutes(ctx) {
   const router = express.Router();
-  const { pool, auditPool, authenticate, openai, sendGmailSingle, createGmailTransporter, sendPushNotification, runProdBackup, BACKUP_DIR, fs, path, log } = ctx;
+  const { pool, auditPool, authenticate, openai, sendGmailSingle, createGmailTransporter, sendPushNotification, runProdBackup, BACKUP_DIR, fs, path, log, generateDailyDevotional } = ctx;
 
 router.post('/getRequestCount', authenticate, async (req, res) => {
   try {
@@ -468,6 +468,62 @@ router.post('/createBackup', async (req, res) => {
   } catch (error) {
     console.error('Manual backup error:', error);
     res.status(500).json({ error: 1, result: error.message });
+  }
+});
+
+// POST /triggerDevotional - Manually generate a Daily Bread devotional for a specific date
+router.post('/triggerDevotional', authenticate, async (req, res) => {
+  log(req);
+  const { date, lang } = req.body; // date: 'YYYY-MM-DD', lang: 'en'|'es'|undefined (both)
+  try {
+    const targetDate = date ? new Date(date + 'T12:00:00Z') : new Date();
+    const dateStr = targetDate.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+
+    // Check what already exists
+    const existing = await pool.query(
+      'SELECT lang FROM public.daily_devotional WHERE date = $1', [dateStr]
+    );
+    const existingLangs = new Set(existing.rows.map(r => r.lang));
+
+    const results = {};
+
+    const langsToGenerate = lang ? [lang] : ['en', 'es'];
+    let sharedTheme = null;
+    let sharedImageUrl = null;
+
+    // Always generate EN first so ES can share theme + image
+    if (langsToGenerate.includes('en')) {
+      if (existingLangs.has('en')) {
+        results.en = 'already exists — skipped';
+        const enRow = await pool.query(
+          'SELECT theme, image_url FROM public.daily_devotional WHERE date = $1 AND lang = $2',
+          [dateStr, 'en']
+        );
+        if (enRow.rows.length > 0) {
+          sharedTheme = enRow.rows[0].theme;
+          sharedImageUrl = enRow.rows[0].image_url;
+        }
+      } else {
+        const r = await generateDailyDevotional(targetDate, 'en');
+        sharedTheme = r.theme;
+        sharedImageUrl = r.imageUrl;
+        results.en = 'generated';
+      }
+    }
+
+    if (langsToGenerate.includes('es')) {
+      if (existingLangs.has('es')) {
+        results.es = 'already exists — skipped';
+      } else {
+        await generateDailyDevotional(targetDate, 'es', { sharedTheme, sharedImageUrl });
+        results.es = 'generated';
+      }
+    }
+
+    res.json({ error: 0, date: dateStr, results });
+  } catch (err) {
+    console.error('triggerDevotional error:', err.message);
+    res.status(500).json({ error: 1, result: err.message });
   }
 });
 
