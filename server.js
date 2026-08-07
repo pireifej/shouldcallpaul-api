@@ -825,7 +825,7 @@ function getHolidayTheme(date) {
 }
 
 async function generateDailyDevotional(targetDate, lang = 'en', { sharedTheme = null, sharedImageUrl = null } = {}) {
-  const dateStr = targetDate.toISOString().slice(0, 10);
+  const dateStr = targetDate.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 
   // Check for a holiday/event on this date
   const holiday = getHolidayTheme(targetDate);
@@ -1502,6 +1502,31 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`API endpoint: http://0.0.0.0:${PORT}/api/requests`);
   console.log(`WebSocket (Group Rosary) ready on ws://0.0.0.0:${PORT}`);
+
+  // Pre-load today's and tomorrow's Daily Bread audio into memory on startup
+  // so the first user request is instant even after a server restart
+  setImmediate(() => {
+    const todayNY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    const tomorrowDate = new Date();
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrowNY = tomorrowDate.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+
+    for (const dateStr of [todayNY, tomorrowNY]) {
+      for (const suffix of ['', '_es']) {
+        const cacheKey = suffix ? `${dateStr}_es` : dateStr;
+        const fileName = `daily_bread_${dateStr}${suffix}.mp3`;
+        const filePath = path.join(DEVOTIONAL_AUDIO_DIR, fileName);
+        if (fs.existsSync(filePath) && !dailyBreadAudioCache.has(cacheKey)) {
+          try {
+            dailyBreadAudioCache.set(cacheKey, fs.readFileSync(filePath));
+            console.log(`🔊 Pre-loaded audio into cache: ${fileName}`);
+          } catch (e) {
+            console.warn(`⚠️  Could not pre-load audio ${fileName}:`, e.message);
+          }
+        }
+      }
+    }
+  });
 });
 
 // Graceful shutdown
