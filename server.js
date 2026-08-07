@@ -1003,6 +1003,18 @@ cron.schedule('5 4 * * *', async () => {
     }
   } catch (error) {
     console.error('Scheduled devotional generation failed:', error.message);
+    // Alert email — same pattern as generatePrayer failure
+    sendGmailSingle(
+      `<p><strong>Daily Bread generation failed during the scheduled cron.</strong></p>
+       <p><strong>Error:</strong> ${error.message}</p>
+       <p><strong>Date attempted:</strong> ${today}</p>
+       <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+       <p>No devotional was saved for today. You may need to trigger it manually via the admin panel or add OpenAI credits if this is a billing error.</p>`,
+      { name: 'Pray Over Us Server', email: process.env.GMAIL_USER },
+      { name: 'Paul', email: 'programmerpauly@gmail.com' },
+      '⚠️ Daily Bread Generation Failed',
+      null, null
+    ).catch(e => console.error('Failed to send devotional alert email:', e.message));
   }
 });
 
