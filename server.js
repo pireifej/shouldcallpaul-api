@@ -141,11 +141,17 @@ const auditPool = new Pool({
   connectionString: process.env.NEON_DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
+auditPool.on('error', (err) => {
+  console.error('Unexpected auditPool error (idle client):', err.message);
+});
 
 // PostgreSQL connection pool - use production database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
+});
+pool.on('error', (err) => {
+  console.error('Unexpected pool error (idle client):', err.message);
 });
 
 // Ensure all timestamps from pg are serialized as UTC ISO 8601 strings (with Z suffix)
