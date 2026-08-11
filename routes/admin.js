@@ -111,7 +111,7 @@ router.post('/sendBroadcastEmail', authenticate, async (req, res) => {
     let userRecipients = [];
     
     if (params.includeAllUsers) {
-      const usersQuery = 'SELECT email, user_name, real_name FROM public."user" WHERE email IS NOT NULL AND email != \'\' AND COALESCE(email_bounced, false) = false AND COALESCE(email_verified, true) = true';
+      const usersQuery = 'SELECT email, user_name, real_name FROM public."user" WHERE email IS NOT NULL AND email != \'\' AND COALESCE(email_bounced, false) = false AND COALESCE(email_verified, true) = true AND COALESCE(email_unsubscribed, false) = false';
       const usersResult = await pool.query(usersQuery);
       
       userRecipients = usersResult.rows;
@@ -122,7 +122,7 @@ router.post('/sendBroadcastEmail', authenticate, async (req, res) => {
     }
 
     // Function to create personalized HTML email template
-    const createEmailHtml = (firstName, body, buttonLink, buttonText) => `
+    const createEmailHtml = (firstName, email, body, buttonLink, buttonText) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -211,6 +211,7 @@ router.post('/sendBroadcastEmail', authenticate, async (req, res) => {
     <div class="footer">
       <p>This email was sent from Pray Over Us</p>
       <p><a href="https://prayoverus.com">Visit Our Website</a></p>
+      <p style="font-size:12px;color:#999;">Don't want these emails? <a href="https://shouldcallpaul.replit.app/unsubscribeEmail?token=${Buffer.from(email).toString('base64')}" style="color:#999;">Unsubscribe</a></p>
     </div>
   </div>
 </body>
@@ -233,7 +234,7 @@ router.post('/sendBroadcastEmail', authenticate, async (req, res) => {
       const firstName = user.real_name || user.user_name || "Friend";
       
       // Create personalized email HTML
-      const personalizedHtml = createEmailHtml(firstName, params.body, params.buttonLink, params.buttonText);
+      const personalizedHtml = createEmailHtml(firstName, user.email, params.body, params.buttonLink, params.buttonText);
       
       // Build CC list - avoid duplicating the TO recipient
       const ccEmails = [];

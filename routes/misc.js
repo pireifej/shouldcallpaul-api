@@ -109,6 +109,62 @@ router.get('/verifyEmail', async (req, res) => {
   }
 });
 
+// GET /unsubscribeEmail?token=xxx - One-click email unsubscribe
+router.get('/unsubscribeEmail', async (req, res) => {
+  const { token } = req.query;
+
+  const page = (icon, title, message, color) => `
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${title} — Pray Over Us</title>
+<style>
+  body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;display:flex;align-items:center;justify-content:center;min-height:100vh;}
+  .card{background:#fff;border-radius:16px;padding:48px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+  .icon{font-size:64px;margin-bottom:16px;}
+  h1{margin:0 0 12px;font-size:24px;color:#1a1a1a;}
+  p{margin:0 0 28px;color:#555;font-size:16px;line-height:1.6;}
+  a{display:inline-block;padding:12px 32px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;text-decoration:none;border-radius:25px;font-weight:600;font-size:15px;}
+</style></head><body>
+<div class="card">
+  <div class="icon">${icon}</div>
+  <h1 style="color:${color}">${title}</h1>
+  <p>${message}</p>
+  <a href="https://www.prayoverus.com">Open Pray Over Us</a>
+</div></body></html>`;
+
+  if (!token) {
+    return res.status(400).send(page('❌', 'Invalid Link', 'This unsubscribe link is missing a token. Please use the link from your email.', '#dc2626'));
+  }
+
+  try {
+    let email;
+    try {
+      email = Buffer.from(token, 'base64').toString('utf8');
+    } catch {
+      return res.status(400).send(page('❌', 'Invalid Link', 'This unsubscribe link is not valid. Please use the link from your email.', '#dc2626'));
+    }
+
+    if (!email || !email.includes('@')) {
+      return res.status(400).send(page('❌', 'Invalid Link', 'This unsubscribe link is not valid. Please use the link from your email.', '#dc2626'));
+    }
+
+    const result = await pool.query(
+      `UPDATE public."user" SET email_unsubscribed = true WHERE email = $1 RETURNING user_id`,
+      [email]
+    );
+
+    if (result.rowCount === 0) {
+      return res.send(page('🤔', 'Not Found', 'We couldn\'t find an account with that email address. It may have already been removed.', '#d97706'));
+    }
+
+    console.log(`📧 Unsubscribed from broadcast emails: ${email}`);
+    return res.send(page('✅', 'Unsubscribed', 'You\'ve been removed from our broadcast email list. You\'ll no longer receive announcements from Pray Over Us. God bless you! 🙏', '#16a34a'));
+
+  } catch (err) {
+    console.error('Unsubscribe error:', err);
+    return res.status(500).send(page('❌', 'Something went wrong', 'Please try again later or email us at prayoverus@gmail.com.', '#dc2626'));
+  }
+});
+
 // GET /getStats - Public stats (no authentication required)
 router.get('/getStats', async (req, res) => {
   try {
