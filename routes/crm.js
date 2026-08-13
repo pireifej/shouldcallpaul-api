@@ -273,9 +273,6 @@ module.exports = function crmRoutes(ctx) {
         }
       }
       if (!updates.length) return err(res, 'No fields to update', 400);
-      params.push(Date.now()); // updated_at placeholder — use NOW() in query
-      updates.push(`updated_at = NOW()`);
-      params.pop(); // remove the placeholder, updated_at uses NOW() inline
       params.push(id);
       const result = await pool.query(
         `UPDATE crm_positions SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *`, params
@@ -613,6 +610,141 @@ ${resumeContext}`
       ok(res, prepData);
     } catch (e) {
       console.error('AI generate-prep error:', e.message);
+      err(res, e.message);
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // JOB DESCRIPTIONS
+  // ─────────────────────────────────────────────────────────────
+
+  // POST /api/job-descriptions — save a new JD
+  router.post('/api/job-descriptions', authenticate, async (req, res) => {
+    try {
+      const { raw_text, title, company, position_id, parsed_data } = req.body;
+      if (!raw_text) return err(res, 'raw_text is required', 400);
+      const result = await pool.query(
+        `INSERT INTO crm_job_descriptions (raw_text, title, company, position_id, parsed_data)
+         VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+        [raw_text, title || null, company || null, position_id || null,
+         parsed_data ? JSON.stringify(parsed_data) : null]
+      );
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // GET /api/job-descriptions?position_id= — list all, optional filter
+  router.get('/api/job-descriptions', authenticate, async (req, res) => {
+    try {
+      const { position_id } = req.query;
+      let query = `
+        SELECT jd.*, p.title AS position_title, p.company AS position_company
+        FROM crm_job_descriptions jd
+        LEFT JOIN crm_positions p ON p.id = jd.position_id
+        WHERE 1=1`;
+      const params = [];
+      if (position_id) { params.push(position_id); query += ` AND jd.position_id = $${params.length}`; }
+      query += ` ORDER BY jd.created_at DESC`;
+      const result = await pool.query(query, params);
+      ok(res, result.rows);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // GET /api/job-descriptions/:id — get one
+  router.get('/api/job-descriptions/:id', authenticate, async (req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT jd.*, p.title AS position_title, p.company AS position_company
+         FROM crm_job_descriptions jd
+         LEFT JOIN crm_positions p ON p.id = jd.position_id
+         WHERE jd.id = $1`,
+        [req.params.id]
+      );
+      if (!result.rows.length) return err(res, 'Job description not found', 404);
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // PUT + PATCH /api/job-descriptions/:id — update any field
+  const updateJobDescription = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const fields = ['raw_text','title','company','position_id','parsed_data'];
+      const updates = []; const params = [];
+      for (const f of fields) {
+        if (req.body[f] !== undefined) {
+          const val = f === 'parsed_data' ? JSON.stringify(req.body[f]) : req.body[f];
+          params.push(val); updates.push(`${f} = $${params.length}`);
+        }
+      }
+      if (!updates.length) return err(res, 'No fields to update', 400);
+      params.push(id);
+      const result = await pool.query(
+        `UPDATE crm_job_descriptions SET ${updates.join(', ')}, updated_at = NOW()
+         WHERE id = $${params.length} RETURNING *`, params
+      );
+      if (!result.rows.length) return err(res, 'Job description not found', 404);
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  };
+  router.put('/api/job-descriptions/:id', authenticate, updateJobDescription);
+  router.patch('/api/job-descriptions/:id', authenticate, updateJobDescription);
+
+  // DELETE /api/job-descriptions/:id
+  router.delete('/api/job-descriptions/:id', authenticate, async (req, res) => {
+    try {
+      const result = await pool.query(`DELETE FROM crm_job_descriptions WHERE id = $1 RETURNING id`, [req.params.id]);
+      if (!result.rows.length) return err(res, 'Job description not found', 404);
+      ok(res, { deleted_id: result.rows[0].id });
+    } catch (e) { err(res, e.message); }
+  });
+
+  // POST /api/job-descriptions/:id/parse — AI-parse the saved raw_text and store result
+  router.post('/api/job-descriptions/:id/parse', authenticate, async (req, res) => {
+    try {
+      const jdResult = await pool.query(`SELECT * FROM crm_job_descriptions WHERE id = $1`, [req.params.id]);
+      if (!jdResult.rows.length) return err(res, 'Job description not found', 404);
+      const jd = jdResult.rows[0];
+
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content: `You are a job description parser. Extract structured data and return valid JSON only.
+Return exactly this structure (use null for any field not found):
+{
+  "title": "Job title",
+  "company": "Company name",
+  "salary": "Salary range as string, e.g. '$120k-$150k'",
+  "location": "City, State or Remote",
+  "work_type": "Remote | Hybrid | Onsite",
+  "hiring_manager_name": "Name if mentioned, else null",
+  "tech_skills": ["skill1", "skill2"],
+  "summary": "2-3 sentence plain English summary of the role"
+}`
+          },
+          { role: 'user', content: jd.raw_text }
+        ]
+      });
+
+      const parsed = JSON.parse(completion.choices[0].message.content);
+
+      // Store parsed result + auto-fill title/company if missing
+      const updated = await pool.query(
+        `UPDATE crm_job_descriptions
+         SET parsed_data = $1,
+             title = COALESCE(title, $2),
+             company = COALESCE(company, $3),
+             updated_at = NOW()
+         WHERE id = $4 RETURNING *`,
+        [JSON.stringify(parsed), parsed.title || null, parsed.company || null, req.params.id]
+      );
+
+      ok(res, { job_description: updated.rows[0], parsed });
+    } catch (e) {
+      console.error('JD parse error:', e.message);
       err(res, e.message);
     }
   });
