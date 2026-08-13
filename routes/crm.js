@@ -176,6 +176,24 @@ module.exports = function crmRoutes(ctx) {
     } catch (e) { err(res, e.message); }
   });
 
+  router.patch('/api/contacts/:id', authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const fields = ['name','title','organization','email','phone','linkedin_url','preferred_channel','category','last_contact_date','needs_followup','followup_date','notes'];
+      const updates = []; const params = [];
+      for (const f of fields) {
+        if (req.body[f] !== undefined) { params.push(req.body[f]); updates.push(`${f} = $${params.length}`); }
+      }
+      if (!updates.length) return err(res, 'No fields to update', 400);
+      params.push(id);
+      const result = await pool.query(
+        `UPDATE crm_contacts SET ${updates.join(', ')} WHERE id = $${params.length} RETURNING *`, params
+      );
+      if (!result.rows.length) return err(res, 'Contact not found', 404);
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
   // DELETE /api/contacts/:id
   router.delete('/api/contacts/:id', authenticate, async (req, res) => {
     try {
@@ -267,6 +285,27 @@ module.exports = function crmRoutes(ctx) {
     } catch (e) { err(res, e.message); }
   });
 
+  router.patch('/api/positions/:id', authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const fields = ['title','company','url','status','location','work_type','salary_range','hiring_manager_contact_id','recruiter_contact_id','required_tech_skills','parsed_summary','notes','portal_url','portal_login_method'];
+      const updates = []; const params = [];
+      for (const f of fields) {
+        if (req.body[f] !== undefined) {
+          const val = (f === 'required_tech_skills' || f === 'parsed_summary') ? JSON.stringify(req.body[f]) : req.body[f];
+          params.push(val); updates.push(`${f} = $${params.length}`);
+        }
+      }
+      if (!updates.length) return err(res, 'No fields to update', 400);
+      params.push(id);
+      const result = await pool.query(
+        `UPDATE crm_positions SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *`, params
+      );
+      if (!result.rows.length) return err(res, 'Position not found', 404);
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
   // DELETE /api/positions/:id
   router.delete('/api/positions/:id', authenticate, async (req, res) => {
     try {
@@ -326,6 +365,24 @@ module.exports = function crmRoutes(ctx) {
 
   // PUT /api/workshops/:id
   router.put('/api/workshops/:id', authenticate, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const fields = ['organization_name','contact_id','status','workshop_title','historical_date','cost_basis','notes'];
+      const updates = []; const params = [];
+      for (const f of fields) {
+        if (req.body[f] !== undefined) { params.push(req.body[f]); updates.push(`${f} = $${params.length}`); }
+      }
+      if (!updates.length) return err(res, 'No fields to update', 400);
+      params.push(id);
+      const result = await pool.query(
+        `UPDATE crm_workshops SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *`, params
+      );
+      if (!result.rows.length) return err(res, 'Workshop not found', 404);
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
+  router.patch('/api/workshops/:id', authenticate, async (req, res) => {
     try {
       const { id } = req.params;
       const fields = ['organization_name','contact_id','status','workshop_title','historical_date','cost_basis','notes'];
