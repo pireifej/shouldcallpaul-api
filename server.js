@@ -538,6 +538,7 @@ const resumeRoutes     = require('./routes/resume');
 const rosaryRoutes     = require('./routes/rosary');
 const moderationRoutes = require('./routes/moderation');
 const speakerRoutes    = require('./routes/speaker');
+const crmRoutes        = require('./routes/crm');
 
 const rooms = new Map(); // code -> room object
 
@@ -1138,6 +1139,7 @@ app.use(resumeRoutes(ctx));
 app.use(rosaryRoutes(ctx));
 app.use(moderationRoutes(ctx));
 app.use(speakerRoutes(ctx));
+app.use(crmRoutes(ctx));
 
 // Daily backup at 2:00 AM UTC
 cron.schedule('0 2 * * *', async () => {
@@ -1204,6 +1206,78 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
       } catch (err) {
         console.error(`⚠️  Startup migration (${name}): ${col} failed (non-fatal):`, err.message);
       }
+    }
+  }
+
+  // ── CRM migrations (NEON only — Should Call Paul personal data) ──
+  const crmMigrations = [
+    { col: 'crm_contacts', sql: `CREATE TABLE IF NOT EXISTS public.crm_contacts (
+      id                SERIAL PRIMARY KEY,
+      name              TEXT NOT NULL,
+      title             TEXT,
+      organization      TEXT,
+      email             TEXT,
+      phone             TEXT,
+      linkedin_url      TEXT,
+      preferred_channel TEXT CHECK (preferred_channel IN ('Email','Mobile Texting','LinkedIn','Other')),
+      category          TEXT CHECK (category IN ('Job Search','Workshop','Toastmasters','General')),
+      last_contact_date TIMESTAMP,
+      needs_followup    BOOLEAN DEFAULT false,
+      followup_date     TIMESTAMP,
+      notes             TEXT,
+      created_at        TIMESTAMP DEFAULT NOW()
+    )` },
+    { col: 'crm_positions', sql: `CREATE TABLE IF NOT EXISTS public.crm_positions (
+      id                        SERIAL PRIMARY KEY,
+      title                     TEXT NOT NULL,
+      company                   TEXT NOT NULL,
+      url                       TEXT,
+      status                    TEXT DEFAULT 'Targeted' CHECK (status IN ('Targeted','Applied','Interviewing','Offer','Rejected','Inactive')),
+      location                  TEXT,
+      work_type                 TEXT CHECK (work_type IN ('Remote','Hybrid','Onsite')),
+      salary_range              TEXT,
+      hiring_manager_contact_id INTEGER REFERENCES public.crm_contacts(id) ON DELETE SET NULL,
+      recruiter_contact_id      INTEGER REFERENCES public.crm_contacts(id) ON DELETE SET NULL,
+      required_tech_skills      JSONB DEFAULT '[]',
+      parsed_summary            JSONB DEFAULT '{}',
+      created_at                TIMESTAMP DEFAULT NOW(),
+      updated_at                TIMESTAMP DEFAULT NOW()
+    )` },
+    { col: 'crm_workshops', sql: `CREATE TABLE IF NOT EXISTS public.crm_workshops (
+      id                SERIAL PRIMARY KEY,
+      organization_name TEXT NOT NULL,
+      contact_id        INTEGER REFERENCES public.crm_contacts(id) ON DELETE SET NULL,
+      status            TEXT DEFAULT 'Lead' CHECK (status IN ('Lead','Proposal Sent','Confirmed','Completed','Inactive')),
+      workshop_title    TEXT,
+      historical_date   TIMESTAMP,
+      cost_basis        TEXT,
+      notes             TEXT,
+      created_at        TIMESTAMP DEFAULT NOW(),
+      updated_at        TIMESTAMP DEFAULT NOW()
+    )` },
+    { col: 'crm_activity_logs', sql: `CREATE TABLE IF NOT EXISTS public.crm_activity_logs (
+      id          SERIAL PRIMARY KEY,
+      entity_type TEXT NOT NULL CHECK (entity_type IN ('position','workshop','contact')),
+      entity_id   INTEGER NOT NULL,
+      contact_id  INTEGER REFERENCES public.crm_contacts(id) ON DELETE SET NULL,
+      log_text    TEXT NOT NULL,
+      log_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )` },
+    { col: 'crm_interview_preps', sql: `CREATE TABLE IF NOT EXISTS public.crm_interview_preps (
+      id                        SERIAL PRIMARY KEY,
+      position_id               INTEGER NOT NULL UNIQUE REFERENCES public.crm_positions(id) ON DELETE CASCADE,
+      skill_gap_analysis        JSONB,
+      company_news_talking_points JSONB,
+      freeform_notes            TEXT,
+      updated_at                TIMESTAMP DEFAULT NOW()
+    )` },
+  ];
+  for (const { col, sql } of crmMigrations) {
+    try {
+      await auditPool.query(sql);
+      console.log(`✅ CRM migration: ${col} ready`);
+    } catch (e) {
+      console.error(`⚠️  CRM migration: ${col} failed (non-fatal):`, e.message);
     }
   }
 })();
