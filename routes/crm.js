@@ -113,7 +113,7 @@ module.exports = function crmRoutes(ctx) {
   router.put('/api/positions/:id', authenticate, async (req, res) => {
     try {
       const { id } = req.params;
-      const fields = ['title','company','url','status','location','work_type','salary_range','hiring_manager_contact_id','recruiter_contact_id','required_tech_skills','parsed_summary'];
+      const fields = ['title','company','url','status','location','work_type','salary_range','hiring_manager_contact_id','recruiter_contact_id','required_tech_skills','parsed_summary','notes'];
       const updates = []; const params = [];
       for (const f of fields) {
         if (req.body[f] !== undefined) {
