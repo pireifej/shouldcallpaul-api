@@ -1209,7 +1209,7 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
     }
   }
 
-  // ── CRM migrations (NEON only — Should Call Paul personal data) ──
+  // ── CRM migrations (both databases so Replit deployment sees them in dev too) ──
   const crmMigrations = [
     { col: 'crm_contacts', sql: `CREATE TABLE IF NOT EXISTS public.crm_contacts (
       id                SERIAL PRIMARY KEY,
@@ -1272,12 +1272,14 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
       updated_at                TIMESTAMP DEFAULT NOW()
     )` },
   ];
-  for (const { col, sql } of crmMigrations) {
-    try {
-      await auditPool.query(sql);
-      console.log(`✅ CRM migration: ${col} ready`);
-    } catch (e) {
-      console.error(`⚠️  CRM migration: ${col} failed (non-fatal):`, e.message);
+  for (const [name, p] of [['dev', pool], ['prod', auditPool]]) {
+    for (const { col, sql } of crmMigrations) {
+      try {
+        await p.query(sql);
+        console.log(`✅ CRM migration (${name}): ${col} ready`);
+      } catch (e) {
+        console.error(`⚠️  CRM migration (${name}): ${col} failed (non-fatal):`, e.message);
+      }
     }
   }
 })();
