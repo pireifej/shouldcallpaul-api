@@ -260,15 +260,20 @@ module.exports = function crmRoutes(ctx) {
     } catch (e) { err(res, e.message); }
   });
 
-  // PUT /api/positions/:id
-  router.put('/api/positions/:id', authenticate, async (req, res) => {
+  // shared handler for PUT + PATCH /api/positions/:id
+  const updatePosition = async (req, res) => {
     try {
       const { id } = req.params;
-      const fields = ['title','company','url','status','location','work_type','salary_range','hiring_manager_contact_id','recruiter_contact_id','required_tech_skills','parsed_summary','notes','portal_url','portal_login_method'];
+      const body = { ...req.body };
+      // Accept camelCase alias from frontend
+      if (body.jobDescription !== undefined && body.job_description_text === undefined) {
+        body.job_description_text = body.jobDescription;
+      }
+      const fields = ['title','company','url','status','location','work_type','salary_range','hiring_manager_contact_id','recruiter_contact_id','required_tech_skills','parsed_summary','notes','portal_url','portal_login_method','job_description_text'];
       const updates = []; const params = [];
       for (const f of fields) {
-        if (req.body[f] !== undefined) {
-          const val = (f === 'required_tech_skills' || f === 'parsed_summary') ? JSON.stringify(req.body[f]) : req.body[f];
+        if (body[f] !== undefined) {
+          const val = (f === 'required_tech_skills' || f === 'parsed_summary') ? JSON.stringify(body[f]) : body[f];
           params.push(val); updates.push(`${f} = $${params.length}`);
         }
       }
@@ -280,28 +285,9 @@ module.exports = function crmRoutes(ctx) {
       if (!result.rows.length) return err(res, 'Position not found', 404);
       ok(res, result.rows[0]);
     } catch (e) { err(res, e.message); }
-  });
-
-  router.patch('/api/positions/:id', authenticate, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const fields = ['title','company','url','status','location','work_type','salary_range','hiring_manager_contact_id','recruiter_contact_id','required_tech_skills','parsed_summary','notes','portal_url','portal_login_method'];
-      const updates = []; const params = [];
-      for (const f of fields) {
-        if (req.body[f] !== undefined) {
-          const val = (f === 'required_tech_skills' || f === 'parsed_summary') ? JSON.stringify(req.body[f]) : req.body[f];
-          params.push(val); updates.push(`${f} = $${params.length}`);
-        }
-      }
-      if (!updates.length) return err(res, 'No fields to update', 400);
-      params.push(id);
-      const result = await pool.query(
-        `UPDATE crm_positions SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *`, params
-      );
-      if (!result.rows.length) return err(res, 'Position not found', 404);
-      ok(res, result.rows[0]);
-    } catch (e) { err(res, e.message); }
-  });
+  };
+  router.put('/api/positions/:id', authenticate, updatePosition);
+  router.patch('/api/positions/:id', authenticate, updatePosition);
 
   // DELETE /api/positions/:id
   router.delete('/api/positions/:id', authenticate, async (req, res) => {
