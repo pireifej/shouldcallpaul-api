@@ -1209,6 +1209,8 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
     )` },
     { col: 'daily_devotional_audio_url', sql: `ALTER TABLE public.daily_devotional ADD COLUMN IF NOT EXISTS audio_url TEXT` },
     { col: 'crm_positions_notes', sql: `ALTER TABLE public.crm_positions ADD COLUMN IF NOT EXISTS notes TEXT` },
+    { col: 'crm_positions_portal_url', sql: `ALTER TABLE public.crm_positions ADD COLUMN IF NOT EXISTS portal_url TEXT` },
+    { col: 'crm_positions_portal_login_method', sql: `ALTER TABLE public.crm_positions ADD COLUMN IF NOT EXISTS portal_login_method TEXT` },
     { col: 'can_post', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS can_post boolean DEFAULT true` },
     { col: 'email_unsubscribed', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_unsubscribed boolean DEFAULT false` },
   ];

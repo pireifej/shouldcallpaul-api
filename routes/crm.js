@@ -228,14 +228,15 @@ module.exports = function crmRoutes(ctx) {
   // POST /api/positions
   router.post('/api/positions', authenticate, async (req, res) => {
     try {
-      const { title, company, url, status, location, work_type, salary_range, hiring_manager_contact_id, recruiter_contact_id, required_tech_skills, parsed_summary } = req.body;
+      const { title, company, url, status, location, work_type, salary_range, hiring_manager_contact_id, recruiter_contact_id, required_tech_skills, parsed_summary, portal_url, portal_login_method } = req.body;
       if (!title || !company) return err(res, 'title and company are required', 400);
       const result = await pool.query(
-        `INSERT INTO crm_positions (title, company, url, status, location, work_type, salary_range, hiring_manager_contact_id, recruiter_contact_id, required_tech_skills, parsed_summary)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+        `INSERT INTO crm_positions (title, company, url, status, location, work_type, salary_range, hiring_manager_contact_id, recruiter_contact_id, required_tech_skills, parsed_summary, portal_url, portal_login_method)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
         [title, company, url, status || 'Targeted', location, work_type, salary_range,
          hiring_manager_contact_id || null, recruiter_contact_id || null,
-         JSON.stringify(required_tech_skills || []), JSON.stringify(parsed_summary || {})]
+         JSON.stringify(required_tech_skills || []), JSON.stringify(parsed_summary || {}),
+         portal_url || null, portal_login_method || null]
       );
       ok(res, result.rows[0]);
     } catch (e) { err(res, e.message); }
@@ -245,7 +246,7 @@ module.exports = function crmRoutes(ctx) {
   router.put('/api/positions/:id', authenticate, async (req, res) => {
     try {
       const { id } = req.params;
-      const fields = ['title','company','url','status','location','work_type','salary_range','hiring_manager_contact_id','recruiter_contact_id','required_tech_skills','parsed_summary','notes'];
+      const fields = ['title','company','url','status','location','work_type','salary_range','hiring_manager_contact_id','recruiter_contact_id','required_tech_skills','parsed_summary','notes','portal_url','portal_login_method'];
       const updates = []; const params = [];
       for (const f of fields) {
         if (req.body[f] !== undefined) {
