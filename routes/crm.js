@@ -1,5 +1,112 @@
 'use strict';
 const express = require('express');
+const fsSync = require('fs');
+const pathMod = require('path');
+
+// ── Build Paul's resume context once at startup from existing resume_data/ files ──
+function stripHtml(str) {
+  return (str || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function buildPaulResumeContext() {
+  const base = pathMod.join(__dirname, '..', 'resume_data');
+  const sections = [];
+
+  // Helper: read a JSON file safely
+  function read(filename) {
+    try { return JSON.parse(fsSync.readFileSync(pathMod.join(base, filename), 'utf8')); }
+    catch { return null; }
+  }
+
+  // CERTIFICATIONS
+  const certs = read('certificates.json');
+  if (certs?.certifications?.length) {
+    sections.push('CERTIFICATIONS:\n' + certs.certifications
+      .map(c => `- ${c.title} (${c.issuingOrganization}, ${c.completionDate})${c.Description ? ': ' + c.Description.slice(0, 120) : ''}`)
+      .join('\n'));
+  }
+
+  // AWARDS
+  const awards = read('awards.json');
+  if (awards?.records?.length) {
+    sections.push('AWARDS & RECOGNITION:\n' + awards.records
+      .map(a => `- ${a.title} (${a.date}): ${stripHtml(a.desc).slice(0, 120)}`)
+      .join('\n'));
+  }
+
+  // PATENT
+  const patents = read('patent.json');
+  if (patents?.records?.length) {
+    sections.push('PATENTS:\n' + patents.records
+      .map(p => `- ${p.label}: ${stripHtml(p.desc).slice(0, 200)}`)
+      .join('\n'));
+  }
+
+  // PROJECTS
+  const projects = read('projects.json');
+  if (projects?.records?.length) {
+    sections.push('KEY PROJECTS:\n' + projects.records
+      .map(p => `- ${p.label}${p.details?.technology ? ' | Tech: ' + p.details.technology : ''}: ${stripHtml(p.desc).slice(0, 200)}`)
+      .join('\n'));
+  }
+
+  // CONFERENCE TALKS
+  const conf = read('conference.json');
+  if (conf?.records?.length) {
+    sections.push('CONFERENCE TALKS:\n' + conf.records
+      .map(c => `- ${c.label}: ${stripHtml(c.desc).slice(0, 150)}`)
+      .join('\n'));
+  }
+
+  // HACKATHONS
+  const hack = read('hackathon.json');
+  if (hack?.records?.length) {
+    sections.push('HACKATHONS:\n' + hack.records
+      .map(h => `- ${h.label}: ${stripHtml(h.desc).slice(0, 150)}`)
+      .join('\n'));
+  }
+
+  // WORKSHOPS DELIVERED
+  const wkp = read('workshops.json');
+  if (wkp?.records?.length) {
+    sections.push('WORKSHOPS DELIVERED:\n' + wkp.records
+      .map(w => `- ${w.label}${w.details?.date ? ' (' + w.details.date + ')' : ''}: ${stripHtml(w.desc).slice(0, 120)}`)
+      .join('\n'));
+  }
+
+  // SPEECHES (Toastmasters / public speaking)
+  const speech = read('speech.json');
+  if (speech?.records?.length) {
+    sections.push('PUBLIC SPEAKING / TOASTMASTERS:\n' + speech.records
+      .map(s => `- ${s.label}: ${stripHtml(s.desc).slice(0, 100)}`)
+      .join('\n'));
+  }
+
+  // Speaker topics (from speaker_menu.json)
+  try {
+    const sm = JSON.parse(fsSync.readFileSync(pathMod.join(__dirname, '..', 'speaker_data', 'speaker_menu.json'), 'utf8'));
+    if (sm?.categories?.length) {
+      const topics = sm.categories.flatMap(cat => cat.items?.map(i => i.title) || []);
+      sections.push('SPEAKING TOPICS OFFERED:\n' + topics.map(t => `- ${t}`).join('\n'));
+    }
+  } catch {}
+
+  return [
+    'CANDIDATE: Paul Ireifej — Principal Data/Platform Engineer & AI Workshop Speaker',
+    'BACKGROUND: 15+ years at AT&T as Principal Software Engineer. Surplus as of June 17, 2026 (LDP Sept 15, 2026). Deep expertise in Python, PySpark, Azure (AKS, ADF, Synapse, Fabric), Kubernetes/Helm, Terraform, RAG systems, agentic AI frameworks, ETL pipelines, ML deployment, and enterprise data engineering at scale. Also an active public speaker, Toastmasters member, and workshop facilitator on AI literacy and professional development.',
+    ...sections
+  ].join('\n\n');
+}
+
+// Cache it — built once when the module loads
+let PAUL_RESUME_CONTEXT;
+try {
+  PAUL_RESUME_CONTEXT = buildPaulResumeContext();
+  console.log(`📄 Paul resume context built (${PAUL_RESUME_CONTEXT.length} chars)`);
+} catch (e) {
+  PAUL_RESUME_CONTEXT = 'Paul Ireifej — Principal Software/Data Engineer with 15+ years at AT&T. Python, Azure, AKS, PySpark, ETL, agentic AI, RAG systems.';
+  console.warn('⚠️  Resume context build failed, using fallback:', e.message);
+}
 
 module.exports = function crmRoutes(ctx) {
   const router = express.Router();
@@ -380,12 +487,15 @@ Return exactly this structure (use null for any field not found):
   router.post('/api/ai/generate-prep', authenticate, async (req, res) => {
     try {
       const { position_id, user_resume_summary } = req.body;
-      if (!position_id || !user_resume_summary) return err(res, 'position_id and user_resume_summary are required', 400);
+      if (!position_id) return err(res, 'position_id is required', 400);
 
-      // Fetch position details
+      // Fetch position details including notes
       const posResult = await pool.query(`SELECT * FROM crm_positions WHERE id = $1`, [position_id]);
       if (!posResult.rows.length) return err(res, 'Position not found', 404);
       const position = posResult.rows[0];
+
+      // Use caller-supplied summary as override, otherwise use the auto-built context from resume_data/
+      const resumeContext = user_resume_summary || PAUL_RESUME_CONTEXT;
 
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
@@ -393,20 +503,21 @@ Return exactly this structure (use null for any field not found):
         messages: [
           {
             role: 'system',
-            content: `You are an expert career coach and interview preparation specialist. 
-Analyze the candidate's resume against the job requirements and generate a detailed prep guide.
+            content: `You are an expert career coach and interview preparation specialist.
+Analyze the candidate's full background against the job requirements and generate a detailed, specific prep guide.
+Use the candidate's actual projects, certifications, awards, and experience — do not be generic.
 Return valid JSON in exactly this structure:
 {
   "skill_gap_analysis": {
-    "strong_matches": ["skills the candidate has that match the role"],
-    "gaps": ["required skills the candidate lacks or needs to strengthen"],
-    "talking_points": ["how to frame existing experience to bridge the gaps"]
+    "strong_matches": ["specific skills/experiences the candidate has that directly match this role"],
+    "gaps": ["required skills the candidate lacks or needs to strengthen for this role"],
+    "talking_points": ["concrete ways to frame the candidate's existing experience to bridge each gap"]
   },
   "company_news_talking_points": [
-    "Relevant company insight or news angle the candidate should mention in an interview"
+    "Specific insight, news angle, or company context the candidate should mention in the interview"
   ],
   "recommended_questions": [
-    "Thoughtful question the candidate should ask the interviewer"
+    "Thoughtful, role-specific question the candidate should ask the interviewer"
   ]
 }`
           },
@@ -414,11 +525,13 @@ Return valid JSON in exactly this structure:
             role: 'user',
             content: `POSITION: ${position.title} at ${position.company}
 LOCATION: ${position.location || 'Not specified'} | WORK TYPE: ${position.work_type || 'Not specified'}
+SALARY: ${position.salary_range || 'Not specified'}
 REQUIRED TECH SKILLS: ${JSON.stringify(position.required_tech_skills || [])}
 JOB SUMMARY: ${JSON.stringify(position.parsed_summary || {})}
+POSITION NOTES: ${position.notes || 'None'}
 
-CANDIDATE RESUME SUMMARY:
-${user_resume_summary}`
+CANDIDATE BACKGROUND:
+${resumeContext}`
           }
         ]
       });
