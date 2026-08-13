@@ -45,6 +45,23 @@ router.post('/getDailyBreadAudio', async (req, res) => {
       return serveAudioBuffer(req, res, audioBuffer);
     }
 
+    // Fetch from Cloudinary URL stored in DB (survives server restarts)
+    const dbRow = await pool.query(
+      `SELECT audio_url FROM public.daily_devotional WHERE date = $1 AND lang = $2`,
+      [date, lang]
+    );
+    if (dbRow.rows.length > 0 && dbRow.rows[0].audio_url) {
+      const cloudUrl = dbRow.rows[0].audio_url;
+      console.log(`🔊 Daily Bread audio fetched from Cloudinary for ${date} [${lang}]`);
+      const fetchRes = await fetch(cloudUrl);
+      if (fetchRes.ok) {
+        const audioBuffer = Buffer.from(await fetchRes.arrayBuffer());
+        dailyBreadAudioCache.set(cacheKey, audioBuffer);
+        fs.writeFileSync(audioPath, audioBuffer);
+        return serveAudioBuffer(req, res, audioBuffer);
+      }
+    }
+
     // Compose the TTS script and generate on-demand
     let text = [
       title || '',

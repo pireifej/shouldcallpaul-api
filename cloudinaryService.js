@@ -48,4 +48,17 @@ async function uploadImageFromUrl(imageUrl, folder = 'uploads') {
   }
 }
 
-module.exports = { uploadImage, uploadImageFromUrl };
+async function uploadAudio(audioBuffer, folder = 'devotional-audio') {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: 'video', format: 'mp3' },
+      (error, result) => {
+        if (error) { console.error('Cloudinary audio upload error:', error); reject(error); }
+        else { console.log(`✅ Cloudinary audio upload successful: ${result.secure_url}`); resolve(result.secure_url); }
+      }
+    );
+    uploadStream.end(audioBuffer);
+  });
+}
+
+module.exports = { uploadImage, uploadImageFromUrl, uploadAudio };

@@ -14,7 +14,7 @@ const nodemailer = require("nodemailer");
 const cron = require("node-cron");
 const multer = require('multer');
 const { sendPushNotification } = require('./pushNotifications');
-const { uploadImage, uploadImageFromUrl } = require('./cloudinaryService');
+const { uploadImage, uploadImageFromUrl, uploadAudio } = require('./cloudinaryService');
 const { createClient: createPexelsClient } = require('pexels');
 require('dotenv').config();
 
@@ -951,6 +951,18 @@ Respond ONLY with a valid JSON object — no markdown, no code fences, just raw 
     dailyBreadAudioCache.set(cacheKey, audioBuffer);
     console.log(`🔊 Devotional audio saved for ${dateStr} [${audioLang}] (${audioBuffer.length} bytes)`);
 
+    // Upload to Cloudinary so audio survives server restarts
+    try {
+      const audioUrl = await uploadAudio(audioBuffer, 'devotional-audio');
+      await pool.query(
+        `UPDATE public.daily_devotional SET audio_url = $1 WHERE date = $2 AND lang = $3`,
+        [audioUrl, dateStr, lang]
+      );
+      console.log(`☁️  Devotional audio uploaded to Cloudinary for ${dateStr} [${audioLang}]`);
+    } catch (cloudErr) {
+      console.warn(`⚠️  Cloudinary audio upload failed for ${dateStr} [${audioLang}]: ${cloudErr.message}`);
+    }
+
     // Cleanup: delete audio files older than 7 days
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 7);
@@ -1195,6 +1207,7 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
       created_at TIMESTAMP DEFAULT NOW(),
       UNIQUE (blocker_id, blocked_id)
     )` },
+    { col: 'daily_devotional_audio_url', sql: `ALTER TABLE public.daily_devotional ADD COLUMN IF NOT EXISTS audio_url TEXT` },
     { col: 'can_post', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS can_post boolean DEFAULT true` },
     { col: 'email_unsubscribed', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_unsubscribed boolean DEFAULT false` },
   ];
