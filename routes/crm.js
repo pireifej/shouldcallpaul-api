@@ -27,6 +27,15 @@ module.exports = function crmRoutes(ctx) {
     } catch (e) { err(res, e.message); }
   });
 
+  // GET /api/contacts/:id
+  router.get('/api/contacts/:id', authenticate, async (req, res) => {
+    try {
+      const result = await pool.query(`SELECT * FROM crm_contacts WHERE id = $1`, [req.params.id]);
+      if (!result.rows.length) return err(res, 'Contact not found', 404);
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
   // POST /api/contacts
   router.post('/api/contacts', authenticate, async (req, res) => {
     try {
@@ -90,6 +99,22 @@ module.exports = function crmRoutes(ctx) {
       query += ` ORDER BY p.updated_at DESC`;
       const result = await pool.query(query, params);
       ok(res, result.rows);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // GET /api/positions/:id
+  router.get('/api/positions/:id', authenticate, async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT p.*,
+          hm.name AS hiring_manager_name,
+          rc.name AS recruiter_name
+        FROM crm_positions p
+        LEFT JOIN crm_contacts hm ON hm.id = p.hiring_manager_contact_id
+        LEFT JOIN crm_contacts rc ON rc.id = p.recruiter_contact_id
+        WHERE p.id = $1`, [req.params.id]);
+      if (!result.rows.length) return err(res, 'Position not found', 404);
+      ok(res, result.rows[0]);
     } catch (e) { err(res, e.message); }
   });
 
@@ -161,6 +186,19 @@ module.exports = function crmRoutes(ctx) {
       query += ` ORDER BY w.updated_at DESC`;
       const result = await pool.query(query, params);
       ok(res, result.rows);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // GET /api/workshops/:id
+  router.get('/api/workshops/:id', authenticate, async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT w.*, c.name AS contact_name, c.email AS contact_email
+        FROM crm_workshops w
+        LEFT JOIN crm_contacts c ON c.id = w.contact_id
+        WHERE w.id = $1`, [req.params.id]);
+      if (!result.rows.length) return err(res, 'Workshop not found', 404);
+      ok(res, result.rows[0]);
     } catch (e) { err(res, e.message); }
   });
 
