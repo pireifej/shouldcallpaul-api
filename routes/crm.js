@@ -207,39 +207,94 @@ module.exports = function crmRoutes(ctx) {
   // POSITIONS
   // ─────────────────────────────────────────────────────────────
 
+  // helper — fetch linked contacts array for one or many position ids
+  async function fetchPositionContacts(pool, positionIds) {
+    if (!positionIds.length) return {};
+    const result = await pool.query(
+      `SELECT pc.position_id, c.id, c.name, c.title, c.organization, c.email, c.phone, c.linkedin_url
+       FROM crm_position_contacts pc
+       JOIN crm_contacts c ON c.id = pc.contact_id
+       WHERE pc.position_id = ANY($1)
+       ORDER BY pc.created_at ASC`,
+      [positionIds]
+    );
+    const map = {};
+    for (const row of result.rows) {
+      const pid = row.position_id;
+      if (!map[pid]) map[pid] = [];
+      const { position_id, ...contact } = row;
+      map[pid].push(contact);
+    }
+    return map;
+  }
+
   // GET /api/positions?status=
   router.get('/api/positions', authenticate, async (req, res) => {
     try {
       const { status } = req.query;
-      let query = `
-        SELECT p.*,
-          hm.name AS hiring_manager_name,
-          rc.name AS recruiter_name
-        FROM crm_positions p
-        LEFT JOIN crm_contacts hm ON hm.id = p.hiring_manager_contact_id
-        LEFT JOIN crm_contacts rc ON rc.id = p.recruiter_contact_id
-        WHERE 1=1`;
+      let query = `SELECT p.* FROM crm_positions p WHERE 1=1`;
       const params = [];
       if (status) { params.push(status); query += ` AND p.status = $${params.length}`; }
       query += ` ORDER BY p.updated_at DESC`;
       const result = await pool.query(query, params);
-      ok(res, result.rows);
+      const ids = result.rows.map(r => r.id);
+      const contactsMap = await fetchPositionContacts(pool, ids);
+      const rows = result.rows.map(r => ({ ...r, contacts: contactsMap[r.id] || [] }));
+      ok(res, rows);
     } catch (e) { err(res, e.message); }
   });
 
   // GET /api/positions/:id
   router.get('/api/positions/:id', authenticate, async (req, res) => {
     try {
-      const result = await pool.query(`
-        SELECT p.*,
-          hm.name AS hiring_manager_name,
-          rc.name AS recruiter_name
-        FROM crm_positions p
-        LEFT JOIN crm_contacts hm ON hm.id = p.hiring_manager_contact_id
-        LEFT JOIN crm_contacts rc ON rc.id = p.recruiter_contact_id
-        WHERE p.id = $1`, [req.params.id]);
+      const result = await pool.query(`SELECT p.* FROM crm_positions p WHERE p.id = $1`, [req.params.id]);
       if (!result.rows.length) return err(res, 'Position not found', 404);
+      const pos = result.rows[0];
+      const contactsMap = await fetchPositionContacts(pool, [pos.id]);
+      ok(res, { ...pos, contacts: contactsMap[pos.id] || [] });
+    } catch (e) { err(res, e.message); }
+  });
+
+  // GET /api/positions/:id/contacts
+  router.get('/api/positions/:id/contacts', authenticate, async (req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT c.id, c.name, c.title, c.organization, c.email, c.phone, c.linkedin_url, pc.created_at AS linked_at
+         FROM crm_position_contacts pc
+         JOIN crm_contacts c ON c.id = pc.contact_id
+         WHERE pc.position_id = $1
+         ORDER BY pc.created_at ASC`,
+        [req.params.id]
+      );
+      ok(res, result.rows);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // POST /api/positions/:id/contacts — link a contact
+  router.post('/api/positions/:id/contacts', authenticate, async (req, res) => {
+    try {
+      const { contact_id } = req.body;
+      if (!contact_id) return err(res, 'contact_id is required', 400);
+      await pool.query(
+        `INSERT INTO crm_position_contacts (position_id, contact_id) VALUES ($1,$2) ON CONFLICT DO NOTHING`,
+        [req.params.id, contact_id]
+      );
+      const result = await pool.query(
+        `SELECT c.id, c.name, c.title, c.organization, c.email, c.phone, c.linkedin_url
+         FROM crm_contacts c WHERE c.id = $1`, [contact_id]
+      );
       ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // DELETE /api/positions/:id/contacts/:contact_id — unlink a contact
+  router.delete('/api/positions/:id/contacts/:contact_id', authenticate, async (req, res) => {
+    try {
+      await pool.query(
+        `DELETE FROM crm_position_contacts WHERE position_id = $1 AND contact_id = $2`,
+        [req.params.id, req.params.contact_id]
+      );
+      ok(res, { unlinked: true });
     } catch (e) { err(res, e.message); }
   });
 
