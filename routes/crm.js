@@ -470,6 +470,51 @@ module.exports = function crmRoutes(ctx) {
     } catch (e) { err(res, e.message); }
   });
 
+  // GET /api/activity-logs/:id
+  router.get('/api/activity-logs/:id', authenticate, async (req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT al.*, c.name AS contact_name
+         FROM crm_activity_logs al
+         LEFT JOIN crm_contacts c ON c.id = al.contact_id
+         WHERE al.id = $1`,
+        [req.params.id]
+      );
+      if (!result.rows.length) return err(res, 'Activity log not found', 404);
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // PUT + PATCH /api/activity-logs/:id
+  const updateActivityLog = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const fields = ['log_text', 'contact_id', 'log_date'];
+      const updates = []; const params = [];
+      for (const f of fields) {
+        if (req.body[f] !== undefined) { params.push(req.body[f]); updates.push(`${f} = $${params.length}`); }
+      }
+      if (!updates.length) return err(res, 'No fields to update', 400);
+      params.push(id);
+      const result = await pool.query(
+        `UPDATE crm_activity_logs SET ${updates.join(', ')} WHERE id = $${params.length} RETURNING *`, params
+      );
+      if (!result.rows.length) return err(res, 'Activity log not found', 404);
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  };
+  router.put('/api/activity-logs/:id', authenticate, updateActivityLog);
+  router.patch('/api/activity-logs/:id', authenticate, updateActivityLog);
+
+  // DELETE /api/activity-logs/:id
+  router.delete('/api/activity-logs/:id', authenticate, async (req, res) => {
+    try {
+      const result = await pool.query(`DELETE FROM crm_activity_logs WHERE id = $1 RETURNING id`, [req.params.id]);
+      if (!result.rows.length) return err(res, 'Activity log not found', 404);
+      ok(res, { deleted_id: result.rows[0].id });
+    } catch (e) { err(res, e.message); }
+  });
+
   // POST /api/activity-logs
   router.post('/api/activity-logs', authenticate, async (req, res) => {
     try {
