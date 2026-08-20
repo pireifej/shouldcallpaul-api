@@ -1217,6 +1217,8 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
     { col: 'crm_positions_portal_url', sql: `ALTER TABLE public.crm_positions ADD COLUMN IF NOT EXISTS portal_url TEXT` },
     { col: 'crm_positions_portal_login_method', sql: `ALTER TABLE public.crm_positions ADD COLUMN IF NOT EXISTS portal_login_method TEXT` },
     { col: 'crm_positions_job_description_text', sql: `ALTER TABLE public.crm_positions ADD COLUMN IF NOT EXISTS job_description_text TEXT` },
+    { col: 'crm_interview_preps_prep_notes', sql: `ALTER TABLE public.crm_interview_preps ADD COLUMN IF NOT EXISTS prep_notes TEXT` },
+    { col: 'crm_interview_preps_ai_generated_content', sql: `ALTER TABLE public.crm_interview_preps ADD COLUMN IF NOT EXISTS ai_generated_content JSONB` },
     { col: 'crm_position_contacts', sql: `CREATE TABLE IF NOT EXISTS public.crm_position_contacts (
       position_id INTEGER NOT NULL REFERENCES public.crm_positions(id) ON DELETE CASCADE,
       contact_id  INTEGER NOT NULL REFERENCES public.crm_contacts(id) ON DELETE CASCADE,
@@ -1307,6 +1309,8 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
       skill_gap_analysis        JSONB,
       company_news_talking_points JSONB,
       freeform_notes            TEXT,
+      prep_notes                TEXT,
+      ai_generated_content      JSONB,
       updated_at                TIMESTAMP DEFAULT NOW()
     )` },
   ];

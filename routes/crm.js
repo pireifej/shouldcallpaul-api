@@ -550,39 +550,85 @@ module.exports = function crmRoutes(ctx) {
   router.get('/api/positions/:id/interview-prep', authenticate, async (req, res) => {
     try {
       const result = await pool.query(
-        `SELECT ip.*, p.title AS position_title, p.company
+        `SELECT
+           ip.id,
+           ip.position_id,
+           ip.skill_gap_analysis,
+           ip.company_news_talking_points,
+           ip.prep_notes AS "prepNotes",
+           ip.ai_generated_content AS "aiGeneratedContent",
+           ip.updated_at,
+           p.title AS position_title,
+           p.company
          FROM crm_interview_preps ip
          JOIN crm_positions p ON p.id = ip.position_id
          WHERE ip.position_id = $1`,
         [req.params.id]
       );
+      // Intentionally exclude legacy freeform_notes and aiContentOverride.
+      // Personal notes and AI output are read from their dedicated columns only.
       // Return empty object if no prep exists yet — not a 404
       ok(res, result.rows[0] || null);
     } catch (e) { err(res, e.message); }
   });
 
   // PUT /api/positions/:id/interview-prep (upsert)
-  router.put('/api/positions/:id/interview-prep', authenticate, async (req, res) => {
+  const saveInterviewPrep = async (req, res) => {
     try {
       const position_id = req.params.id;
-      const { skill_gap_analysis, company_news_talking_points, freeform_notes } = req.body;
+      const {
+        skill_gap_analysis,
+        company_news_talking_points,
+        prepNotes,
+        aiGeneratedContent
+      } = req.body;
+
+      // Presence checks allow partial updates. For example, clearing only
+      // aiGeneratedContent must never overwrite prepNotes or legacy freeform_notes.
+      const hasSkillGapAnalysis = Object.prototype.hasOwnProperty.call(req.body, 'skill_gap_analysis');
+      const hasCompanyNews = Object.prototype.hasOwnProperty.call(req.body, 'company_news_talking_points');
+      const hasPrepNotes = Object.prototype.hasOwnProperty.call(req.body, 'prepNotes');
+      const hasAiGeneratedContent = Object.prototype.hasOwnProperty.call(req.body, 'aiGeneratedContent');
+
       const result = await pool.query(
-        `INSERT INTO crm_interview_preps (position_id, skill_gap_analysis, company_news_talking_points, freeform_notes)
-         VALUES ($1,$2,$3,$4)
+        `INSERT INTO crm_interview_preps (
+           position_id,
+           skill_gap_analysis,
+           company_news_talking_points,
+           prep_notes,
+           ai_generated_content
+         )
+          VALUES ($1,$2,$3,$4,$5)
          ON CONFLICT (position_id) DO UPDATE SET
-           skill_gap_analysis = EXCLUDED.skill_gap_analysis,
-           company_news_talking_points = EXCLUDED.company_news_talking_points,
-           freeform_notes = EXCLUDED.freeform_notes,
+            skill_gap_analysis = CASE WHEN $6 THEN EXCLUDED.skill_gap_analysis ELSE crm_interview_preps.skill_gap_analysis END,
+            company_news_talking_points = CASE WHEN $7 THEN EXCLUDED.company_news_talking_points ELSE crm_interview_preps.company_news_talking_points END,
+            prep_notes = CASE WHEN $8 THEN EXCLUDED.prep_notes ELSE crm_interview_preps.prep_notes END,
+            ai_generated_content = CASE WHEN $9 THEN EXCLUDED.ai_generated_content ELSE crm_interview_preps.ai_generated_content END,
            updated_at = NOW()
-         RETURNING *`,
+          RETURNING
+            id,
+            position_id,
+            skill_gap_analysis,
+            company_news_talking_points,
+            prep_notes AS "prepNotes",
+            ai_generated_content AS "aiGeneratedContent",
+            updated_at`,
         [position_id,
-         JSON.stringify(skill_gap_analysis || null),
-         JSON.stringify(company_news_talking_points || null),
-         freeform_notes || null]
+         hasSkillGapAnalysis ? JSON.stringify(skill_gap_analysis) : null,
+         hasCompanyNews ? JSON.stringify(company_news_talking_points) : null,
+         hasPrepNotes ? prepNotes : null,
+         hasAiGeneratedContent ? JSON.stringify(aiGeneratedContent) : null,
+         hasSkillGapAnalysis,
+         hasCompanyNews,
+         hasPrepNotes,
+         hasAiGeneratedContent]
       );
       ok(res, result.rows[0]);
     } catch (e) { err(res, e.message); }
-  });
+  };
+
+  router.put('/api/positions/:id/interview-prep', authenticate, saveInterviewPrep);
+  router.patch('/api/positions/:id/interview-prep', authenticate, saveInterviewPrep);
 
   // ─────────────────────────────────────────────────────────────
   // AI ENDPOINTS
@@ -681,16 +727,22 @@ ${resumeContext}`
 
       // Auto-save the generated prep to the interview_preps table
       await pool.query(
-        `INSERT INTO crm_interview_preps (position_id, skill_gap_analysis, company_news_talking_points, freeform_notes)
-         VALUES ($1,$2,$3,$4)
+        `INSERT INTO crm_interview_preps (
+           position_id,
+           skill_gap_analysis,
+           company_news_talking_points,
+           ai_generated_content
+         )
+          VALUES ($1,$2,$3,$4)
          ON CONFLICT (position_id) DO UPDATE SET
            skill_gap_analysis = EXCLUDED.skill_gap_analysis,
            company_news_talking_points = EXCLUDED.company_news_talking_points,
+            ai_generated_content = EXCLUDED.ai_generated_content,
            updated_at = NOW()`,
         [position_id,
          JSON.stringify(prepData.skill_gap_analysis),
          JSON.stringify(prepData.company_news_talking_points),
-         null]
+         JSON.stringify(prepData)]
       );
 
       ok(res, prepData);

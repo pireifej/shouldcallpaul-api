@@ -1,2 +1,3 @@
 - [Route extraction — factory pattern](route-extraction.md) — server.js split into 9 route files in routes/; factory fn receives ctx object; serveAudioBuffer and cron-shared helpers stay in server.js
 - [Prayer notification digest design](prayer-notification-digest.md) — per-prayer emails to request owners were replaced with a once-daily digest queue; admin keeps per-event tracking email
+- [Interview-prep content separation](interview-prep-content-separation.md) — personal prep notes and AI-generated prep must remain independently writable and readable.
