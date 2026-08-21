@@ -690,21 +690,32 @@ Return exactly this structure (use null for any field not found):
         messages: [
           {
             role: 'system',
-            content: `You are an expert career coach and interview preparation specialist.
-Analyze the candidate's full background against the job requirements and generate a detailed, specific prep guide.
-Use the candidate's actual projects, certifications, awards, and experience — do not be generic.
-Return valid JSON in exactly this structure:
+            content: `You are helping Paul Ireifej prepare for a job interview. Your job is to produce a SHORT, SCANNABLE cheat sheet he can glance at during or just before the interview.
+
+RULES — follow every one:
+1. WRITE SHORT. Bullet points only. No paragraphs. No essays.
+2. MAP TECHNOLOGIES: For every key technology or skill in the job, find the closest real project or experience in Paul's background and write one bullet: "Technology X → Project Y: one sentence on how I used it."
+3. SAMPLE ARCHITECTURE: For the 2-3 most important technologies, add one extra bullet showing a brief architecture example in plain English (e.g. "AKS → ran 40-node cluster, Helm charts per service, HPA on CPU/memory, Istio for mTLS between pods").
+4. FIRST PERSON, PLAIN ENGLISH. Write as if Paul is saying it out loud. Short sentences. No jargon dumps.
+5. GAPS: List only real gaps — technologies clearly required by the job that are not in Paul's background. One bullet each, max 5 words.
+6. QUESTIONS: 3 smart questions Paul should ask the interviewer. One sentence each.
+7. COMPANY CONTEXT: 2-3 bullets max. Only what Paul should actually say out loud ("They partner with Microsoft on Azure Fabric modernization — I can speak to that directly from my AT&T Fabric work").
+
+Return valid JSON in exactly this structure (all values are strings or arrays of strings — no nested objects):
 {
-  "skill_gap_analysis": {
-    "strong_matches": ["specific skills/experiences the candidate has that directly match this role"],
-    "gaps": ["required skills the candidate lacks or needs to strengthen for this role"],
-    "talking_points": ["concrete ways to frame the candidate's existing experience to bridge each gap"]
-  },
-  "company_news_talking_points": [
-    "Specific insight, news angle, or company context the candidate should mention in the interview"
+  "elevator_pitch": "One punchy paragraph, 3 sentences max, first person. Who I am, what I bring to THIS role, one concrete proof point.",
+  "tech_mappings": [
+    "Technology X → Project Y: one sentence on how I used it and what I delivered.",
+    "Technology X (architecture): brief architecture example in plain English."
   ],
-  "recommended_questions": [
-    "Thoughtful, role-specific question the candidate should ask the interviewer"
+  "gaps": [
+    "Gap skill — brief note on how to address it"
+  ],
+  "questions_to_ask": [
+    "One smart question to ask the interviewer."
+  ],
+  "company_context": [
+    "One thing Paul should mention about the company and why it connects to his experience."
   ]
 }`
           },
@@ -712,12 +723,12 @@ Return valid JSON in exactly this structure:
             role: 'user',
             content: `POSITION: ${position.title} at ${position.company}
 LOCATION: ${position.location || 'Not specified'} | WORK TYPE: ${position.work_type || 'Not specified'}
-SALARY: ${position.salary_range || 'Not specified'}
 REQUIRED TECH SKILLS: ${JSON.stringify(position.required_tech_skills || [])}
-JOB SUMMARY: ${JSON.stringify(position.parsed_summary || {})}
+JOB DESCRIPTION SUMMARY: ${JSON.stringify(position.parsed_summary || {})}
+JOB DESCRIPTION TEXT: ${(position.job_description_text || '').slice(0, 3000)}
 POSITION NOTES: ${position.notes || 'None'}
 
-CANDIDATE BACKGROUND:
+PAUL'S BACKGROUND:
 ${resumeContext}`
           }
         ]
