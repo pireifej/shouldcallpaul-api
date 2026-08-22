@@ -117,6 +117,123 @@ module.exports = function crmRoutes(ctx) {
   const err = (res, msg, status = 500) => res.status(status).json({ success: false, error: msg });
 
   // ─────────────────────────────────────────────────────────────
+  // GLOBAL NOTES
+  // ─────────────────────────────────────────────────────────────
+
+  const globalNoteColumns = `
+    SELECT id, title, content,
+           created_at AS "createdAt",
+           updated_at AS "updatedAt"
+    FROM crm_global_notes
+  `;
+
+  const parseGlobalNoteId = (rawId) => {
+    if (!/^[1-9]\d*$/.test(String(rawId))) return null;
+    const id = Number(rawId);
+    return Number.isSafeInteger(id) ? id : null;
+  };
+
+  const validateGlobalNoteTitle = (title) => {
+    if (typeof title !== 'string') return 'title is required';
+    const trimmed = title.trim();
+    if (!trimmed) return 'title is required';
+    if (trimmed.length > 200) return 'title must be 200 characters or fewer';
+    return null;
+  };
+
+  const validateGlobalNoteContent = (content) => {
+    if (typeof content !== 'string') return 'content must be a string';
+    return null;
+  };
+
+  // GET /api/global-notes — newest updated notes first
+  router.get('/api/global-notes', authenticate, async (req, res) => {
+    try {
+      const result = await pool.query(
+        `${globalNoteColumns} ORDER BY updated_at DESC, id DESC`
+      );
+      ok(res, result.rows);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // POST /api/global-notes
+  router.post('/api/global-notes', authenticate, async (req, res) => {
+    try {
+      const { title, content = '' } = req.body || {};
+      const titleError = validateGlobalNoteTitle(title);
+      if (titleError) return err(res, titleError, 400);
+      const contentError = validateGlobalNoteContent(content);
+      if (contentError) return err(res, contentError, 400);
+
+      const result = await pool.query(
+        `INSERT INTO crm_global_notes (title, content)
+         VALUES ($1, $2)
+         RETURNING id, title, content,
+                   created_at AS "createdAt",
+                   updated_at AS "updatedAt"`,
+        [title.trim(), content]
+      );
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // PATCH /api/global-notes/:id — partial title/content update
+  router.patch('/api/global-notes/:id', authenticate, async (req, res) => {
+    try {
+      const id = parseGlobalNoteId(req.params.id);
+      if (id === null) return err(res, 'id must be a positive integer', 400);
+
+      const body = req.body || {};
+      const hasTitle = Object.prototype.hasOwnProperty.call(body, 'title');
+      const hasContent = Object.prototype.hasOwnProperty.call(body, 'content');
+      if (!hasTitle && !hasContent) return err(res, 'No fields to update', 400);
+
+      const updates = [];
+      const params = [];
+      if (hasTitle) {
+        const titleError = validateGlobalNoteTitle(body.title);
+        if (titleError) return err(res, titleError, 400);
+        params.push(body.title.trim());
+        updates.push(`title = $${params.length}`);
+      }
+      if (hasContent) {
+        const contentError = validateGlobalNoteContent(body.content);
+        if (contentError) return err(res, contentError, 400);
+        params.push(body.content);
+        updates.push(`content = $${params.length}`);
+      }
+
+      params.push(id);
+      const result = await pool.query(
+        `UPDATE crm_global_notes
+         SET ${updates.join(', ')}, updated_at = NOW()
+         WHERE id = $${params.length}
+         RETURNING id, title, content,
+                   created_at AS "createdAt",
+                   updated_at AS "updatedAt"`,
+        params
+      );
+      if (!result.rows.length) return err(res, 'Global note not found', 404);
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // DELETE /api/global-notes/:id
+  router.delete('/api/global-notes/:id', authenticate, async (req, res) => {
+    try {
+      const id = parseGlobalNoteId(req.params.id);
+      if (id === null) return err(res, 'id must be a positive integer', 400);
+
+      const result = await pool.query(
+        `DELETE FROM crm_global_notes WHERE id = $1 RETURNING id`,
+        [id]
+      );
+      if (!result.rows.length) return err(res, 'Global note not found', 404);
+      ok(res, { deleted_id: result.rows[0].id });
+    } catch (e) { err(res, e.message); }
+  });
+
+  // ─────────────────────────────────────────────────────────────
   // CONTACTS
   // ─────────────────────────────────────────────────────────────
 

@@ -1165,6 +1165,23 @@ cron.schedule('0 2 * * *', async () => {
 
 console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
 
+// Global Notes is used by a request-facing route, so ensure its table exists
+// before the server begins accepting traffic. The remaining legacy startup
+// migrations below retain their existing non-blocking behavior.
+const globalNotesMigrationSQL = `CREATE TABLE IF NOT EXISTS public.crm_global_notes (
+  id         SERIAL PRIMARY KEY,
+  title      VARCHAR(200) NOT NULL CHECK (length(btrim(title)) > 0),
+  content    TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+)`;
+const globalNotesMigrationReady = auditPool.query(globalNotesMigrationSQL).then(() => {
+  console.log('✅ Global Notes migration (CRM): crm_global_notes ready');
+}).catch((error) => {
+  console.error('❌ Global Notes migration failed; refusing to start server:', error.message);
+  throw error;
+});
+
 // ── Startup migration: add any missing columns ────────────────────────────────
 (async () => {
   const migrations = [
@@ -1313,6 +1330,7 @@ console.log('⏰ Daily production DB backup scheduled at 2:00 AM UTC');
       ai_generated_content      JSONB,
       updated_at                TIMESTAMP DEFAULT NOW()
     )` },
+    { col: 'crm_global_notes_table', sql: globalNotesMigrationSQL },
   ];
   for (const [name, p] of [['dev', pool], ['prod', auditPool]]) {
     for (const { col, sql } of crmMigrations) {
@@ -1622,8 +1640,9 @@ console.log('⏰ Push token cleanup scheduled at 4:00 AM UTC (tokens older than 
 
 // ──────────────────────────────────────────────────────────────────────────────
 
-// Start server on 0.0.0.0 for public accessibility
-server.listen(PORT, '0.0.0.0', () => {
+// Start server on 0.0.0.0 for public accessibility only after Global Notes
+// provisioning completes, preventing first-request table races on a new DB.
+globalNotesMigrationReady.then(() => server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`API endpoint: http://0.0.0.0:${PORT}/api/requests`);
   console.log(`WebSocket (Group Rosary) ready on ws://0.0.0.0:${PORT}`);
@@ -1652,6 +1671,11 @@ server.listen(PORT, '0.0.0.0', () => {
       }
     }
   });
+})).catch(() => {
+  // The migration promise already logged the database error. Exit non-zero so
+  // the workflow/deployment reports startup failure instead of serving 500s.
+  process.exitCode = 1;
+  process.exit(1);
 });
 
 // Graceful shutdown
