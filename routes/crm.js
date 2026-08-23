@@ -565,6 +565,56 @@ module.exports = function crmRoutes(ctx) {
   });
 
   // ─────────────────────────────────────────────────────────────
+  // WORKSHOP CONTACTS
+  // ─────────────────────────────────────────────────────────────
+
+  // GET /api/workshops/:id/contacts
+  router.get('/api/workshops/:id/contacts', authenticate, async (req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT c.id, c.name, c.title, c.organization, c.email, c.phone, c.linkedin_url,
+                wc.created_at AS linked_at
+         FROM crm_workshop_contacts wc
+         JOIN crm_contacts c ON c.id = wc.contact_id
+         WHERE wc.workshop_id = $1
+         ORDER BY wc.created_at ASC`,
+        [req.params.id]
+      );
+      ok(res, result.rows);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // POST /api/workshops/:id/contacts — link an existing contact to a workshop
+  router.post('/api/workshops/:id/contacts', authenticate, async (req, res) => {
+    try {
+      const { contact_id } = req.body;
+      if (!contact_id) return err(res, 'contact_id is required', 400);
+      await pool.query(
+        `INSERT INTO crm_workshop_contacts (workshop_id, contact_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [req.params.id, contact_id]
+      );
+      const result = await pool.query(
+        `SELECT c.id, c.name, c.title, c.organization, c.email, c.phone, c.linkedin_url
+         FROM crm_contacts c WHERE c.id = $1`,
+        [contact_id]
+      );
+      if (!result.rows.length) return err(res, 'Contact not found', 404);
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
+  // DELETE /api/workshops/:id/contacts/:contact_id — unlink a contact from a workshop
+  router.delete('/api/workshops/:id/contacts/:contact_id', authenticate, async (req, res) => {
+    try {
+      await pool.query(
+        `DELETE FROM crm_workshop_contacts WHERE workshop_id = $1 AND contact_id = $2`,
+        [req.params.id, req.params.contact_id]
+      );
+      ok(res, {});
+    } catch (e) { err(res, e.message); }
+  });
+
+  // ─────────────────────────────────────────────────────────────
   // ACTIVITY LOGS
   // ─────────────────────────────────────────────────────────────
 

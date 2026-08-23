@@ -1331,6 +1331,12 @@ const globalNotesMigrationReady = auditPool.query(globalNotesMigrationSQL).then(
       updated_at                TIMESTAMP DEFAULT NOW()
     )` },
     { col: 'crm_global_notes_table', sql: globalNotesMigrationSQL },
+    { col: 'crm_workshop_contacts', sql: `CREATE TABLE IF NOT EXISTS public.crm_workshop_contacts (
+      workshop_id INTEGER NOT NULL REFERENCES public.crm_workshops(id) ON DELETE CASCADE,
+      contact_id  INTEGER NOT NULL REFERENCES public.crm_contacts(id) ON DELETE CASCADE,
+      created_at  TIMESTAMP DEFAULT NOW(),
+      PRIMARY KEY (workshop_id, contact_id)
+    )` },
   ];
   for (const [name, p] of [['dev', pool], ['prod', auditPool]]) {
     for (const { col, sql } of crmMigrations) {
