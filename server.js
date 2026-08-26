@@ -482,8 +482,12 @@ const authenticate = (req, res, next) => {
   const validPassword1 = password === process.env.API_PASSWORD;
   const validPassword2 = password === process.env.API_PASSWORD2;
   
-  if (validUsername && (validPassword1 || validPassword2)) {
-    next(); // Authentication successful
+  if (validUsername && validPassword2) {
+    req.apiClientType = 'website';
+    next();
+  } else if (validUsername && validPassword1) {
+    req.apiClientType = 'mobile';
+    next();
   } else {
     res.status(401).json({ error: 'Invalid credentials' });
   }
@@ -1182,6 +1186,34 @@ const globalNotesMigrationReady = auditPool.query(globalNotesMigrationSQL).then(
   throw error;
 });
 
+// The website-request endpoint depends on these columns and the unique index.
+// Provision both databases before accepting traffic so deploys cannot race the
+// first request against a non-blocking startup migration.
+async function ensureWebsiteRequestLimitSchema(name, dbPool) {
+  await dbPool.query(
+    `ALTER TABLE public.request
+     ADD COLUMN IF NOT EXISTS request_source VARCHAR(20) NOT NULL DEFAULT 'mobile'`
+  );
+  await dbPool.query(
+    `ALTER TABLE public.request
+     ADD COLUMN IF NOT EXISTS website_request_date DATE`
+  );
+  await dbPool.query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS request_website_daily_unique_idx
+     ON public.request (user_id, website_request_date)
+     WHERE request_source = 'website' AND website_request_date IS NOT NULL`
+  );
+  console.log(`✅ Required website request-limit schema (${name}) ready`);
+}
+
+const websiteRequestLimitMigrationReady = Promise.all([
+  ensureWebsiteRequestLimitSchema('dev', pool),
+  ensureWebsiteRequestLimitSchema('prod', auditPool)
+]).catch((error) => {
+  console.error('❌ Website request-limit migration failed; refusing to start server:', error.message);
+  throw error;
+});
+
 // ── Startup migration: add any missing columns ────────────────────────────────
 (async () => {
   const migrations = [
@@ -1646,9 +1678,8 @@ console.log('⏰ Push token cleanup scheduled at 4:00 AM UTC (tokens older than 
 
 // ──────────────────────────────────────────────────────────────────────────────
 
-// Start server on 0.0.0.0 for public accessibility only after Global Notes
-// provisioning completes, preventing first-request table races on a new DB.
-globalNotesMigrationReady.then(() => server.listen(PORT, '0.0.0.0', () => {
+// Start server only after schemas required by request-facing routes are ready.
+Promise.all([globalNotesMigrationReady, websiteRequestLimitMigrationReady]).then(() => server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`API endpoint: http://0.0.0.0:${PORT}/api/requests`);
   console.log(`WebSocket (Group Rosary) ready on ws://0.0.0.0:${PORT}`);

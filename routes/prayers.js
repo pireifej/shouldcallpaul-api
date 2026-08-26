@@ -1,5 +1,10 @@
 'use strict';
 const express = require('express');
+const {
+  WEBSITE_REQUEST_SOURCE,
+  sendWebsiteDailyLimitResponse,
+  checkWebsiteRequestLimit
+} = require('../websiteRequestLimit');
 
 module.exports = function prayersRoutes(ctx) {
   const router = express.Router();
@@ -966,24 +971,50 @@ async function handleEditRequest(req, res, multerError) {
   }
 }
 
-// POST /createRequestAndPrayer - Create a prayer request and generate AI prayer
-router.post('/createRequestAndPrayer', authenticate, (req, res) => {
+function dispatchCreateRequest(req, res, requestSource) {
   // Check content type and handle accordingly
   const contentType = req.get('Content-Type') || '';
   
   if (contentType.includes('multipart/form-data')) {
     // Handle multipart/form-data with image upload
     prayerImageUpload.single('image')(req, res, async (err) => {
-      await handleCreateRequestAndPrayer(req, res, err);
+      await handleCreateRequestAndPrayer(req, res, err, requestSource);
     });
   } else {
     // Handle JSON request (original behavior)
-    handleCreateRequestAndPrayer(req, res, null);
+    handleCreateRequestAndPrayer(req, res, null, requestSource);
   }
+}
+
+function getAuthenticatedRequestSource(req) {
+  return req.apiClientType === WEBSITE_REQUEST_SOURCE
+    ? WEBSITE_REQUEST_SOURCE
+    : 'mobile';
+}
+
+// The legacy route remains compatible with both clients, but source is derived
+// from the authenticated credential rather than from the route or request body.
+router.post('/createRequestAndPrayer', authenticate, (req, res) => {
+  dispatchCreateRequest(req, res, getAuthenticatedRequestSource(req));
+});
+
+// Optional explicit website route. It accepts only the secondary website
+// credential; callers cannot choose the mobile allowance by changing the body.
+router.post('/createWebsiteRequestAndPrayer', authenticate, (req, res) => {
+  if (req.apiClientType !== WEBSITE_REQUEST_SOURCE) {
+    return res.status(403).json({
+      error: 1,
+      code: 'WEBSITE_CREDENTIAL_REQUIRED',
+      result: 'This endpoint requires the PrayOverUs.com website credential.'
+    });
+  }
+  dispatchCreateRequest(req, res, WEBSITE_REQUEST_SOURCE);
 });
 
 // Shared handler for both JSON and multipart/form-data
-async function handleCreateRequestAndPrayer(req, res, multerError) {
+async function handleCreateRequestAndPrayer(req, res, multerError, requestSource) {
+  let cleanupIdempotencyFile = () => {};
+
   try {
     // Handle multer errors for image uploads
     if (multerError) {
@@ -1007,6 +1038,16 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
     console.log(`Received idempotency key: ${idempotencyKey}`);
 
     const newRequestCheck = path.join(__dirname, idempotencyKey + ".txt");
+    cleanupIdempotencyFile = () => {
+      if (!fs.existsSync(newRequestCheck)) return;
+      fs.unlink(newRequestCheck, (err) => {
+        if (err) {
+          console.error(`Error deleting idempotency file for key ${idempotencyKey}:`, err);
+        } else {
+          console.log(`Successfully deleted file for key ${idempotencyKey}.`);
+        }
+      });
+    };
 
     // Check if the file already exists
     if (fs.existsSync(newRequestCheck)) {
@@ -1070,6 +1111,14 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
       return res.json({ error: 1, result: "Your account has been restricted from posting new prayer requests." });
     }
 
+    // Website users may post one request per calendar day. The unique index
+    // added by the startup migration is the race-safe backstop for this check.
+    const websiteLimit = await checkWebsiteRequestLimit(pool, params, requestSource);
+    if (websiteLimit.limited) {
+      cleanupIdempotencyFile();
+      return sendWebsiteDailyLimitResponse(res);
+    }
+
     // Validate that request doesn't contain email addresses or websites
     const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
     const urlPattern = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.(com|org|net|edu|gov|io|co|us|info|biz|me|app|dev|ai|tech|online|site|xyz|uk|ca|au|de|fr|in|br|jp|ru|cn|it|es|nl|se|no|dk|fi|pl|be|ch|at|cz|gr|pt|ie|nz|sg|hk|my|za|mx|ar|cl|pe|ve|co\.uk|co\.in|co\.jp|co\.nz|co\.za|ca\.gov|ac\.uk|edu\.au|gov\.uk|org\.uk|net\.au|gov\.au))\b/i;
@@ -1098,8 +1147,8 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
       INSERT INTO public.request (
         user_id, request_text, request_title, picture, fk_prayer_id,
         active, my_church_only, timestamp, updated_timestamp,
-        content_en, content_es
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), $8, $9)
+        content_en, content_es, request_source, website_request_date
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), $8, $9, $10, $11)
       RETURNING request_id
     `;
 
@@ -1124,10 +1173,27 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
       1,                                      // $6 - active (1 for true in smallint)
       myChurchOnly,                           // $7 - my_church_only flag
       lang === 'en' ? params.requestText : null,  // $8 - content_en
-      lang === 'es' ? params.requestText : null   // $9 - content_es
+      lang === 'es' ? params.requestText : null,  // $9 - content_es
+      requestSource,                                   // $10
+      websiteLimit.requestDate                         // $11
     ];
 
-    const insertResult = await pool.query(insertQuery, queryParams);
+    let insertResult;
+    try {
+      insertResult = await pool.query(insertQuery, queryParams);
+    } catch (insertError) {
+      // A concurrent website submission can pass the pre-check at the same
+      // time. The database unique index makes exactly one insert succeed.
+      if (
+        websiteLimit.requestDate &&
+        insertError.code === '23505' &&
+        insertError.constraint === 'request_website_daily_unique_idx'
+      ) {
+        cleanupIdempotencyFile();
+        return sendWebsiteDailyLimitResponse(res);
+      }
+      throw insertError;
+    }
     const requestId = insertResult.rows[0].request_id;
     
     // Save uploaded image file to Cloudinary if present
@@ -1381,18 +1447,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
         }
       }
 
-      // Clean up idempotency file
-      if (fs.existsSync(newRequestCheck)) {
-        fs.unlink(newRequestCheck, (err) => {
-          if (err) {
-            console.error(`Error deleting file for key ${idempotencyKey}:`, err);
-            return;
-          }
-          console.log(`Successfully deleted file for key ${idempotencyKey}.`);
-        });
-      } else {
-        console.log(`File for key ${idempotencyKey} does not exist, no action needed.`);
-      }
+      cleanupIdempotencyFile();
 
     } catch (chatError) {
       console.error('OpenAI chat completion error:', chatError);
@@ -1402,7 +1457,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError) {
 
   } catch (error) {
     console.error('Database error:', error);
-    cleanupFile();
+    cleanupIdempotencyFile();
     res.status(500).json({ error: 'Internal server error' });
   }
 }
