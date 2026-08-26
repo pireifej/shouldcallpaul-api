@@ -457,6 +457,63 @@ router.post('/admin/flagBouncedEmail', async (req, res) => {
   }
 });
 
+  // POST /admin/setUserPosting - Enable or disable a user's ability to post requests
+  // Requires both the API Basic Auth credentials and the admin broadcast key.
+  router.post('/admin/setUserPosting', authenticate, async (req, res) => {
+    const key = req.body?.key || req.headers['x-admin-key'];
+    if (!key || key !== process.env.ADMIN_BROADCAST_KEY) {
+      return res.status(403).json({ error: 1, result: 'Unauthorized' });
+    }
+
+    const userId = Number(req.body?.userId);
+    const canPost = req.body?.canPost;
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({ error: 1, result: 'A positive integer userId is required' });
+    }
+    if (typeof canPost !== 'boolean') {
+      return res.status(400).json({ error: 1, result: 'canPost must be a boolean' });
+    }
+
+    try {
+      const result = await pool.query(
+        `UPDATE public."user"
+         SET can_post = $1, updated_timestamp = NOW()
+         WHERE user_id = $2
+         RETURNING user_id, user_name, real_name, can_post`,
+        [canPost, userId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 1, result: 'User not found' });
+      }
+
+      const user = result.rows[0];
+      await auditPool.query(
+        `INSERT INTO public.admin_audit_log
+           (action, performed_by_ip, target_user_id, payload, result)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          'setUserPosting',
+          req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown',
+          user.user_id,
+          JSON.stringify({ canPost }),
+          `can_post=${canPost}`
+        ]
+      ).catch((auditError) => {
+        console.error('setUserPosting audit write failed:', auditError.message);
+      });
+
+      return res.json({
+        error: 0,
+        result: `Posting ${canPost ? 'enabled' : 'disabled'}`,
+        user
+      });
+    } catch (error) {
+      console.error('setUserPosting error:', error);
+      return res.status(500).json({ error: 1, result: 'Internal server error' });
+    }
+  });
+
 router.post('/createBackup', async (req, res) => {
   try {
     const key = req.body.key || req.headers['x-admin-key'];
