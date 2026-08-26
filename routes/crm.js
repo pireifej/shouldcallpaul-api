@@ -115,6 +115,23 @@ module.exports = function crmRoutes(ctx) {
 
   const ok  = (res, data)  => res.json({ success: true,  data });
   const err = (res, msg, status = 500) => res.status(status).json({ success: false, error: msg });
+  const mutableWorkshopStatuses = new Set(['Active', 'Inactive']);
+
+  const findEditableWorkshop = async (id, res) => {
+    const result = await pool.query(
+      `SELECT id, status FROM crm_workshops WHERE id = $1`,
+      [id]
+    );
+    if (!result.rows.length) {
+      err(res, 'Workshop not found', 404);
+      return null;
+    }
+    if (!mutableWorkshopStatuses.has(result.rows[0].status)) {
+      err(res, 'Completed workshops are read-only', 409);
+      return null;
+    }
+    return result.rows[0];
+  };
 
   // ─────────────────────────────────────────────────────────────
   // GLOBAL NOTES
@@ -509,6 +526,9 @@ module.exports = function crmRoutes(ctx) {
     try {
       const { organization_name, contact_id, status, workshop_title, historical_date, cost_basis, notes } = req.body;
       if (!organization_name) return err(res, 'organization_name is required', 400);
+      if (status !== undefined && !mutableWorkshopStatuses.has(status)) {
+        return err(res, 'status must be Active or Inactive', 400);
+      }
       const result = await pool.query(
         `INSERT INTO crm_workshops (organization_name, contact_id, status, workshop_title, historical_date, cost_basis, notes)
          VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
@@ -518,11 +538,39 @@ module.exports = function crmRoutes(ctx) {
     } catch (e) { err(res, e.message); }
   });
 
+  // PATCH /api/workshops/:id/status — change only database-managed workshops
+  router.patch('/api/workshops/:id/status', authenticate, async (req, res) => {
+    try {
+      const { status } = req.body || {};
+      if (!mutableWorkshopStatuses.has(status)) {
+        return err(res, 'status must be Active or Inactive', 400);
+      }
+
+      const workshop = await findEditableWorkshop(req.params.id, res);
+      if (!workshop) return;
+
+      const result = await pool.query(
+        `UPDATE crm_workshops
+         SET status = $1, updated_at = NOW()
+         WHERE id = $2 AND status IN ('Active', 'Inactive')
+         RETURNING *`,
+        [status, req.params.id]
+      );
+      if (!result.rows.length) return err(res, 'Workshop is no longer editable', 409);
+      ok(res, result.rows[0]);
+    } catch (e) { err(res, e.message); }
+  });
+
   // PUT /api/workshops/:id
   router.put('/api/workshops/:id', authenticate, async (req, res) => {
     try {
       const { id } = req.params;
       const fields = ['organization_name','contact_id','status','workshop_title','historical_date','cost_basis','notes'];
+      const workshop = await findEditableWorkshop(id, res);
+      if (!workshop) return;
+      if (req.body.status !== undefined && !mutableWorkshopStatuses.has(req.body.status)) {
+        return err(res, 'status must be Active or Inactive', 400);
+      }
       const updates = []; const params = [];
       for (const f of fields) {
         if (req.body[f] !== undefined) { params.push(req.body[f]); updates.push(`${f} = $${params.length}`); }
@@ -541,6 +589,11 @@ module.exports = function crmRoutes(ctx) {
     try {
       const { id } = req.params;
       const fields = ['organization_name','contact_id','status','workshop_title','historical_date','cost_basis','notes'];
+      const workshop = await findEditableWorkshop(id, res);
+      if (!workshop) return;
+      if (req.body.status !== undefined && !mutableWorkshopStatuses.has(req.body.status)) {
+        return err(res, 'status must be Active or Inactive', 400);
+      }
       const updates = []; const params = [];
       for (const f of fields) {
         if (req.body[f] !== undefined) { params.push(req.body[f]); updates.push(`${f} = $${params.length}`); }
@@ -558,6 +611,8 @@ module.exports = function crmRoutes(ctx) {
   // DELETE /api/workshops/:id
   router.delete('/api/workshops/:id', authenticate, async (req, res) => {
     try {
+      const workshop = await findEditableWorkshop(req.params.id, res);
+      if (!workshop) return;
       const result = await pool.query(`DELETE FROM crm_workshops WHERE id = $1 RETURNING id`, [req.params.id]);
       if (!result.rows.length) return err(res, 'Workshop not found', 404);
       ok(res, { deleted_id: result.rows[0].id });
@@ -587,6 +642,8 @@ module.exports = function crmRoutes(ctx) {
   // POST /api/workshops/:id/contacts — link an existing contact to a workshop
   router.post('/api/workshops/:id/contacts', authenticate, async (req, res) => {
     try {
+      const workshop = await findEditableWorkshop(req.params.id, res);
+      if (!workshop) return;
       const { contact_id } = req.body;
       if (!contact_id) return err(res, 'contact_id is required', 400);
       await pool.query(
@@ -606,6 +663,8 @@ module.exports = function crmRoutes(ctx) {
   // DELETE /api/workshops/:id/contacts/:contact_id — unlink a contact from a workshop
   router.delete('/api/workshops/:id/contacts/:contact_id', authenticate, async (req, res) => {
     try {
+      const workshop = await findEditableWorkshop(req.params.id, res);
+      if (!workshop) return;
       await pool.query(
         `DELETE FROM crm_workshop_contacts WHERE workshop_id = $1 AND contact_id = $2`,
         [req.params.id, req.params.contact_id]
