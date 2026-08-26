@@ -1336,7 +1336,7 @@ const websiteRequestLimitMigrationReady = Promise.all([
       id                SERIAL PRIMARY KEY,
       organization_name TEXT NOT NULL,
       contact_id        INTEGER REFERENCES public.crm_contacts(id) ON DELETE SET NULL,
-      status            TEXT DEFAULT 'Lead' CHECK (status IN ('Lead','Proposal Sent','Confirmed','Completed','Inactive')),
+      status            TEXT DEFAULT 'Active' CHECK (status IN ('Active','Completed','Inactive')),
       workshop_title    TEXT,
       historical_date   TIMESTAMP,
       cost_basis        TEXT,
@@ -1344,6 +1344,20 @@ const websiteRequestLimitMigrationReady = Promise.all([
       created_at        TIMESTAMP DEFAULT NOW(),
       updated_at        TIMESTAMP DEFAULT NOW()
     )` },
+    { col: 'crm_workshops_three_statuses', sql: `
+      BEGIN;
+      ALTER TABLE public.crm_workshops
+        DROP CONSTRAINT IF EXISTS crm_workshops_status_check;
+      UPDATE public.crm_workshops
+      SET status = 'Active'
+      WHERE status IN ('Lead', 'Proposal Sent', 'Confirmed') OR status IS NULL;
+      ALTER TABLE public.crm_workshops
+        ADD CONSTRAINT crm_workshops_status_check
+        CHECK (status IN ('Active','Completed','Inactive'));
+      ALTER TABLE public.crm_workshops
+        ALTER COLUMN status SET DEFAULT 'Active';
+      COMMIT;
+    ` },
     { col: 'crm_activity_logs', sql: `CREATE TABLE IF NOT EXISTS public.crm_activity_logs (
       id          SERIAL PRIMARY KEY,
       entity_type TEXT NOT NULL CHECK (entity_type IN ('position','workshop','contact')),

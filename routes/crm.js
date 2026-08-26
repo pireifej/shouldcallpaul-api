@@ -512,7 +512,7 @@ module.exports = function crmRoutes(ctx) {
       const result = await pool.query(
         `INSERT INTO crm_workshops (organization_name, contact_id, status, workshop_title, historical_date, cost_basis, notes)
          VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-        [organization_name, contact_id || null, status || 'Lead', workshop_title, historical_date || null, cost_basis, notes]
+        [organization_name, contact_id || null, status || 'Active', workshop_title, historical_date || null, cost_basis, notes]
       );
       ok(res, result.rows[0]);
     } catch (e) { err(res, e.message); }
