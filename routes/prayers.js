@@ -6,6 +6,32 @@ const {
   checkWebsiteRequestLimit
 } = require('../websiteRequestLimit');
 
+const SAFE_SAFETY_REWRITE =
+  'Lord, please bring peace, wisdom, and compassionate support to everyone involved. Guide them toward healing and the right help. Amen.';
+
+function buildModerationCopy(flagType, modelSuggestion) {
+  const normalizedType = String(flagType || '').toLowerCase();
+
+  if (normalizedType === 'safety') {
+    return {
+      caringNote: 'It sounds like someone may be in an unsafe situation. Please consider calling 911 or the National Domestic Violence Hotline at 1-800-799-7233 if anyone is in danger. We are praying for you.',
+      suggestedWording: SAFE_SAFETY_REWRITE
+    };
+  }
+
+  if (normalizedType === 'material' || normalizedType === 'material/consumer') {
+    return {
+      caringNote: 'This request may be centered on a material item. Here is a gentler way to focus the prayer on the deeper need.',
+      suggestedWording: modelSuggestion || null
+    };
+  }
+
+  return {
+    caringNote: modelSuggestion ? 'Here is a gentle alternative wording for your prayer request.' : null,
+    suggestedWording: modelSuggestion || null
+  };
+}
+
 module.exports = function prayersRoutes(ctx) {
   const router = express.Router();
   const { pool, auditPool, authenticate, generatePrayer, translateText, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, createGmailTransporter, uploadImage, sendPushNotification, prayerAudioCache, MAX_PRAYER_AUDIO_CACHE, PRAYER_AUDIO_DIR, openai, multer, path, fs, log, serveAudioBuffer } = ctx;
@@ -279,6 +305,9 @@ Prayer request: "${requestText.trim().replace(/"/g, '\\"')}"`;
     const flagged = parsed.flagged === true;
     const flagType = flagged ? (parsed.type || null) : null;
     const flagSuggestion = flagged ? (parsed.suggestion || null) : null;
+    const moderationCopy = flagged
+      ? buildModerationCopy(flagType, flagSuggestion)
+      : { caringNote: null, suggestedWording: null };
 
     if (flagged) {
       // Fire-and-forget admin email
@@ -313,7 +342,15 @@ Prayer request: "${requestText.trim().replace(/"/g, '\\"')}"`;
     return res.json({
       flagged,
       type: flagType,
-      suggestion: flagSuggestion,
+      // Keep suggestion as the replacement text for older clients. In
+      // particular, do not return the safety-resource note here: clients use
+      // this field for "Use this wording", which would otherwise re-trigger
+      // the same safety flag.
+      suggestion: moderationCopy.suggestedWording,
+      caringNote: moderationCopy.caringNote,
+      suggestedWording: moderationCopy.suggestedWording,
+      isHardBlock: false,
+      allowPostAsWritten: true,
       // result field picked up by audit-log middleware as response_summary
       result: flagged ? `FLAGGED (${flagType}): ${(req.body?.requestText || '').slice(0, 120)}` : undefined
     });
