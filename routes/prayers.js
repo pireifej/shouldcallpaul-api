@@ -345,7 +345,8 @@ Prayer request: "${requestText.trim().replace(/"/g, '\\"')}"`;
           const transporter = createGmailTransporter();
           await transporter.sendMail({
             from: `"Pray Over Us" <${process.env.GMAIL_USER}>`,
-            to: 'pireifej@gmail.com',
+            to: 'prayoverus@gmail.com',
+            cc: 'programmerpauly@gmail.com',
             subject: `⚠️ Prayer request flagged — user ${userId} (${realName}) (type: ${flagType})`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -1158,7 +1159,8 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
           const transporter = createGmailTransporter();
           await transporter.sendMail({
             from: `"Pray Over Us" <${process.env.GMAIL_USER}>`,
-            to: 'pireifej@gmail.com',
+            to: 'prayoverus@gmail.com',
+            cc: 'programmerpauly@gmail.com',
             subject: `🚫 Blocked user attempted to post — user ${params.userId}`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
