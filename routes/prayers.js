@@ -313,20 +313,51 @@ Prayer request: "${requestText.trim().replace(/"/g, '\\"')}"`;
       // Fire-and-forget admin email
       (async () => {
         try {
-          const userId = req.body?.userId || req.body?.user_id || 'unknown';
+          const rawUserId = req.body?.userId ?? req.body?.user_id;
+          const parsedUserId = Number(rawUserId);
+          const hasUserId = Number.isInteger(parsedUserId) && parsedUserId > 0;
+          let userId = hasUserId ? parsedUserId : 'unknown';
+          let realName = 'unknown';
+          let userName = 'unknown';
+
+          // Basic auth identifies the shared API client, not the individual
+          // member. When the client includes userId, look up the display
+          // identity instead of sending an "unknown user" moderation email.
+          if (hasUserId) {
+            try {
+              const userResult = await pool.query(
+                `SELECT real_name, user_name
+                 FROM public."user"
+                 WHERE user_id = $1
+                 LIMIT 1`,
+                [parsedUserId]
+              );
+              if (userResult.rows.length > 0) {
+                realName = userResult.rows[0].real_name || 'unknown';
+                userName = userResult.rows[0].user_name || 'unknown';
+              }
+            } catch (lookupError) {
+              console.error('checkPrayerContent user lookup failed (non-fatal):', lookupError.message);
+            }
+          }
+
+          const escapeHtml = (value) => String(value ?? '').replace(/</g, '&lt;');
           const transporter = createGmailTransporter();
           await transporter.sendMail({
             from: `"Pray Over Us" <${process.env.GMAIL_USER}>`,
             to: 'pireifej@gmail.com',
-            subject: `⚠️ Prayer request flagged — user ${userId} (type: ${flagType})`,
+            subject: `⚠️ Prayer request flagged — user ${userId} (${realName}) (type: ${flagType})`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h3>A prayer request was flagged by content moderation</h3>
                 <table style="border-collapse: collapse; width: 100%;">
-                  <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">User ID</td><td style="padding: 8px; border: 1px solid #ddd;">${userId}</td></tr>
-                  <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Flag type</td><td style="padding: 8px; border: 1px solid #ddd;">${flagType}</td></tr>
-                  <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Request text</td><td style="padding: 8px; border: 1px solid #ddd;">${(req.body?.requestText || '').replace(/</g, '&lt;')}</td></tr>
-                  <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Suggestion shown</td><td style="padding: 8px; border: 1px solid #ddd;">${(flagSuggestion || '').replace(/</g, '&lt;')}</td></tr>
+                  <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">User ID</td><td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(userId)}</td></tr>
+                  <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Real name</td><td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(realName)}</td></tr>
+                  <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Username</td><td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(userName)}</td></tr>
+                  <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Flag type</td><td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(flagType)}</td></tr>
+                  <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Request text</td><td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(req.body?.requestText || '')}</td></tr>
+                  <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Caring note</td><td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(moderationCopy.caringNote || '')}</td></tr>
+                  <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Suggested wording</td><td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(moderationCopy.suggestedWording || '')}</td></tr>
                   <tr><td style="padding: 8px; font-weight: bold; border: 1px solid #ddd;">Timestamp</td><td style="padding: 8px; border: 1px solid #ddd;">${new Date().toISOString()}</td></tr>
                 </table>
                 <p style="color: #888; font-size: 12px;">Note: the user was shown the suggestion above and can still edit and resubmit — this is not a hard block.</p>
