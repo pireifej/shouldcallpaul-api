@@ -11,11 +11,140 @@ const {
   WEBSITE_DAILY_LIMIT_CODE,
   WEBSITE_DOWNLOAD_URL,
   WEBSITE_REQUEST_SOURCE,
+  USER_DAILY_POST_LIMIT_USER_IDS,
+  USER_DAILY_POST_LIMIT_CODE,
   getUtcCalendarDate,
+  isUserDailyPostLimited,
+  userDailyPostLimitPayload,
+  sendUserDailyPostLimitResponse,
+  checkUserDailyPostLimit,
   websiteDailyLimitPayload,
   sendWebsiteDailyLimitResponse,
   checkWebsiteRequestLimit
 } = require('../websiteRequestLimit');
+
+test('only the selected users have the all-client daily limit', () => {
+  assert.deepEqual(USER_DAILY_POST_LIMIT_USER_IDS, [1393, 1400]);
+  assert.equal(isUserDailyPostLimited(1393), true);
+  assert.equal(isUserDailyPostLimited('1400'), true);
+  assert.equal(isUserDailyPostLimited(42), false);
+});
+
+test('unselected users bypass the targeted daily-limit lookup', async () => {
+  let queryCount = 0;
+  const pool = {
+    async query() {
+      queryCount++;
+      return { rows: [] };
+    }
+  };
+
+  const result = await checkUserDailyPostLimit(pool, { userId: 42 });
+
+  assert.deepEqual(result, { limited: false, requestDate: null });
+  assert.equal(queryCount, 0);
+});
+
+test('selected-user limit counts any request status on the UTC date', async () => {
+  let query;
+  const pool = {
+    async query(sql, params) {
+      query = { sql, params };
+      return { rows: [{ request_id: 2140, active: 3 }] };
+    }
+  };
+
+  const result = await checkUserDailyPostLimit(
+    pool,
+    { userId: '1393' },
+    new Date('2026-08-30T23:59:59.000Z')
+  );
+
+  assert.equal(result.limited, true);
+  assert.equal(result.requestDate, '2026-08-30');
+  assert.match(query.sql, /timestamp::date = \$2::date/);
+  assert.doesNotMatch(query.sql, /active/);
+  assert.deepEqual(query.params, [1393, '2026-08-30']);
+});
+
+test('the selected-user limit has a stable 429 response', () => {
+  let statusCode;
+  let responseBody;
+  const res = {
+    status(code) {
+      statusCode = code;
+      return this;
+    },
+    json(body) {
+      responseBody = body;
+      return this;
+    }
+  };
+
+  assert.deepEqual(userDailyPostLimitPayload(), {
+    error: 1,
+    code: USER_DAILY_POST_LIMIT_CODE,
+    result: 'You can post one prayer request per day. Your limit resets at midnight UTC.'
+  });
+
+  sendUserDailyPostLimitResponse(res);
+  assert.equal(statusCode, 429);
+  assert.equal(responseBody.code, USER_DAILY_POST_LIMIT_CODE);
+});
+
+test('content moderation returns the selected-user limit before calling AI', async () => {
+  let openAiCallCount = 0;
+  const pool = {
+    async query(sql) {
+      if (sql.includes('timestamp::date')) {
+        return { rows: [{ request_id: 2141 }] };
+      }
+      throw new Error(`Unexpected test query: ${sql}`);
+    }
+  };
+  const app = express();
+  app.use(express.json());
+  app.use(prayersRoutes({
+    pool,
+    authenticate: (req, res, next) => next(),
+    openai: {
+      chat: {
+        completions: {
+          create() {
+            openAiCallCount++;
+            return Promise.resolve({ choices: [] });
+          }
+        }
+      }
+    },
+    multer,
+    path,
+    fs
+  }));
+  const server = app.listen(0);
+  await new Promise(resolve => server.once('listening', resolve));
+
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:${server.address().port}/checkPrayerContent`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          userId: 1393,
+          requestText: 'Please pray for me'
+        })
+      }
+    );
+    const body = await response.json();
+
+    assert.equal(response.status, 429);
+    assert.equal(body.code, USER_DAILY_POST_LIMIT_CODE);
+    assert.equal(openAiCallCount, 0);
+  } finally {
+    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  }
+});
 
 test('mobile requests bypass the website-only lookup', async () => {
   let queryCount = 0;

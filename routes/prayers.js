@@ -3,7 +3,10 @@ const express = require('express');
 const {
   WEBSITE_REQUEST_SOURCE,
   sendWebsiteDailyLimitResponse,
-  checkWebsiteRequestLimit
+  checkWebsiteRequestLimit,
+  isUserDailyPostLimited,
+  sendUserDailyPostLimitResponse,
+  checkUserDailyPostLimit
 } = require('../websiteRequestLimit');
 
 const SAFE_SAFETY_REWRITE =
@@ -244,6 +247,13 @@ router.post('/checkPrayerContent', authenticate, async (req, res) => {
     const { requestText } = req.body;
     if (!requestText || typeof requestText !== 'string' || !requestText.trim()) {
       return res.json(safe);
+    }
+
+    // Targeted users are limited before content moderation runs so the client
+    // receives a stable posting-limit response and no AI call is wasted.
+    const userDailyLimit = await checkUserDailyPostLimit(pool, req.body);
+    if (userDailyLimit.limited) {
+      return sendUserDailyPostLimitResponse(res);
     }
 
     // ── Crisis pre-filter (keyword-based, runs before OpenAI) ──────────────────
@@ -1181,6 +1191,15 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
       return res.json({ error: 1, result: "Your account has been restricted from posting new prayer requests." });
     }
 
+    // Selected users may post only once per UTC calendar day. This check is
+    // repeated inside a user-scoped transaction immediately before INSERT so
+    // concurrent submissions cannot bypass the limit.
+    const userDailyLimit = await checkUserDailyPostLimit(pool, params);
+    if (userDailyLimit.limited) {
+      cleanupIdempotencyFile();
+      return sendUserDailyPostLimitResponse(res);
+    }
+
     // Website users may post one request per calendar day. The unique index
     // added by the startup migration is the race-safe backstop for this check.
     const websiteLimit = await checkWebsiteRequestLimit(pool, params, requestSource);
@@ -1249,9 +1268,64 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
     ];
 
     let insertResult;
+    let dailyLimitClient = null;
+    let dailyLimitTransactionStarted = false;
+
+    // A plain SELECT-then-INSERT can be bypassed by two simultaneous requests.
+    // For targeted users, serialize the daily check and request insert using a
+    // transaction-scoped advisory lock keyed to the user ID.
+    if (isUserDailyPostLimited(params.userId)) {
+      dailyLimitClient = await pool.connect();
+      try {
+        await dailyLimitClient.query('BEGIN');
+        dailyLimitTransactionStarted = true;
+        await dailyLimitClient.query(
+          'SELECT pg_advisory_xact_lock($1::bigint)',
+          [Number(params.userId)]
+        );
+
+        const lockedUserDailyLimit = await checkUserDailyPostLimit(
+          dailyLimitClient,
+          params
+        );
+        if (lockedUserDailyLimit.limited) {
+          await dailyLimitClient.query('ROLLBACK');
+          dailyLimitTransactionStarted = false;
+          dailyLimitClient.release();
+          dailyLimitClient = null;
+          cleanupIdempotencyFile();
+          return sendUserDailyPostLimitResponse(res);
+        }
+      } catch (limitCheckError) {
+        if (dailyLimitTransactionStarted) {
+          await dailyLimitClient.query('ROLLBACK').catch(() => {});
+          dailyLimitTransactionStarted = false;
+        }
+        dailyLimitClient.release();
+        dailyLimitClient = null;
+        throw limitCheckError;
+      }
+    }
+
+    const insertClient = dailyLimitClient || pool;
     try {
-      insertResult = await pool.query(insertQuery, queryParams);
+      insertResult = await insertClient.query(insertQuery, queryParams);
+      if (dailyLimitClient) {
+        await dailyLimitClient.query('COMMIT');
+        dailyLimitTransactionStarted = false;
+        dailyLimitClient.release();
+        dailyLimitClient = null;
+      }
     } catch (insertError) {
+      if (dailyLimitClient) {
+        if (dailyLimitTransactionStarted) {
+          await dailyLimitClient.query('ROLLBACK').catch(() => {});
+          dailyLimitTransactionStarted = false;
+        }
+        dailyLimitClient.release();
+        dailyLimitClient = null;
+      }
+
       // A concurrent website submission can pass the pre-check at the same
       // time. The database unique index makes exactly one insert succeed.
       if (
