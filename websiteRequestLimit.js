@@ -8,7 +8,7 @@ const WEBSITE_DAILY_LIMIT_MESSAGE =
 
 // Temporary targeted limit list. Move this to a user-level database setting
 // when the admin UI needs to manage these limits without a code change.
-const USER_DAILY_POST_LIMIT_USER_IDS = Object.freeze([1393, 1400]);
+const USER_DAILY_POST_LIMIT_USER_IDS = Object.freeze([353, 1393, 1400]);
 const USER_DAILY_POST_LIMIT_CODE = 'USER_DAILY_POST_LIMIT';
 const USER_DAILY_POST_LIMIT_MESSAGE =
   'You can post one prayer request per day. Your limit resets at midnight UTC.';

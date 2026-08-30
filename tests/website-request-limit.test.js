@@ -24,7 +24,8 @@ const {
 } = require('../websiteRequestLimit');
 
 test('only the selected users have the all-client daily limit', () => {
-  assert.deepEqual(USER_DAILY_POST_LIMIT_USER_IDS, [1393, 1400]);
+  assert.deepEqual(USER_DAILY_POST_LIMIT_USER_IDS, [353, 1393, 1400]);
+  assert.equal(isUserDailyPostLimited(353), true);
   assert.equal(isUserDailyPostLimited(1393), true);
   assert.equal(isUserDailyPostLimited('1400'), true);
   assert.equal(isUserDailyPostLimited(42), false);
