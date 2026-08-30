@@ -5,6 +5,72 @@ module.exports = function devotionalRoutes(ctx) {
   const router = express.Router();
   const { pool, authenticate, openai, pexels, generateDailyDevotional, sendDailyDevotionalNotification, dailyBreadAudioCache, DEVOTIONAL_AUDIO_DIR, loadFaithRanks, awardBadge, log, fs, path, serveAudioBuffer } = ctx;
 
+  const DAILY_BREAD_LANGUAGES = new Set(['en', 'es']);
+  const DAILY_BREAD_DEFAULT_ARCHIVE_LIMIT = 30;
+  const DAILY_BREAD_MAX_ARCHIVE_LIMIT = 100;
+
+  function parsePositiveInteger(value) {
+    if (typeof value === 'number') {
+      return Number.isSafeInteger(value) && value > 0 ? value : null;
+    }
+    if (typeof value === 'string' && /^\d+$/.test(value)) {
+      const parsed = Number(value);
+      return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+    }
+    return null;
+  }
+
+  function parseNonNegativeInteger(value) {
+    if (typeof value === 'number') {
+      return Number.isSafeInteger(value) && value >= 0 ? value : null;
+    }
+    if (typeof value === 'string' && /^\d+$/.test(value)) {
+      const parsed = Number(value);
+      return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
+    }
+    return null;
+  }
+
+  function formatDateOnly(value) {
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+      return value.slice(0, 10);
+    }
+    return new Date(value).toISOString().slice(0, 10);
+  }
+
+  function formatDailyBreadArticle(row) {
+    return {
+      id: row.id,
+      date: formatDateOnly(row.date),
+      lang: row.lang,
+      title: row.title,
+      bible_verse: row.bible_verse,
+      verse_reference: row.verse_reference,
+      article_body: row.article_body,
+      prayer: row.prayer,
+      theme: row.theme,
+      image_url: row.image_url,
+      created_at: row.created_at
+    };
+  }
+
+  function formatDailyBreadArchiveItem(row) {
+    return {
+      id: row.id,
+      date: formatDateOnly(row.date),
+      lang: row.lang,
+      title: row.title,
+      verse_reference: row.verse_reference,
+      image_url: row.image_url,
+      theme: row.theme,
+      created_at: row.created_at
+    };
+  }
+
+  function getTodayInEasternTime() {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  }
+
 router.post('/getDailyBreadAudio', async (req, res) => {
   try {
     const { date, title, content, bibleVerse, verseReference, prayer, checkOnly, lang = 'en' } = req.body;
@@ -256,6 +322,131 @@ router.post('/getDailyDevotional', authenticate, async (req, res) => {
   } catch (error) {
     console.error('POST getDailyDevotional error:', error);
     res.status(500).json({ error: 1, result: 'Internal server error' });
+  }
+});
+
+// POST /getDailyDevotionalById — fetch a previously saved Daily Bread article
+router.post('/getDailyDevotionalById', authenticate, async (req, res) => {
+  const params = req.body || {};
+  const articleId = parsePositiveInteger(params.articleId);
+
+  if (!articleId) {
+    return res.status(400).json({
+      error: 1,
+      result: null,
+      message: 'articleId must be a positive integer'
+    });
+  }
+
+  const lang = params.lang === undefined ? 'en' : params.lang;
+  if (!DAILY_BREAD_LANGUAGES.has(lang)) {
+    return res.status(400).json({
+      error: 1,
+      result: null,
+      message: 'lang must be en or es'
+    });
+  }
+
+  try {
+    // The current schema stores English and Spanish as separate rows without
+    // a translation relation. Fetch by ID exactly and preserve its stored lang.
+    const result = await pool.query(
+      `SELECT id, date, lang, title, bible_verse, verse_reference,
+              article_body, prayer, theme, image_url, created_at
+       FROM public.daily_devotional
+       WHERE id = $1`,
+      [articleId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 1,
+        result: null,
+        message: 'Daily Bread article not found'
+      });
+    }
+
+    return res.json({
+      error: 0,
+      result: formatDailyBreadArticle(result.rows[0])
+    });
+  } catch (error) {
+    console.error('getDailyDevotionalById error:', error);
+    return res.status(500).json({ error: 1, result: 'Internal server error' });
+  }
+});
+
+// POST /getDailyDevotionalArchive — list saved Daily Bread articles
+router.post('/getDailyDevotionalArchive', authenticate, async (req, res) => {
+  const params = req.body || {};
+  const lang = params.lang === undefined ? 'en' : params.lang;
+
+  if (!DAILY_BREAD_LANGUAGES.has(lang)) {
+    return res.status(400).json({
+      error: 1,
+      result: null,
+      message: 'lang must be en or es'
+    });
+  }
+
+  const limit = params.limit === undefined
+    ? DAILY_BREAD_DEFAULT_ARCHIVE_LIMIT
+    : parsePositiveInteger(params.limit);
+  if (!limit || limit > DAILY_BREAD_MAX_ARCHIVE_LIMIT) {
+    return res.status(400).json({
+      error: 1,
+      result: null,
+      message: `limit must be an integer from 1 to ${DAILY_BREAD_MAX_ARCHIVE_LIMIT}`
+    });
+  }
+
+  const offset = params.offset === undefined
+    ? 0
+    : parseNonNegativeInteger(params.offset);
+  if (offset === null) {
+    return res.status(400).json({
+      error: 1,
+      result: null,
+      message: 'offset must be a non-negative integer'
+    });
+  }
+
+  const today = getTodayInEasternTime();
+
+  try {
+    const countResult = await pool.query(
+      `SELECT COUNT(*)::int AS total
+       FROM public.daily_devotional
+       WHERE lang = $1
+         AND date <= $2::date`,
+      [lang, today]
+    );
+    const total = Number(countResult.rows[0]?.total || 0);
+
+    const result = await pool.query(
+      `SELECT id, date, lang, title, verse_reference,
+              image_url, theme, created_at
+       FROM public.daily_devotional
+       WHERE lang = $1
+         AND date <= $2::date
+       ORDER BY date DESC, id DESC
+       LIMIT $3 OFFSET $4`,
+      [lang, today, limit, offset]
+    );
+
+    return res.json({
+      error: 0,
+      result: {
+        items: result.rows.map(formatDailyBreadArchiveItem),
+        limit,
+        offset,
+        has_more: offset + result.rows.length < total,
+        total
+      }
+    });
+  } catch (error) {
+    console.error('getDailyDevotionalArchive error:', error);
+    return res.status(500).json({ error: 1, result: 'Internal server error' });
   }
 });
 
