@@ -68,7 +68,7 @@ test('selected-user limit counts any request status on the UTC date', async () =
   assert.deepEqual(query.params, [1393, '2026-08-30']);
 });
 
-test('the selected-user limit has a stable 429 response', () => {
+test('the selected-user limit has a stable application-error response', () => {
   let statusCode;
   let responseBody;
   const res = {
@@ -89,7 +89,7 @@ test('the selected-user limit has a stable 429 response', () => {
   });
 
   sendUserDailyPostLimitResponse(res);
-  assert.equal(statusCode, 429);
+  assert.equal(statusCode, 200);
   assert.equal(responseBody.code, USER_DAILY_POST_LIMIT_CODE);
 });
 
@@ -139,7 +139,7 @@ test('content moderation returns the selected-user limit before calling AI', asy
     );
     const body = await response.json();
 
-    assert.equal(response.status, 429);
+    assert.equal(response.status, 200);
     assert.equal(body.code, USER_DAILY_POST_LIMIT_CODE);
     assert.equal(openAiCallCount, 0);
   } finally {

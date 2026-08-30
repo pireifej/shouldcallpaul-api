@@ -32,7 +32,10 @@ function userDailyPostLimitPayload() {
 }
 
 function sendUserDailyPostLimitResponse(res) {
-  return res.status(429).json(userDailyPostLimitPayload());
+  // Keep this application-level restriction compatible with the existing
+  // client pattern: expected posting failures use HTTP 200 with error: 1 and
+  // a user-facing result message.
+  return res.status(200).json(userDailyPostLimitPayload());
 }
 
 async function checkUserDailyPostLimit(pool, params, now = new Date()) {
