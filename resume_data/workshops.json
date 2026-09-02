@@ -1,19 +1,19 @@
 {
     "records": [
         {
-            "image": "attached_assets/2_Screenshot_20260901-215449~2_1788389881484.jpg",
+            "image": "https://res.cloudinary.com/dclyvhsee/image/upload/v1788390603/resume/holmdel_ai_keynote_humanity_main_2026.jpg",
             "gallery": [
-                "attached_assets/0_PXL_20260901_124117429_1788389881479.jpg",
-                "attached_assets/1_PXL_20260901_132640009_1788389881482.jpg",
-                "attached_assets/3_PXL_20260901_133016280_1788389881485.jpg",
-                "attached_assets/4_PXL_20260901_124313339_1788389881486.jpg"
+                "https://res.cloudinary.com/dclyvhsee/image/upload/v1788390604/resume/holmdel_ai_keynote_humanity_01_2026.jpg",
+                "https://res.cloudinary.com/dclyvhsee/image/upload/v1788390604/resume/holmdel_ai_keynote_humanity_02_2026.jpg",
+                "https://res.cloudinary.com/dclyvhsee/image/upload/v1788390605/resume/holmdel_ai_keynote_humanity_03_2026.jpg",
+                "https://res.cloudinary.com/dclyvhsee/image/upload/v1788390606/resume/holmdel_ai_keynote_humanity_04_2026.jpg"
             ],
             "label": "Embracing the Future, Honoring Our Humanity",
             "type": "workshops",
             "details": {
                 "date": "September 1, 2026",
                 "location": "Holmdel High School Auditorium",
-                "attendees": "Teachers, Superintendent, Principal, Vice Principal, Custodians, Staff, Admin",
+                "attendees": "300+",
                 "duration": "30 minutes"
             },
             "desc": "<p><strong>Embracing the Future, Honoring Our Humanity</strong> is a powerful 30-minute keynote, delivered entirely without notes or slides, that explores the complex intersection of artificial intelligence and the irreplaceable nature of human connection.</p><p>Challenging the fear of automation, the keynote reframes AI not as a conscious entity or a replacement, but as an <em>Ultra-Recursive, Pattern-Matching, Mimicry Matrix</em>—a \"co-pilot\" tool capable of handling administrative mechanics to free up educators and parents for the profound, relational work of teaching.</p><p>Through a practical \"Traffic Light\" framework for classrooms and historical insights, the keynote argues that while AI can optimize tasks, it cannot replicate the intuition, empathy, and belief in student potential that defines true mentorship. Ultimately, the talk shifts the focus from technical anxiety to a human-centric \"Contribution Economy,\" urging us to let machines handle the chores so we can protect the \"quiet miracles\" and authentic human heart that must remain at the center of every classroom.</p>",
