@@ -115,7 +115,11 @@ module.exports = function crmRoutes(ctx) {
 
   const ok  = (res, data)  => res.json({ success: true,  data });
   const err = (res, msg, status = 500) => res.status(status).json({ success: false, error: msg });
-  const mutableWorkshopStatuses = new Set(['Active', 'Inactive']);
+  const WORKSHOP_STATUSES = Object.freeze(['Active', 'In Progress', 'Complete', 'Inactive']);
+  const LEGACY_WORKSHOP_STATUS_ALIASES = Object.freeze({ Completed: 'Complete' });
+  const mutableWorkshopStatuses = new Set(['Active', 'In Progress', 'Inactive']);
+  const workshopStatusError = `status must be one of: ${WORKSHOP_STATUSES.join(', ')}`;
+  const normalizeWorkshopStatus = (status) => LEGACY_WORKSHOP_STATUS_ALIASES[status] || status;
 
   const findEditableWorkshop = async (id, res) => {
     const result = await pool.query(
@@ -126,8 +130,8 @@ module.exports = function crmRoutes(ctx) {
       err(res, 'Workshop not found', 404);
       return null;
     }
-    if (!mutableWorkshopStatuses.has(result.rows[0].status)) {
-      err(res, 'Completed workshops are read-only', 409);
+    if (!mutableWorkshopStatuses.has(normalizeWorkshopStatus(result.rows[0].status))) {
+      err(res, 'Complete workshops are read-only', 409);
       return null;
     }
     return result.rows[0];
@@ -494,7 +498,7 @@ module.exports = function crmRoutes(ctx) {
   // GET /api/workshops?status=
   router.get('/api/workshops', authenticate, async (req, res) => {
     try {
-      const { status } = req.query;
+      const status = req.query.status ? normalizeWorkshopStatus(req.query.status) : undefined;
       let query = `
         SELECT w.*, c.name AS contact_name, c.email AS contact_email
         FROM crm_workshops w
@@ -526,13 +530,14 @@ module.exports = function crmRoutes(ctx) {
     try {
       const { organization_name, contact_id, status, workshop_title, historical_date, cost_basis, notes } = req.body;
       if (!organization_name) return err(res, 'organization_name is required', 400);
-      if (status !== undefined && !mutableWorkshopStatuses.has(status)) {
-        return err(res, 'status must be Active or Inactive', 400);
+      const normalizedStatus = status === undefined ? 'Active' : normalizeWorkshopStatus(status);
+      if (!WORKSHOP_STATUSES.includes(normalizedStatus)) {
+        return err(res, workshopStatusError, 400);
       }
       const result = await pool.query(
         `INSERT INTO crm_workshops (organization_name, contact_id, status, workshop_title, historical_date, cost_basis, notes)
          VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-        [organization_name, contact_id || null, status || 'Active', workshop_title, historical_date || null, cost_basis, notes]
+        [organization_name, contact_id || null, normalizedStatus, workshop_title, historical_date || null, cost_basis, notes]
       );
       ok(res, result.rows[0]);
     } catch (e) { err(res, e.message); }
@@ -542,8 +547,9 @@ module.exports = function crmRoutes(ctx) {
   router.patch('/api/workshops/:id/status', authenticate, async (req, res) => {
     try {
       const { status } = req.body || {};
-      if (!mutableWorkshopStatuses.has(status)) {
-        return err(res, 'status must be Active or Inactive', 400);
+      const normalizedStatus = normalizeWorkshopStatus(status);
+      if (!WORKSHOP_STATUSES.includes(normalizedStatus)) {
+        return err(res, workshopStatusError, 400);
       }
 
       const workshop = await findEditableWorkshop(req.params.id, res);
@@ -552,9 +558,9 @@ module.exports = function crmRoutes(ctx) {
       const result = await pool.query(
         `UPDATE crm_workshops
          SET status = $1, updated_at = NOW()
-         WHERE id = $2 AND status IN ('Active', 'Inactive')
+         WHERE id = $2 AND status IN ('Active', 'In Progress', 'Inactive')
          RETURNING *`,
-        [status, req.params.id]
+        [normalizedStatus, req.params.id]
       );
       if (!result.rows.length) return err(res, 'Workshop is no longer editable', 409);
       ok(res, result.rows[0]);
@@ -565,15 +571,19 @@ module.exports = function crmRoutes(ctx) {
   router.put('/api/workshops/:id', authenticate, async (req, res) => {
     try {
       const { id } = req.params;
+      const body = { ...req.body };
       const fields = ['organization_name','contact_id','status','workshop_title','historical_date','cost_basis','notes'];
       const workshop = await findEditableWorkshop(id, res);
       if (!workshop) return;
-      if (req.body.status !== undefined && !mutableWorkshopStatuses.has(req.body.status)) {
-        return err(res, 'status must be Active or Inactive', 400);
+      if (body.status !== undefined) {
+        body.status = normalizeWorkshopStatus(body.status);
+        if (!WORKSHOP_STATUSES.includes(body.status)) {
+          return err(res, workshopStatusError, 400);
+        }
       }
       const updates = []; const params = [];
       for (const f of fields) {
-        if (req.body[f] !== undefined) { params.push(req.body[f]); updates.push(`${f} = $${params.length}`); }
+        if (body[f] !== undefined) { params.push(body[f]); updates.push(`${f} = $${params.length}`); }
       }
       if (!updates.length) return err(res, 'No fields to update', 400);
       params.push(id);
@@ -588,15 +598,19 @@ module.exports = function crmRoutes(ctx) {
   router.patch('/api/workshops/:id', authenticate, async (req, res) => {
     try {
       const { id } = req.params;
+      const body = { ...req.body };
       const fields = ['organization_name','contact_id','status','workshop_title','historical_date','cost_basis','notes'];
       const workshop = await findEditableWorkshop(id, res);
       if (!workshop) return;
-      if (req.body.status !== undefined && !mutableWorkshopStatuses.has(req.body.status)) {
-        return err(res, 'status must be Active or Inactive', 400);
+      if (body.status !== undefined) {
+        body.status = normalizeWorkshopStatus(body.status);
+        if (!WORKSHOP_STATUSES.includes(body.status)) {
+          return err(res, workshopStatusError, 400);
+        }
       }
       const updates = []; const params = [];
       for (const f of fields) {
-        if (req.body[f] !== undefined) { params.push(req.body[f]); updates.push(`${f} = $${params.length}`); }
+        if (body[f] !== undefined) { params.push(body[f]); updates.push(`${f} = $${params.length}`); }
       }
       if (!updates.length) return err(res, 'No fields to update', 400);
       params.push(id);

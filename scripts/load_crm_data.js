@@ -1,6 +1,12 @@
 'use strict';
 const { Pool } = require('pg');
 const pool = new Pool({ connectionString: process.env.NEON_DATABASE_URL, ssl: { rejectUnauthorized: false } });
+const WORKSHOP_STATUS_ALIASES = {
+  Lead: 'Active',
+  'Proposal Sent': 'Active',
+  Confirmed: 'In Progress',
+  Completed: 'Complete'
+};
 
 // Known contact IDs from existing DB load
 const C = {
@@ -47,14 +53,15 @@ async function insertPosition(d) {
 }
 
 async function insertWorkshop(d) {
+  const status = WORKSHOP_STATUS_ALIASES[d.status] || d.status || 'Active';
   const r = await pool.query(
     `INSERT INTO crm_workshops
        (organization_name, contact_id, status, workshop_title, historical_date, cost_basis, notes)
      VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-    [d.org, d.contact_id || null, d.status || 'Lead',
+    [d.org, d.contact_id || null, status,
      d.title || null, d.date || null, d.cost || null, d.notes || null]
   );
-  console.log(`  ✅ Workshop: ${d.org} [${d.status}] (id ${r.rows[0].id})`);
+  console.log(`  ✅ Workshop: ${d.org} [${status}] (id ${r.rows[0].id})`);
   return r.rows[0].id;
 }
 
