@@ -120,10 +120,75 @@ module.exports = function crmRoutes(ctx) {
   const mutableWorkshopStatuses = new Set(['Active', 'In Progress', 'Inactive']);
   const workshopStatusError = `status must be one of: ${WORKSHOP_STATUSES.join(', ')}`;
   const normalizeWorkshopStatus = (status) => LEGACY_WORKSHOP_STATUS_ALIASES[status] || status;
+  const WORKSHOP_FEE_TYPES = Object.freeze(['flat', 'hour', 'session']);
+  const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
+
+  const parseWorkshopCostBasis = (costBasis) => {
+    if (typeof costBasis !== 'string') return null;
+    const match = costBasis.trim().match(/^\$\s*(\d+(?:\.\d+)?)\s*(?:\/\s*(hour|session))?$/i);
+    if (!match) return null;
+    return {
+      fee_amount: Number(match[1]),
+      fee_type: match[2] ? match[2].toLowerCase() : 'flat'
+    };
+  };
+
+  const formatWorkshopCostBasis = (feeAmount, feeType) => {
+    const suffix = feeType === 'flat' ? '' : `/${feeType}`;
+    return `$${Number(feeAmount)}${suffix}`;
+  };
+
+  const prepareWorkshopWrite = (input, current = {}) => {
+    const body = { ...input };
+    for (const field of ['venue_name', 'venue_address']) {
+      if (hasOwn(body, field) && body[field] !== null && typeof body[field] !== 'string') {
+        return { error: `${field} must be text or null` };
+      }
+    }
+    if (hasOwn(body, 'cost_basis') && body.cost_basis !== null && typeof body.cost_basis !== 'string') {
+      return { error: 'cost_basis must be text or null' };
+    }
+    if (
+      hasOwn(body, 'fee_amount') &&
+      body.fee_amount !== null &&
+      (typeof body.fee_amount !== 'number' || !Number.isFinite(body.fee_amount) || body.fee_amount < 0)
+    ) {
+      return { error: 'fee_amount must be a non-negative number or null' };
+    }
+    if (
+      hasOwn(body, 'fee_type') &&
+      body.fee_type !== null &&
+      !WORKSHOP_FEE_TYPES.includes(body.fee_type)
+    ) {
+      return { error: `fee_type must be one of: ${WORKSHOP_FEE_TYPES.join(', ')}, or null` };
+    }
+
+    const hasStructuredFee = hasOwn(body, 'fee_amount') || hasOwn(body, 'fee_type');
+    if (hasOwn(body, 'cost_basis') && !hasStructuredFee) {
+      const parsed = parseWorkshopCostBasis(body.cost_basis);
+      body.fee_amount = parsed?.fee_amount ?? null;
+      body.fee_type = parsed?.fee_type ?? null;
+    } else if (hasStructuredFee) {
+      const feeAmount = hasOwn(body, 'fee_amount') ? body.fee_amount : current.fee_amount;
+      const feeType = hasOwn(body, 'fee_type') ? body.fee_type : current.fee_type;
+      body.cost_basis = feeAmount !== null && feeAmount !== undefined && feeType
+        ? formatWorkshopCostBasis(feeAmount, feeType)
+        : null;
+    }
+
+    return { body };
+  };
+
+  const serializeWorkshop = (workshop) => ({
+    ...workshop,
+    fee_amount: workshop.fee_amount === null || workshop.fee_amount === undefined
+      ? null
+      : Number(workshop.fee_amount)
+  });
 
   const findEditableWorkshop = async (id, res) => {
     const result = await pool.query(
-      `SELECT id, status FROM crm_workshops WHERE id = $1`,
+      `SELECT id, status, fee_amount, fee_type, cost_basis FROM crm_workshops WHERE id = $1`,
       [id]
     );
     if (!result.rows.length) {
@@ -508,7 +573,7 @@ module.exports = function crmRoutes(ctx) {
       if (status) { params.push(status); query += ` AND w.status = $${params.length}`; }
       query += ` ORDER BY w.updated_at DESC`;
       const result = await pool.query(query, params);
-      ok(res, result.rows);
+      ok(res, result.rows.map(serializeWorkshop));
     } catch (e) { err(res, e.message); }
   });
 
@@ -521,25 +586,36 @@ module.exports = function crmRoutes(ctx) {
         LEFT JOIN crm_contacts c ON c.id = w.contact_id
         WHERE w.id = $1`, [req.params.id]);
       if (!result.rows.length) return err(res, 'Workshop not found', 404);
-      ok(res, result.rows[0]);
+      ok(res, serializeWorkshop(result.rows[0]));
     } catch (e) { err(res, e.message); }
   });
 
   // POST /api/workshops
   router.post('/api/workshops', authenticate, async (req, res) => {
     try {
-      const { organization_name, contact_id, status, workshop_title, historical_date, cost_basis, notes } = req.body;
+      const prepared = prepareWorkshopWrite(req.body);
+      if (prepared.error) return err(res, prepared.error, 400);
+      const {
+        organization_name, contact_id, status, workshop_title, historical_date,
+        venue_name, venue_address, fee_amount, fee_type, cost_basis, notes
+      } = prepared.body;
       if (!organization_name) return err(res, 'organization_name is required', 400);
       const normalizedStatus = status === undefined ? 'Active' : normalizeWorkshopStatus(status);
       if (!WORKSHOP_STATUSES.includes(normalizedStatus)) {
         return err(res, workshopStatusError, 400);
       }
       const result = await pool.query(
-        `INSERT INTO crm_workshops (organization_name, contact_id, status, workshop_title, historical_date, cost_basis, notes)
-         VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-        [organization_name, contact_id || null, normalizedStatus, workshop_title, historical_date || null, cost_basis, notes]
+        `INSERT INTO crm_workshops
+           (organization_name, contact_id, status, workshop_title, historical_date,
+            venue_name, venue_address, fee_amount, fee_type, cost_basis, notes)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+        [
+          organization_name, contact_id || null, normalizedStatus, workshop_title,
+          historical_date || null, venue_name, venue_address, fee_amount, fee_type,
+          cost_basis, notes
+        ]
       );
-      ok(res, result.rows[0]);
+      ok(res, serializeWorkshop(result.rows[0]));
     } catch (e) { err(res, e.message); }
   });
 
@@ -563,7 +639,7 @@ module.exports = function crmRoutes(ctx) {
         [normalizedStatus, req.params.id]
       );
       if (!result.rows.length) return err(res, 'Workshop is no longer editable', 409);
-      ok(res, result.rows[0]);
+      ok(res, serializeWorkshop(result.rows[0]));
     } catch (e) { err(res, e.message); }
   });
 
@@ -571,10 +647,15 @@ module.exports = function crmRoutes(ctx) {
   router.put('/api/workshops/:id', authenticate, async (req, res) => {
     try {
       const { id } = req.params;
-      const body = { ...req.body };
-      const fields = ['organization_name','contact_id','status','workshop_title','historical_date','cost_basis','notes'];
       const workshop = await findEditableWorkshop(id, res);
       if (!workshop) return;
+      const prepared = prepareWorkshopWrite(req.body, workshop);
+      if (prepared.error) return err(res, prepared.error, 400);
+      const body = prepared.body;
+      const fields = [
+        'organization_name','contact_id','status','workshop_title','historical_date',
+        'venue_name','venue_address','fee_amount','fee_type','cost_basis','notes'
+      ];
       if (body.status !== undefined) {
         body.status = normalizeWorkshopStatus(body.status);
         if (!WORKSHOP_STATUSES.includes(body.status)) {
@@ -591,17 +672,22 @@ module.exports = function crmRoutes(ctx) {
         `UPDATE crm_workshops SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *`, params
       );
       if (!result.rows.length) return err(res, 'Workshop not found', 404);
-      ok(res, result.rows[0]);
+      ok(res, serializeWorkshop(result.rows[0]));
     } catch (e) { err(res, e.message); }
   });
 
   router.patch('/api/workshops/:id', authenticate, async (req, res) => {
     try {
       const { id } = req.params;
-      const body = { ...req.body };
-      const fields = ['organization_name','contact_id','status','workshop_title','historical_date','cost_basis','notes'];
       const workshop = await findEditableWorkshop(id, res);
       if (!workshop) return;
+      const prepared = prepareWorkshopWrite(req.body, workshop);
+      if (prepared.error) return err(res, prepared.error, 400);
+      const body = prepared.body;
+      const fields = [
+        'organization_name','contact_id','status','workshop_title','historical_date',
+        'venue_name','venue_address','fee_amount','fee_type','cost_basis','notes'
+      ];
       if (body.status !== undefined) {
         body.status = normalizeWorkshopStatus(body.status);
         if (!WORKSHOP_STATUSES.includes(body.status)) {
@@ -618,7 +704,7 @@ module.exports = function crmRoutes(ctx) {
         `UPDATE crm_workshops SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *`, params
       );
       if (!result.rows.length) return err(res, 'Workshop not found', 404);
-      ok(res, result.rows[0]);
+      ok(res, serializeWorkshop(result.rows[0]));
     } catch (e) { err(res, e.message); }
   });
 

@@ -43,6 +43,13 @@ Preferred communication style: Simple, everyday language.
 - **Content**: Includes workshops, conferences, speeches, projects, races, and patent information.
 - **Storage**: Static JSON files and associated images in `resume_data/`.
 
+### CRM Workshop API
+- **Endpoints**: Authenticated `GET/POST /api/workshops` and `GET/PUT/PATCH/DELETE /api/workshops/:id`.
+- **Venue fields**: `venue_name` and `venue_address` are nullable text fields returned by workshop list/detail APIs and accepted by create/update APIs.
+- **Structured fees**: `fee_amount` is a nullable non-negative number and `fee_type` is nullable with values `flat`, `hour`, or `session`.
+- **Legacy fee compatibility**: `cost_basis` remains in all workshop responses. Recognized values such as `$75`, `$75/hour`, and `$50/session` populate the structured fee fields. Saving a complete structured fee synchronizes `cost_basis`.
+- **Partial updates**: Both PUT and PATCH update only fields included in the request. An omitted field is unchanged; an explicit `null` clears a nullable field. Unrecognized legacy `cost_basis` text is preserved during unrelated updates.
+
 ### Image Uploads
 - **Profile Pictures**: Users can upload profile pictures (JPG, PNG, WEBP) to Cloudinary.
 - **Prayer Request Images**: Prayer requests can include images uploaded to Cloudinary.

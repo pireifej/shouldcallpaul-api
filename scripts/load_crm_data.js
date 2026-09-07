@@ -54,12 +54,18 @@ async function insertPosition(d) {
 
 async function insertWorkshop(d) {
   const status = WORKSHOP_STATUS_ALIASES[d.status] || d.status || 'Active';
+  const feeMatch = typeof d.cost === 'string'
+    ? d.cost.trim().match(/^\$\s*(\d+(?:\.\d+)?)\s*(?:\/\s*(hour|session))?$/i)
+    : null;
+  const feeAmount = feeMatch ? Number(feeMatch[1]) : null;
+  const feeType = feeMatch ? (feeMatch[2]?.toLowerCase() || 'flat') : null;
   const r = await pool.query(
     `INSERT INTO crm_workshops
-       (organization_name, contact_id, status, workshop_title, historical_date, cost_basis, notes)
-     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+       (organization_name, contact_id, status, workshop_title, historical_date,
+        fee_amount, fee_type, cost_basis, notes)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
     [d.org, d.contact_id || null, status,
-     d.title || null, d.date || null, d.cost || null, d.notes || null]
+     d.title || null, d.date || null, feeAmount, feeType, d.cost || null, d.notes || null]
   );
   console.log(`  ✅ Workshop: ${d.org} [${status}] (id ${r.rows[0].id})`);
   return r.rows[0].id;

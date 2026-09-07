@@ -1339,6 +1339,10 @@ const websiteRequestLimitMigrationReady = Promise.all([
       status            TEXT DEFAULT 'Active' CHECK (status IN ('Active','In Progress','Complete','Inactive')),
       workshop_title    TEXT,
       historical_date   TIMESTAMP,
+      venue_name        TEXT,
+      venue_address     TEXT,
+      fee_amount        NUMERIC CHECK (fee_amount >= 0),
+      fee_type          TEXT CHECK (fee_type IN ('flat','hour','session')),
       cost_basis        TEXT,
       notes             TEXT,
       created_at        TIMESTAMP DEFAULT NOW(),
@@ -1359,6 +1363,35 @@ const websiteRequestLimitMigrationReady = Promise.all([
         CHECK (status IN ('Active','In Progress','Complete','Inactive'));
       ALTER TABLE public.crm_workshops
         ALTER COLUMN status SET DEFAULT 'Active';
+      COMMIT;
+    ` },
+    { col: 'crm_workshops_venue_and_structured_fees', sql: `
+      BEGIN;
+      ALTER TABLE public.crm_workshops
+        ADD COLUMN IF NOT EXISTS venue_name TEXT,
+        ADD COLUMN IF NOT EXISTS venue_address TEXT,
+        ADD COLUMN IF NOT EXISTS fee_amount NUMERIC,
+        ADD COLUMN IF NOT EXISTS fee_type TEXT;
+      ALTER TABLE public.crm_workshops
+        DROP CONSTRAINT IF EXISTS crm_workshops_fee_amount_check,
+        DROP CONSTRAINT IF EXISTS crm_workshops_fee_type_check;
+      UPDATE public.crm_workshops
+      SET fee_amount = COALESCE(
+            fee_amount,
+            substring(lower(trim(cost_basis)) from '^\\$([0-9]+(\\.[0-9]+)?)')::numeric
+          ),
+          fee_type = COALESCE(
+            fee_type,
+            NULLIF(substring(lower(trim(cost_basis)) from '/(hour|session)$'), ''),
+            'flat'
+          )
+      WHERE lower(trim(cost_basis)) ~ '^\\$[0-9]+(\\.[0-9]+)?(/(hour|session))?$'
+        AND (fee_amount IS NULL OR fee_type IS NULL);
+      ALTER TABLE public.crm_workshops
+        ADD CONSTRAINT crm_workshops_fee_amount_check
+          CHECK (fee_amount IS NULL OR fee_amount >= 0),
+        ADD CONSTRAINT crm_workshops_fee_type_check
+          CHECK (fee_type IS NULL OR fee_type IN ('flat','hour','session'));
       COMMIT;
     ` },
     { col: 'crm_activity_logs', sql: `CREATE TABLE IF NOT EXISTS public.crm_activity_logs (
