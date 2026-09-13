@@ -75,8 +75,14 @@ function verifyUserSessionToken(token, options = {}) {
 
 function requireUserSession(req, res, next) {
   try {
+    const cookieToken = String(req.headers.cookie || '')
+      .split(';')
+      .map(part => part.trim())
+      .find(part => part.startsWith('user_session_token='))
+      ?.slice('user_session_token='.length);
     const token =
-      req.get('x-user-session-token');
+      req.get('x-user-session-token') ||
+      (cookieToken ? decodeURIComponent(cookieToken) : undefined);
     const payload = verifyUserSessionToken(token);
     const bodyUserId = req.body?.userId ?? req.body?.user_id;
     if (bodyUserId !== undefined && Number(bodyUserId) !== payload.sub) {

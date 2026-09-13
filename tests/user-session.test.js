@@ -82,6 +82,33 @@ test('email login returns a session token signed for the authenticated user', as
   }
 });
 
+test('protected routes accept the secure session cookie fallback', async () => {
+  const originalSecret = process.env.SESSION_SECRET;
+  process.env.SESSION_SECRET = 'cookie-session-test-secret';
+  const token = issueUserSessionToken(42);
+  const router = express.Router();
+  router.post('/cookie-protected', requireUserSession, (req, res) => {
+    res.json({ userId: req.userId });
+  });
+  try {
+    await withServer(router, async baseUrl => {
+      const response = await fetch(`${baseUrl}/cookie-protected`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          cookie: `user_session_token=${encodeURIComponent(token)}`
+        },
+        body: JSON.stringify({ userId: 42 })
+      });
+      assert.equal(response.status, 200);
+      assert.deepEqual(await response.json(), { userId: 42 });
+    });
+  } finally {
+    if (originalSecret === undefined) delete process.env.SESSION_SECRET;
+    else process.env.SESSION_SECRET = originalSecret;
+  }
+});
+
 test('request logging redacts provider and app session credentials', () => {
   const sanitized = sanitizeParams({
     accessToken: 'google-secret',
@@ -214,7 +241,7 @@ test('Google, Facebook, and Apple identity data comes from verified provider tok
   }
 });
 
-test('Google login accepts the signed identity returned to the Android OAuth flow', async () => {
+test('Google login accepts the secure proof cookie used by the existing Android flow', async () => {
   const originalSecret = process.env.SESSION_SECRET;
   process.env.SESSION_SECRET = 'raw-google-login-test-secret';
   const assertion = issueGoogleLoginAssertion({
@@ -250,9 +277,11 @@ test('Google login accepts the signed identity returned to the Android OAuth flo
     await withServer(router, async (baseUrl) => {
       const response = await fetch(`${baseUrl}/googleLogin`, {
         method: 'POST',
+        headers: {
+          cookie: `google_login_proof=${encodeURIComponent(assertion)}`
+        },
         body: JSON.stringify({
           google_id: 'google-raw-1',
-          provider_login_proof: assertion,
           email: 'untrusted-attacker@example.com',
           first_name: 'Untrusted'
         })
@@ -262,6 +291,57 @@ test('Google login accepts the signed identity returned to the Android OAuth flo
       assert.equal(body.error, 0);
       assert.equal(body.result[0].user_id, 42);
       assert.ok(body.user_session_token);
+    });
+  } finally {
+    if (originalSecret === undefined) delete process.env.SESSION_SECRET;
+    else process.env.SESSION_SECRET = originalSecret;
+  }
+});
+
+test('Google login rejects an identity that conflicts with an existing Google link', async () => {
+  const originalSecret = process.env.SESSION_SECRET;
+  process.env.SESSION_SECRET = 'google-link-mismatch-secret';
+  const assertion = issueGoogleLoginAssertion({
+    id: 'new-google-id',
+    email: 'linked@example.com',
+    verified_email: true
+  });
+  const router = authRoutes({
+    authenticate: (req, res, next) => next(),
+    pool: {
+      query: async () => ({
+        rows: [{
+          user_id: 42,
+          email: 'linked@example.com',
+          active: 1,
+          google_id: 'original-google-id',
+          faith_points: 0
+        }]
+      })
+    },
+    bcrypt: { hash: async () => 'unused' },
+    computeRank: () => 'Seed',
+    awardBadge: async () => null,
+    loadFaithRanks: async () => [],
+    sendGmailSingle: async () => ({ error: 0 }),
+    issueUserSessionToken,
+    log: () => {}
+  });
+  try {
+    await withServer(router, async baseUrl => {
+      const response = await fetch(`${baseUrl}/googleLogin`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          cookie: `google_login_proof=${encodeURIComponent(assertion)}`
+        },
+        body: JSON.stringify({
+          google_id: 'new-google-id',
+          email: 'linked@example.com'
+        })
+      });
+      assert.equal(response.status, 401);
+      assert.match((await response.json()).result, /different Google identity/);
     });
   } finally {
     if (originalSecret === undefined) delete process.env.SESSION_SECRET;

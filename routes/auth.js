@@ -18,10 +18,29 @@ module.exports = function authRoutes(ctx) {
     message: 'User session verification is unavailable.'
   }));
 
-  function addUserSession(user) {
+  function addUserSession(user, res) {
     const token = issueUserSessionToken(user.user_id);
     user.user_session_token = token;
+    if (res) {
+      res.cookie('user_session_token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        path: '/'
+      });
+    }
     return token;
+  }
+
+  function readCookie(req, name) {
+    const prefix = `${name}=`;
+    const value = String(req.headers.cookie || '')
+      .split(';')
+      .map(part => part.trim())
+      .find(part => part.startsWith(prefix))
+      ?.slice(prefix.length);
+    return value ? decodeURIComponent(value) : undefined;
   }
 
   function parseGoogleLoginBody(req, res, next) {
@@ -128,7 +147,7 @@ router.post('/login', authenticate, async (req, res) => {
       // Successful login - return user data with faith rank
       const ranks = await loadFaithRanks();
       user.faith_rank = computeRank(user.faith_points, ranks);
-      const userSessionToken = addUserSession(user);
+      const userSessionToken = addUserSession(user, res);
       res.json({error: 0, result: [user], user_session_token: userSessionToken});
     });
     
@@ -537,7 +556,7 @@ router.post('/socialLogin', authenticate, async (req, res) => {
       const ranks = await loadFaithRanks();
       user.faith_rank = computeRank(user.faith_points, ranks);
       delete user.password;
-      const userSessionToken = addUserSession(user);
+      const userSessionToken = addUserSession(user, res);
       return res.json({ error: 0, result: [user], isNewUser: false, user_session_token: userSessionToken });
     }
 
@@ -597,7 +616,7 @@ router.post('/socialLogin', authenticate, async (req, res) => {
       };
       newUser.faith_rank = computeRank(0, ranks);
 
-      const userSessionToken = addUserSession(newUser);
+      const userSessionToken = addUserSession(newUser, res);
       return res.json({ error: 0, result: [newUser], isNewUser: true, user_session_token: userSessionToken });
 
     } catch (dbErr) {
@@ -620,7 +639,9 @@ router.post('/googleLogin', parseGoogleLoginBody, async (req, res) => {
   try {
     const bearerToken = req.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1];
     const accessToken = req.body?.access_token || req.body?.accessToken || bearerToken;
-    const loginAssertion = req.body?.provider_login_proof;
+    const loginAssertion =
+      req.body?.provider_login_proof ||
+      readCookie(req, 'google_login_proof');
     const verifiedIdentity = accessToken
       ? await googleAccessTokenVerifier(accessToken)
       : loginAssertion
@@ -663,6 +684,12 @@ router.post('/googleLogin', parseGoogleLoginBody, async (req, res) => {
       if (!user.active) {
         return res.json({ error: 1, result: "This account has been deactivated." });
       }
+      if (user.google_id && String(user.google_id) !== String(google_id)) {
+        return res.status(401).json({
+          error: 1,
+          result: 'This account is linked to a different Google identity.'
+        });
+      }
 
       // Store google_id if not already set
       if (!user.google_id) {
@@ -676,7 +703,7 @@ router.post('/googleLogin', parseGoogleLoginBody, async (req, res) => {
 
       const ranks = await loadFaithRanks();
       user.faith_rank = computeRank(user.faith_points, ranks);
-      const userSessionToken = addUserSession(user);
+      const userSessionToken = addUserSession(user, res);
       return res.json({ error: 0, result: [user], isNewUser: false, user_session_token: userSessionToken });
     }
 
@@ -732,7 +759,7 @@ router.post('/googleLogin', parseGoogleLoginBody, async (req, res) => {
       const ranks = await loadFaithRanks();
       newUser.faith_rank = computeRank(newUser.faith_points, ranks);
 
-      const userSessionToken = addUserSession(newUser);
+      const userSessionToken = addUserSession(newUser, res);
       return res.json({ error: 0, result: [newUser], isNewUser: true, user_session_token: userSessionToken });
 
     } catch (dbErr) {
@@ -795,7 +822,7 @@ router.post('/appleLogin', async (req, res) => {
       if (!user.active) return res.json({ error: 1, result: "This account has been deactivated." });
       const ranks = await loadFaithRanks();
       user.faith_rank = computeRank(user.faith_points, ranks);
-      const userSessionToken = addUserSession(user);
+      const userSessionToken = addUserSession(user, res);
       return res.json({ error: 0, result: [user], isNewUser: false, user_session_token: userSessionToken });
     }
 
@@ -834,7 +861,7 @@ router.post('/appleLogin', async (req, res) => {
 
         const ranks = await loadFaithRanks();
         user.faith_rank = computeRank(user.faith_points, ranks);
-        const userSessionToken = addUserSession(user);
+        const userSessionToken = addUserSession(user, res);
         return res.json({ error: 0, result: [user], isNewUser: false, user_session_token: userSessionToken });
       }
     }
@@ -904,7 +931,7 @@ router.post('/appleLogin', async (req, res) => {
       const ranks = await loadFaithRanks();
       newUser.faith_rank = computeRank(newUser.faith_points, ranks);
 
-      const userSessionToken = addUserSession(newUser);
+      const userSessionToken = addUserSession(newUser, res);
       return res.json({ error: 0, result: [newUser], isNewUser: true, user_session_token: userSessionToken });
 
     } catch (dbErr) {
@@ -984,6 +1011,13 @@ router.post('/appleLogin', async (req, res) => {
       console.log(`✅ Google token exchange success (${isIOS ? 'iOS' : 'Android/Web'}) for: ${userInfo.email}`);
       const providerId = userInfo.id;
       const googleLoginAssertion = issueGoogleLoginAssertion(userInfo);
+      res.cookie('google_login_proof', googleLoginAssertion, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 5 * 60 * 1000,
+        path: '/'
+      });
       res.json({
         access_token: tokenData.access_token,
         ...userInfo,
