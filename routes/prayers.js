@@ -50,6 +50,10 @@ module.exports = function prayersRoutes(ctx) {
     error: 'PRO_STATUS_UNAVAILABLE',
     message: 'Subscription verification is unavailable.'
   }));
+  const requireUserSession = ctx.requireUserSession || ((req, res) => res.status(503).json({
+    error: 'USER_SESSION_UNAVAILABLE',
+    message: 'User session verification is unavailable.'
+  }));
 
 router.get('/api/requests', authenticate, async (req, res) => {
   try {
@@ -271,8 +275,8 @@ async function handleGeneratePrayer(req, res) {
   }
 }
 
-router.post('/testGeneratePrayer', authenticate, handleGeneratePrayer);
-router.post('/api/prayers/generate', authenticate, handleGeneratePrayer);
+router.post('/testGeneratePrayer', authenticate, requireUserSession, handleGeneratePrayer);
+router.post('/api/prayers/generate', authenticate, requireUserSession, handleGeneratePrayer);
 
 // POST /checkPrayerContent - Check prayer request against content guidelines
 router.post('/checkPrayerContent', authenticate, async (req, res) => {
@@ -520,7 +524,7 @@ router.post('/regeneratePrayer', authenticate, async (req, res) => {
 
 // POST /prayFor - Record when someone prays for a request
 
-router.post('/prayFor', authenticate, async (req, res) => {
+router.post('/prayFor', authenticate, requireUserSession, async (req, res) => {
   try {
     const params = req.body;
     
@@ -1100,17 +1104,17 @@ function getAuthenticatedRequestSource(req) {
 
 // The legacy route remains compatible with both clients, but source is derived
 // from the authenticated credential rather than from the route or request body.
-router.post('/createRequestAndPrayer', authenticate, (req, res) => {
+router.post('/createRequestAndPrayer', authenticate, requireUserSession, (req, res) => {
   dispatchCreateRequest(req, res, getAuthenticatedRequestSource(req));
 });
 
-router.post('/api/prayers/post', authenticate, (req, res) => {
+router.post('/api/prayers/post', authenticate, requireUserSession, (req, res) => {
   dispatchCreateRequest(req, res, getAuthenticatedRequestSource(req));
 });
 
 // Optional explicit website route. It accepts only the secondary website
 // credential; callers cannot choose the mobile allowance by changing the body.
-router.post('/createWebsiteRequestAndPrayer', authenticate, (req, res) => {
+router.post('/createWebsiteRequestAndPrayer', authenticate, requireUserSession, (req, res) => {
   if (req.apiClientType !== WEBSITE_REQUEST_SOURCE) {
     return res.status(403).json({
       error: 1,
@@ -1141,6 +1145,14 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
     }
     
     const params = req.body;
+    const parsedUserId = params.userId ?? params.user_id;
+    if (parsedUserId !== undefined && Number(parsedUserId) !== req.userId) {
+      return res.status(403).json({
+        error: 'USER_ID_MISMATCH',
+        message: 'The request userId does not match the signed-in user.'
+      });
+    }
+    params.userId = req.userId;
     
     const idempotencyKey = params["idempotencyKey"];
     
@@ -1743,12 +1755,12 @@ async function handlePrayerAudio(req, res) {
   }
 }
 
-router.post('/getPrayerAudio', authenticate, requirePro, handlePrayerAudio);
-router.post('/api/prayer-walk/stream', authenticate, requirePro, handlePrayerAudio);
+router.post('/getPrayerAudio', authenticate, requireUserSession, requirePro, handlePrayerAudio);
+router.post('/api/prayer-walk/stream', authenticate, requireUserSession, requirePro, handlePrayerAudio);
 
 // POST /getDetailedPrayerByRequestId - Get or generate a longer detailed prayer for a request
 
-router.post('/getDetailedPrayerByRequestId', authenticate, requirePro, async (req, res) => {
+router.post('/getDetailedPrayerByRequestId', authenticate, requireUserSession, requirePro, async (req, res) => {
   try {
     const { requestId, lang = 'en', forceRegenerate = false } = req.body;
     if (!requestId) return res.json({ error: 1, result: "Required param 'requestId' missing" });
@@ -1844,7 +1856,7 @@ Rules:
 });
 
 // POST /getPrayer - Get best available prayer for a request (extended if cached, else standard)
-router.post('/getPrayer', authenticate, async (req, res) => {
+router.post('/getPrayer', authenticate, requireUserSession, async (req, res) => {
   try {
     const { requestId, lang = 'en' } = req.body;
     if (!requestId) return res.json({ error: 1, prayerText: null, result: "Required param 'requestId' missing" });

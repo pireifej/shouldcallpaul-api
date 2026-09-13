@@ -4,6 +4,10 @@ const express = require('express');
 module.exports = function devotionalRoutes(ctx) {
   const router = express.Router();
   const { pool, authenticate, openai, pexels, generateDailyDevotional, sendDailyDevotionalNotification, dailyBreadAudioCache, DEVOTIONAL_AUDIO_DIR, loadFaithRanks, awardBadge, log, fs, path, serveAudioBuffer } = ctx;
+  const requireUserSession = ctx.requireUserSession || ((req, res) => res.status(503).json({
+    error: 'USER_SESSION_UNAVAILABLE',
+    message: 'User session verification is unavailable.'
+  }));
   const requirePro = ctx.requirePro || ((req, res) => res.status(503).json({
     error: 'PRO_STATUS_UNAVAILABLE',
     message: 'Subscription verification is unavailable.'
@@ -89,7 +93,7 @@ module.exports = function devotionalRoutes(ctx) {
     return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   }
 
-router.post('/getDailyBreadAudio', authenticate, requirePro, async (req, res) => {
+router.post('/getDailyBreadAudio', authenticate, requireUserSession, requirePro, async (req, res) => {
   try {
     const { date, title, content, bibleVerse, verseReference, prayer, checkOnly, lang = 'en' } = req.body;
 
@@ -189,7 +193,7 @@ router.get('/getFaithRanks', async (req, res) => {
 });
 
 // POST /readDailyBread - Award faith points for reading today's Daily Bread (once per day)
-router.post('/readDailyBread', authenticate, requirePro, async (req, res) => {
+router.post('/readDailyBread', authenticate, requireUserSession, requirePro, async (req, res) => {
   try {
     const { userId } = req.body;
     if (!userId) return res.json({ error: 1, result: "Required param 'userId' missing" });
@@ -341,11 +345,11 @@ async function handleMobileDailyDevotional(req, res) {
   }
 }
 
-router.post('/getDailyDevotional', authenticate, requirePro, handleMobileDailyDevotional);
-router.post('/api/daily-bread', authenticate, requirePro, handleMobileDailyDevotional);
+router.post('/getDailyDevotional', authenticate, requireUserSession, requirePro, handleMobileDailyDevotional);
+router.post('/api/daily-bread', authenticate, requireUserSession, requirePro, handleMobileDailyDevotional);
 
 // POST /getDailyDevotionalById — fetch a previously saved Daily Bread article
-router.post('/getDailyDevotionalById', authenticate, requirePro, async (req, res) => {
+router.post('/getDailyDevotionalById', authenticate, requireUserSession, requirePro, async (req, res) => {
   const params = req.body || {};
   const articleId = parsePositiveInteger(params.articleId);
 
@@ -396,7 +400,7 @@ router.post('/getDailyDevotionalById', authenticate, requirePro, async (req, res
 });
 
 // POST /getDailyDevotionalArchive — list saved Daily Bread articles
-router.post('/getDailyDevotionalArchive', authenticate, requirePro, async (req, res) => {
+router.post('/getDailyDevotionalArchive', authenticate, requireUserSession, requirePro, async (req, res) => {
   const params = req.body || {};
   const lang = params.lang === undefined ? 'en' : params.lang;
 

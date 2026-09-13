@@ -559,6 +559,7 @@ const speakerRoutes    = require('./routes/speaker');
 const crmRoutes        = require('./routes/crm');
 const subscriptionRoutes = require('./routes/subscriptions');
 const { RevenueCatProService, createRequirePro } = require('./revenueCatProService');
+const { issueUserSessionToken, requireUserSession } = require('./userSession');
 
 const proSubscriptionService = new RevenueCatProService({ pool });
 const requirePro = createRequirePro(proSubscriptionService);
@@ -1162,6 +1163,8 @@ const ctx = {
   PORT,
   proSubscriptionService,
   requirePro,
+  issueUserSessionToken,
+  requireUserSession,
 };
 
 // Mount all route files

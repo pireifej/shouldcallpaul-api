@@ -17,6 +17,11 @@ const {
   checkFreeTierDailyLimit,
   sendFreeTierDailyLimitResponse
 } = require('../freeTierRequestLimit');
+const {
+  issueUserSessionToken,
+  verifyUserSessionToken,
+  requireUserSession
+} = require('../userSession');
 
 function jsonResponse(status, body) {
   return {
@@ -230,6 +235,7 @@ function prayerRouter(overrides = {}) {
       getProStatus: async () => ({ isPro: false })
     },
     requirePro: (req, res) => res.status(403).json(PRO_REQUIRED_RESPONSE),
+    requireUserSession: (req, res, next) => next(),
     prayerAudioCache: new Map(),
     MAX_PRAYER_AUDIO_CACHE: 10,
     PRAYER_AUDIO_DIR: '/tmp',
@@ -329,6 +335,7 @@ test('Daily Bread and prayer-walk API aliases enforce the Pro guard', async () =
   const dailyRouter = devotionalRoutes({
     pool: { query: async () => ({ rows: [] }) },
     authenticate: (req, res, next) => next(),
+    requireUserSession: (req, res, next) => next(),
     requirePro: deny
   });
 
@@ -364,6 +371,71 @@ test('Daily Bread and prayer-walk API aliases enforce the Pro guard', async () =
       assert.equal(response.status, 403, endpoint);
     }
   });
+});
+
+test('signed user sessions verify their user ID and expiration', () => {
+  const secret = 'test-session-secret-that-is-long-enough';
+  const token = issueUserSessionToken(42, {
+    secret,
+    nowSeconds: 1_000,
+    ttlSeconds: 60
+  });
+  assert.equal(verifyUserSessionToken(token, { secret, nowSeconds: 1_030 }).sub, 42);
+  assert.throws(
+    () => verifyUserSessionToken(token, { secret, nowSeconds: 1_061 }),
+    /Expired or invalid/
+  );
+  assert.throws(
+    () => verifyUserSessionToken(`${token}tampered`, { secret, nowSeconds: 1_030 }),
+    /Invalid user session token/
+  );
+});
+
+test('user-session middleware rejects body impersonation and derives userId from token', async () => {
+  const originalSecret = process.env.SESSION_SECRET;
+  process.env.SESSION_SECRET = 'middleware-test-session-secret';
+  try {
+    const token = issueUserSessionToken(42);
+    const app = express();
+    app.use(express.json());
+    app.post('/secure', requireUserSession, (req, res) => {
+      res.json({ userId: req.userId, bodyUserId: req.body.userId });
+    });
+
+    await withServer(app, async (baseUrl) => {
+      const valid = await fetch(`${baseUrl}/secure`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-user-session-token': token
+        },
+        body: JSON.stringify({})
+      });
+      assert.deepEqual(await valid.json(), { userId: 42, bodyUserId: 42 });
+
+      const mismatch = await fetch(`${baseUrl}/secure`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-user-session-token': token
+        },
+        body: JSON.stringify({ userId: 99 })
+      });
+      assert.equal(mismatch.status, 403);
+      assert.equal((await mismatch.json()).error, 'USER_ID_MISMATCH');
+
+      const missing = await fetch(`${baseUrl}/secure`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ userId: 42 })
+      });
+      assert.equal(missing.status, 401);
+      assert.equal((await missing.json()).error, 'USER_SESSION_REQUIRED');
+    });
+  } finally {
+    if (originalSecret === undefined) delete process.env.SESSION_SECRET;
+    else process.env.SESSION_SECRET = originalSecret;
+  }
 });
 
 test('/getPrayer never returns cached extended content to a free user', async () => {

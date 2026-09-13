@@ -1,10 +1,21 @@
 'use strict';
 const express = require('express');
 const crypto = require('crypto');
+const {
+  verifyGoogleAccessToken,
+  verifyFacebookAccessToken,
+  verifyAppleIdentityToken
+} = require('../providerIdentity');
 
 module.exports = function authRoutes(ctx) {
   const router = express.Router();
-  const { pool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, createGmailTransporter, getBaseUrl, log } = ctx;
+  const { pool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, createGmailTransporter, getBaseUrl, log, issueUserSessionToken } = ctx;
+
+  function addUserSession(user) {
+    const token = issueUserSessionToken(user.user_id);
+    user.user_session_token = token;
+    return token;
+  }
 
 router.post('/login', authenticate, async (req, res) => {
   try {
@@ -85,7 +96,8 @@ router.post('/login', authenticate, async (req, res) => {
       // Successful login - return user data with faith rank
       const ranks = await loadFaithRanks();
       user.faith_rank = computeRank(user.faith_points, ranks);
-      res.json({error: 0, result: [user]});
+      const userSessionToken = addUserSession(user);
+      res.json({error: 0, result: [user], user_session_token: userSessionToken});
     });
     
   } catch (error) {
@@ -425,10 +437,10 @@ router.post('/changePassword', authenticate, async (req, res) => {
 
 router.post('/socialLogin', authenticate, async (req, res) => {
   try {
-    const { provider, email, firstName, lastName, picture, providerId } = req.body;
+    let { provider, email, firstName, lastName, picture, providerId } = req.body;
 
-    if (!provider || !email) {
-      return res.json({ error: 1, result: "Required params 'provider' and 'email' missing" });
+    if (!provider) {
+      return res.json({ error: 1, result: "Required param 'provider' missing" });
     }
 
     const validProviders = ['google', 'facebook', 'apple'];
@@ -436,8 +448,29 @@ router.post('/socialLogin', authenticate, async (req, res) => {
       return res.json({ error: 1, result: `Unsupported provider '${provider}'` });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
     const providerKey = provider.toLowerCase();
+    let verifiedIdentity;
+    if (providerKey === 'google') {
+      verifiedIdentity = await verifyGoogleAccessToken(
+        req.body.accessToken || req.body.access_token
+      );
+    } else if (providerKey === 'facebook') {
+      verifiedIdentity = await verifyFacebookAccessToken(
+        req.body.accessToken || req.body.access_token
+      );
+    } else {
+      return res.status(400).json({
+        error: 1,
+        result: 'Use /appleLogin for verified Apple Sign In.'
+      });
+    }
+    email = verifiedIdentity.email;
+    firstName = verifiedIdentity.firstName;
+    lastName = verifiedIdentity.lastName;
+    picture = verifiedIdentity.picture;
+    providerId = verifiedIdentity.providerId;
+
+    const normalizedEmail = email.toLowerCase().trim();
     const providerIdCol = providerKey === 'google' ? 'google_id' : providerKey === 'facebook' ? 'facebook_id' : null;
 
     // ── Step 1: Look up existing user by email ──────────────────────────────
@@ -471,7 +504,8 @@ router.post('/socialLogin', authenticate, async (req, res) => {
       const ranks = await loadFaithRanks();
       user.faith_rank = computeRank(user.faith_points, ranks);
       delete user.password;
-      return res.json({ error: 0, result: [user], isNewUser: false });
+      const userSessionToken = addUserSession(user);
+      return res.json({ error: 0, result: [user], isNewUser: false, user_session_token: userSessionToken });
     }
 
     // ── Step 2: No existing user — create one ───────────────────────────────
@@ -530,7 +564,8 @@ router.post('/socialLogin', authenticate, async (req, res) => {
       };
       newUser.faith_rank = computeRank(0, ranks);
 
-      return res.json({ error: 0, result: [newUser], isNewUser: true });
+      const userSessionToken = addUserSession(newUser);
+      return res.json({ error: 0, result: [newUser], isNewUser: true, user_session_token: userSessionToken });
 
     } catch (dbErr) {
       await client.query('ROLLBACK');
@@ -541,16 +576,23 @@ router.post('/socialLogin', authenticate, async (req, res) => {
 
   } catch (error) {
     console.error('socialLogin error:', error);
-    res.json({ error: 1, result: "An error occurred. Please try again." });
+    res.status(error.statusCode || 500).json({
+      error: 1,
+      result: error.statusCode ? error.message : "An error occurred. Please try again."
+    });
   }
 });
 
 router.post('/googleLogin', async (req, res) => {
   try {
-    const { email, google_id, first_name, last_name, picture } = req.body;
-
-    if (!email) return res.json({ error: 1, result: "Required param 'email' missing" });
-    if (!google_id) return res.json({ error: 1, result: "Required param 'google_id' missing" });
+    const verifiedIdentity = await verifyGoogleAccessToken(
+      req.body.access_token || req.body.accessToken
+    );
+    const email = verifiedIdentity.email;
+    const google_id = verifiedIdentity.providerId;
+    const first_name = verifiedIdentity.firstName;
+    const last_name = verifiedIdentity.lastName;
+    const picture = verifiedIdentity.picture;
 
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -596,7 +638,8 @@ router.post('/googleLogin', async (req, res) => {
 
       const ranks = await loadFaithRanks();
       user.faith_rank = computeRank(user.faith_points, ranks);
-      return res.json({ error: 0, result: [user], isNewUser: false });
+      const userSessionToken = addUserSession(user);
+      return res.json({ error: 0, result: [user], isNewUser: false, user_session_token: userSessionToken });
     }
 
     // ── Step 2: No match — create new user ──────────────────────────────────
@@ -651,7 +694,8 @@ router.post('/googleLogin', async (req, res) => {
       const ranks = await loadFaithRanks();
       newUser.faith_rank = computeRank(newUser.faith_points, ranks);
 
-      return res.json({ error: 0, result: [newUser], isNewUser: true });
+      const userSessionToken = addUserSession(newUser);
+      return res.json({ error: 0, result: [newUser], isNewUser: true, user_session_token: userSessionToken });
 
     } catch (dbErr) {
       await client.query('ROLLBACK');
@@ -662,7 +706,10 @@ router.post('/googleLogin', async (req, res) => {
 
   } catch (error) {
     console.error('googleLogin error:', error.message, error.stack);
-    res.json({ error: 1, result: "An error occurred. Please try again.", detail: error.message });
+    res.status(error.statusCode || 500).json({
+      error: 1,
+      result: error.statusCode ? error.message : "An error occurred. Please try again."
+    });
   }
 });
 
@@ -670,10 +717,15 @@ router.post('/googleLogin', async (req, res) => {
 // Apple only sends email + name on the FIRST login; subsequent logins only send apple_user_id + identity_token
 router.post('/appleLogin', async (req, res) => {
   try {
-    const { identity_token, apple_user_id, email, first_name, last_name } = req.body;
+    const { identity_token, first_name, last_name } = req.body;
+    const suppliedAppleUserId = req.body.apple_user_id;
 
     if (!identity_token) return res.json({ error: 1, result: "Required param 'identity_token' missing" });
-    if (!apple_user_id) return res.json({ error: 1, result: "Required param 'apple_user_id' missing" });
+    if (!suppliedAppleUserId) return res.json({ error: 1, result: "Required param 'apple_user_id' missing" });
+
+    const verifiedIdentity = await verifyAppleIdentityToken(identity_token, suppliedAppleUserId);
+    const apple_user_id = verifiedIdentity.providerId;
+    const email = verifiedIdentity.email;
 
     const normalizedEmail = email ? email.toLowerCase().trim() : null;
 
@@ -705,7 +757,8 @@ router.post('/appleLogin', async (req, res) => {
       if (!user.active) return res.json({ error: 1, result: "This account has been deactivated." });
       const ranks = await loadFaithRanks();
       user.faith_rank = computeRank(user.faith_points, ranks);
-      return res.json({ error: 0, result: [user], isNewUser: false });
+      const userSessionToken = addUserSession(user);
+      return res.json({ error: 0, result: [user], isNewUser: false, user_session_token: userSessionToken });
     }
 
     // ── Step 2: Fall back to email lookup (handles first-login case) ─────────
@@ -743,7 +796,8 @@ router.post('/appleLogin', async (req, res) => {
 
         const ranks = await loadFaithRanks();
         user.faith_rank = computeRank(user.faith_points, ranks);
-        return res.json({ error: 0, result: [user], isNewUser: false });
+        const userSessionToken = addUserSession(user);
+        return res.json({ error: 0, result: [user], isNewUser: false, user_session_token: userSessionToken });
       }
     }
 
@@ -812,7 +866,8 @@ router.post('/appleLogin', async (req, res) => {
       const ranks = await loadFaithRanks();
       newUser.faith_rank = computeRank(newUser.faith_points, ranks);
 
-      return res.json({ error: 0, result: [newUser], isNewUser: true });
+      const userSessionToken = addUserSession(newUser);
+      return res.json({ error: 0, result: [newUser], isNewUser: true, user_session_token: userSessionToken });
 
     } catch (dbErr) {
       await client.query('ROLLBACK');
@@ -823,7 +878,10 @@ router.post('/appleLogin', async (req, res) => {
 
   } catch (error) {
     console.error('appleLogin error:', error.message, error.stack);
-    res.json({ error: 1, result: "An error occurred. Please try again.", detail: error.message });
+    res.status(error.statusCode || 500).json({
+      error: 1,
+      result: error.statusCode ? error.message : "An error occurred. Please try again."
+    });
   }
 });
 

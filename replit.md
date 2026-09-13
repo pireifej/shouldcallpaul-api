@@ -30,6 +30,7 @@ Preferred communication style: Simple, everyday language.
 ### Pray Over Us Pro
 - **Source of truth**: RevenueCat project `Pray Over Us` and its `Pray Over Us Pro` entitlement. The backend does not store entitlement state.
 - **Subscriber identity**: Pro-aware requests accept `revenuecatAppUserId`. A confirmed active identity is linked to the database user for later checks.
+- **User sessions**: Successful email, generic social, Google, and Apple login responses include `user_session_token` at the top level and in the returned user object. User-owned prayer and premium requests send it in `x-user-session-token`; the backend derives `userId` from the signed token.
 - **Status endpoint**: Authenticated `POST /api/subscriptions/pro-status` accepts `userId` and optional `revenuecatAppUserId`.
 - **Prayer generation**: Authenticated `POST /api/prayers/generate` accepts `extended` (default `false`). Standard prayers are 3-4 sentences and about 60-90 words. Extended 250-350 word prayers require Pro.
 - **Posting**: `POST /api/prayers/post` is an alias of the legacy creation route. Free users may create one request per UTC day across all clients; Pro users are unlimited.

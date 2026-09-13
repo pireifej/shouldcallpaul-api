@@ -5,9 +5,9 @@ const { extractSubscriptionIdentity } = require('../revenueCatProService');
 
 module.exports = function subscriptionRoutes(ctx) {
   const router = express.Router();
-  const { authenticate, proSubscriptionService } = ctx;
+  const { authenticate, requireUserSession, proSubscriptionService } = ctx;
 
-  router.post('/api/subscriptions/pro-status', authenticate, async (req, res) => {
+  router.post('/api/subscriptions/pro-status', authenticate, requireUserSession, async (req, res) => {
     try {
       const status = await proSubscriptionService.getProStatus(extractSubscriptionIdentity(req));
       res.json({

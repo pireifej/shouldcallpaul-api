@@ -10,7 +10,7 @@ const PRO_REQUIRED_RESPONSE = Object.freeze({
 function extractSubscriptionIdentity(req) {
   const input = req.body || req.query || {};
   return {
-    userId: input.userId ?? input.user_id,
+    userId: req.userId,
     revenuecatAppUserId:
       input.revenuecatAppUserId ??
       input.revenuecat_app_user_id ??
