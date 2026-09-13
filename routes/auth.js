@@ -620,9 +620,12 @@ router.post('/googleLogin', parseGoogleLoginBody, async (req, res) => {
   try {
     const bearerToken = req.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1];
     const accessToken = req.body?.access_token || req.body?.accessToken || bearerToken;
+    const loginAssertion = req.body?.provider_login_proof;
     const verifiedIdentity = accessToken
       ? await googleAccessTokenVerifier(accessToken)
-      : verifyGoogleLoginAssertion(req.body?.google_id || req.body?.googleId);
+      : loginAssertion
+        ? verifyGoogleLoginAssertion(loginAssertion)
+        : verifyGoogleLoginAssertion('');
     const email = verifiedIdentity.email;
     const google_id = verifiedIdentity.providerId;
     const first_name = verifiedIdentity.firstName;
@@ -985,8 +988,9 @@ router.post('/appleLogin', async (req, res) => {
         access_token: tokenData.access_token,
         ...userInfo,
         provider_id: providerId,
-        id: googleLoginAssertion,
-        google_id: googleLoginAssertion
+        id: providerId,
+        google_id: providerId,
+        provider_login_proof: googleLoginAssertion
       });
     } catch (err) {
       console.error('❌ /auth/google/token exception:', err.message);

@@ -251,7 +251,8 @@ test('Google login accepts the signed identity returned to the Android OAuth flo
       const response = await fetch(`${baseUrl}/googleLogin`, {
         method: 'POST',
         body: JSON.stringify({
-          google_id: assertion,
+          google_id: 'google-raw-1',
+          provider_login_proof: assertion,
           email: 'untrusted-attacker@example.com',
           first_name: 'Untrusted'
         })
