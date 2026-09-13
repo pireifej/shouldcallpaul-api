@@ -1,13 +1,16 @@
 'use strict';
 const express = require('express');
 const {
-  WEBSITE_REQUEST_SOURCE,
-  sendWebsiteDailyLimitResponse,
-  checkWebsiteRequestLimit,
-  isUserDailyPostLimited,
-  sendUserDailyPostLimitResponse,
-  checkUserDailyPostLimit
+  WEBSITE_REQUEST_SOURCE
 } = require('../websiteRequestLimit');
+const {
+  checkFreeTierDailyLimit,
+  sendFreeTierDailyLimitResponse
+} = require('../freeTierRequestLimit');
+const {
+  PRO_REQUIRED_RESPONSE,
+  extractSubscriptionIdentity
+} = require('../revenueCatProService');
 
 const SAFE_SAFETY_REWRITE =
   'Lord, please bring peace, wisdom, and compassionate support to everyone involved. Guide them toward healing and the right help. Amen.';
@@ -38,6 +41,15 @@ function buildModerationCopy(flagType, modelSuggestion) {
 module.exports = function prayersRoutes(ctx) {
   const router = express.Router();
   const { pool, auditPool, authenticate, generatePrayer, translateText, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, createGmailTransporter, uploadImage, sendPushNotification, prayerAudioCache, MAX_PRAYER_AUDIO_CACHE, PRAYER_AUDIO_DIR, openai, multer, path, fs, log, serveAudioBuffer } = ctx;
+  const proSubscriptionService = ctx.proSubscriptionService || {
+    async getProStatus() {
+      return { isPro: false, source: 'service_unavailable' };
+    }
+  };
+  const requirePro = ctx.requirePro || ((req, res) => res.status(503).json({
+    error: 'PRO_STATUS_UNAVAILABLE',
+    message: 'Subscription verification is unavailable.'
+  }));
 
 router.get('/api/requests', authenticate, async (req, res) => {
   try {
@@ -209,7 +221,7 @@ router.post('/getRequestById', authenticate, async (req, res) => {
 
 // POST /getUser - Get user profile with stats
 
-router.post('/testGeneratePrayer', authenticate, async (req, res) => {
+async function handleGeneratePrayer(req, res) {
   try {
     const params = req.body;
     
@@ -218,8 +230,21 @@ router.post('/testGeneratePrayer', authenticate, async (req, res) => {
       return res.json({ error: "Required param 'requestText' missing" });
     }
     
-    // Use the shared generatePrayer function
-    const result = await generatePrayer(params.requestText, params.authorName, params.lang || 'en', params.requestTitle || '');
+    const extended = params.extended === true || params.extended === 'true';
+    if (extended) {
+      const proStatus = await proSubscriptionService.getProStatus(
+        extractSubscriptionIdentity(req)
+      );
+      if (!proStatus.isPro) return res.status(403).json(PRO_REQUIRED_RESPONSE);
+    }
+
+    const result = await generatePrayer(
+      params.requestText,
+      params.authorName,
+      params.lang || 'en',
+      params.requestTitle || '',
+      extended
+    );
     
     if (result.error) {
       return res.json({ error: result.error });
@@ -230,15 +255,24 @@ router.post('/testGeneratePrayer', authenticate, async (req, res) => {
       success: true,
       requestText: params.requestText,
       authorName: result.authorName,
+      extended,
+      isFallback: result.isFallback === true,
       generatedPrayer: result.processedPrayer,
       rawPrayer: result.rawPrayer
     });
 
   } catch (error) {
     console.error('Test prayer generation error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({
+      error: error.code || (statusCode === 503 ? 'PRO_STATUS_UNAVAILABLE' : 'INTERNAL_SERVER_ERROR'),
+      message: statusCode === 503 ? error.message : 'Internal server error'
+    });
   }
-});
+}
+
+router.post('/testGeneratePrayer', authenticate, handleGeneratePrayer);
+router.post('/api/prayers/generate', authenticate, handleGeneratePrayer);
 
 // POST /checkPrayerContent - Check prayer request against content guidelines
 router.post('/checkPrayerContent', authenticate, async (req, res) => {
@@ -247,13 +281,6 @@ router.post('/checkPrayerContent', authenticate, async (req, res) => {
     const { requestText } = req.body;
     if (!requestText || typeof requestText !== 'string' || !requestText.trim()) {
       return res.json(safe);
-    }
-
-    // Targeted users are limited before content moderation runs so the client
-    // receives a stable posting-limit response and no AI call is wasted.
-    const userDailyLimit = await checkUserDailyPostLimit(pool, req.body);
-    if (userDailyLimit.limited) {
-      return sendUserDailyPostLimitResponse(res);
     }
 
     // ── Crisis pre-filter (keyword-based, runs before OpenAI) ──────────────────
@@ -1077,6 +1104,10 @@ router.post('/createRequestAndPrayer', authenticate, (req, res) => {
   dispatchCreateRequest(req, res, getAuthenticatedRequestSource(req));
 });
 
+router.post('/api/prayers/post', authenticate, (req, res) => {
+  dispatchCreateRequest(req, res, getAuthenticatedRequestSource(req));
+});
+
 // Optional explicit website route. It accepts only the secondary website
 // credential; callers cannot choose the mobile allowance by changing the body.
 router.post('/createWebsiteRequestAndPrayer', authenticate, (req, res) => {
@@ -1191,21 +1222,17 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
       return res.json({ error: 1, result: "Your account has been restricted from posting new prayer requests." });
     }
 
-    // Selected users may post only once per UTC calendar day. This check is
-    // repeated inside a user-scoped transaction immediately before INSERT so
-    // concurrent submissions cannot bypass the limit.
-    const userDailyLimit = await checkUserDailyPostLimit(pool, params);
-    if (userDailyLimit.limited) {
+    const proStatus = await proSubscriptionService.getProStatus(
+      extractSubscriptionIdentity(req)
+    );
+    const freeTierLimit = await checkFreeTierDailyLimit(
+      pool,
+      params.userId,
+      proStatus.isPro
+    );
+    if (freeTierLimit.limited) {
       cleanupIdempotencyFile();
-      return sendUserDailyPostLimitResponse(res);
-    }
-
-    // Website users may post one request per calendar day. The unique index
-    // added by the startup migration is the race-safe backstop for this check.
-    const websiteLimit = await checkWebsiteRequestLimit(pool, params, requestSource);
-    if (websiteLimit.limited) {
-      cleanupIdempotencyFile();
-      return sendWebsiteDailyLimitResponse(res);
+      return sendFreeTierDailyLimitResponse(res);
     }
 
     // Validate that request doesn't contain email addresses or websites
@@ -1264,7 +1291,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
       lang === 'en' ? params.requestText : null,  // $8 - content_en
       lang === 'es' ? params.requestText : null,  // $9 - content_es
       requestSource,                                   // $10
-      websiteLimit.requestDate                         // $11
+      requestSource === WEBSITE_REQUEST_SOURCE ? freeTierLimit.requestDate : null // $11
     ];
 
     let insertResult;
@@ -1272,9 +1299,8 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
     let dailyLimitTransactionStarted = false;
 
     // A plain SELECT-then-INSERT can be bypassed by two simultaneous requests.
-    // For targeted users, serialize the daily check and request insert using a
-    // transaction-scoped advisory lock keyed to the user ID.
-    if (isUserDailyPostLimited(params.userId)) {
+    // Serialize free-tier inserts with a transaction-scoped user lock.
+    if (!proStatus.isPro) {
       dailyLimitClient = await pool.connect();
       try {
         await dailyLimitClient.query('BEGIN');
@@ -1284,17 +1310,18 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
           [Number(params.userId)]
         );
 
-        const lockedUserDailyLimit = await checkUserDailyPostLimit(
+        const lockedFreeTierLimit = await checkFreeTierDailyLimit(
           dailyLimitClient,
-          params
+          params.userId,
+          false
         );
-        if (lockedUserDailyLimit.limited) {
+        if (lockedFreeTierLimit.limited) {
           await dailyLimitClient.query('ROLLBACK');
           dailyLimitTransactionStarted = false;
           dailyLimitClient.release();
           dailyLimitClient = null;
           cleanupIdempotencyFile();
-          return sendUserDailyPostLimitResponse(res);
+          return sendFreeTierDailyLimitResponse(res);
         }
       } catch (limitCheckError) {
         if (dailyLimitTransactionStarted) {
@@ -1326,16 +1353,6 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
         dailyLimitClient = null;
       }
 
-      // A concurrent website submission can pass the pre-check at the same
-      // time. The database unique index makes exactly one insert succeed.
-      if (
-        websiteLimit.requestDate &&
-        insertError.code === '23505' &&
-        insertError.constraint === 'request_website_daily_unique_idx'
-      ) {
-        cleanupIdempotencyFile();
-        return sendWebsiteDailyLimitResponse(res);
-      }
       throw insertError;
     }
     const requestId = insertResult.rows[0].request_id;
@@ -1602,7 +1619,10 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
   } catch (error) {
     console.error('Database error:', error);
     cleanupIdempotencyFile();
-    res.status(500).json({ error: 'Internal server error' });
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({
+      error: statusCode === 503 ? 'PRO_STATUS_UNAVAILABLE' : 'Internal server error'
+    });
   }
 }
 
@@ -1671,8 +1691,8 @@ router.post('/getPrayerByRequestId', authenticate, async (req, res) => {
   }
 });
 
-// POST /getPrayerAudio - Generate (or serve cached) TTS audio for a prayer request
-router.post('/getPrayerAudio', authenticate, async (req, res) => {
+// Generate (or serve cached) TTS audio for a prayer request.
+async function handlePrayerAudio(req, res) {
   try {
     const { requestId, text } = req.body;
     if (!requestId) return res.status(400).json({ message: "requestId is required" });
@@ -1721,11 +1741,14 @@ router.post('/getPrayerAudio', authenticate, async (req, res) => {
     console.error('Prayer audio generation error:', error);
     res.status(500).json({ message: "Failed to generate audio" });
   }
-});
+}
+
+router.post('/getPrayerAudio', authenticate, requirePro, handlePrayerAudio);
+router.post('/api/prayer-walk/stream', authenticate, requirePro, handlePrayerAudio);
 
 // POST /getDetailedPrayerByRequestId - Get or generate a longer detailed prayer for a request
 
-router.post('/getDetailedPrayerByRequestId', authenticate, async (req, res) => {
+router.post('/getDetailedPrayerByRequestId', authenticate, requirePro, async (req, res) => {
   try {
     const { requestId, lang = 'en', forceRegenerate = false } = req.body;
     if (!requestId) return res.json({ error: 1, result: "Required param 'requestId' missing" });
@@ -1846,8 +1869,17 @@ router.post('/getPrayer', authenticate, async (req, res) => {
 
     const { extended_prayer, standard_prayer } = result.rows[0];
 
-    if (extended_prayer) {
-      return res.json({ error: 0, prayerText: extended_prayer, isExtended: true });
+    if (extended_prayer && req.body.userId) {
+      try {
+        const proStatus = await proSubscriptionService.getProStatus(
+          extractSubscriptionIdentity(req)
+        );
+        if (proStatus.isPro) {
+          return res.json({ error: 0, prayerText: extended_prayer, isExtended: true });
+        }
+      } catch (error) {
+        console.warn('Pro verification failed in /getPrayer; returning standard prayer:', error.message);
+      }
     }
 
     if (standard_prayer) {

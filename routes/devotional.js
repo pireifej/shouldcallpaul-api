@@ -4,6 +4,10 @@ const express = require('express');
 module.exports = function devotionalRoutes(ctx) {
   const router = express.Router();
   const { pool, authenticate, openai, pexels, generateDailyDevotional, sendDailyDevotionalNotification, dailyBreadAudioCache, DEVOTIONAL_AUDIO_DIR, loadFaithRanks, awardBadge, log, fs, path, serveAudioBuffer } = ctx;
+  const requirePro = ctx.requirePro || ((req, res) => res.status(503).json({
+    error: 'PRO_STATUS_UNAVAILABLE',
+    message: 'Subscription verification is unavailable.'
+  }));
 
   const DAILY_BREAD_LANGUAGES = new Set(['en', 'es']);
   const DAILY_BREAD_DEFAULT_ARCHIVE_LIMIT = 30;
@@ -54,6 +58,20 @@ module.exports = function devotionalRoutes(ctx) {
     };
   }
 
+  function formatDailyBreadPreview(row) {
+    return {
+      id: row.id,
+      date: formatDateOnly(row.date),
+      lang: row.lang,
+      title: row.title,
+      bible_verse: row.bible_verse,
+      verse_reference: row.verse_reference,
+      theme: row.theme,
+      image_url: row.image_url,
+      locked: true
+    };
+  }
+
   function formatDailyBreadArchiveItem(row) {
     return {
       id: row.id,
@@ -71,7 +89,7 @@ module.exports = function devotionalRoutes(ctx) {
     return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   }
 
-router.post('/getDailyBreadAudio', async (req, res) => {
+router.post('/getDailyBreadAudio', authenticate, requirePro, async (req, res) => {
   try {
     const { date, title, content, bibleVerse, verseReference, prayer, checkOnly, lang = 'en' } = req.body;
 
@@ -171,7 +189,7 @@ router.get('/getFaithRanks', async (req, res) => {
 });
 
 // POST /readDailyBread - Award faith points for reading today's Daily Bread (once per day)
-router.post('/readDailyBread', authenticate, async (req, res) => {
+router.post('/readDailyBread', authenticate, requirePro, async (req, res) => {
   try {
     const { userId } = req.body;
     if (!userId) return res.json({ error: 1, result: "Required param 'userId' missing" });
@@ -269,17 +287,15 @@ router.get('/getDailyDevotional', async (req, res) => {
       return res.json({ error: 1, result: 'No devotional available yet.' });
     }
 
-    const row = result.rows[0];
-    row.date = new Date(row.date).toISOString().slice(0, 10);
-    res.json({ error: 0, result: row });
+    res.json({ error: 0, result: formatDailyBreadPreview(result.rows[0]) });
   } catch (error) {
     console.error('getDailyDevotional error:', error);
     res.status(500).json({ error: 1, result: 'Internal server error' });
   }
 });
 
-// POST /getDailyDevotional — mobile app version, supports lang param
-router.post('/getDailyDevotional', authenticate, async (req, res) => {
+// Mobile Daily Bread handler, shared by the legacy route and the Pro API.
+async function handleMobileDailyDevotional(req, res) {
   try {
     const lang = (req.body && req.body.lang === 'es') ? 'es' : 'en';
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
@@ -323,10 +339,13 @@ router.post('/getDailyDevotional', authenticate, async (req, res) => {
     console.error('POST getDailyDevotional error:', error);
     res.status(500).json({ error: 1, result: 'Internal server error' });
   }
-});
+}
+
+router.post('/getDailyDevotional', authenticate, requirePro, handleMobileDailyDevotional);
+router.post('/api/daily-bread', authenticate, requirePro, handleMobileDailyDevotional);
 
 // POST /getDailyDevotionalById — fetch a previously saved Daily Bread article
-router.post('/getDailyDevotionalById', authenticate, async (req, res) => {
+router.post('/getDailyDevotionalById', authenticate, requirePro, async (req, res) => {
   const params = req.body || {};
   const articleId = parsePositiveInteger(params.articleId);
 
@@ -377,7 +396,7 @@ router.post('/getDailyDevotionalById', authenticate, async (req, res) => {
 });
 
 // POST /getDailyDevotionalArchive — list saved Daily Bread articles
-router.post('/getDailyDevotionalArchive', authenticate, async (req, res) => {
+router.post('/getDailyDevotionalArchive', authenticate, requirePro, async (req, res) => {
   const params = req.body || {};
   const lang = params.lang === undefined ? 'en' : params.lang;
 

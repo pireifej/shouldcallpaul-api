@@ -248,9 +248,16 @@ async function awardBadge(userId, badgeKey) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function generatePrayer(requestText, authorName, lang = 'en', requestTitle = '') {
+async function generatePrayer(requestText, authorName, lang = 'en', requestTitle = '', extended = false) {
   const realName = authorName || "Someone";
   const subject = requestTitle || 'the person or situation mentioned in the request';
+  const lengthInstructions = extended
+    ? `7. Length and structure: Write 250-350 words using exactly these three titled sections:
+   Opening / Praise
+   Petition / Reflection
+   Closing Benediction
+   Include one relevant Scripture quotation or close paraphrase with its Bible reference in the Petition / Reflection section.`
+    : `7. Length and structure: Write 3-4 complete sentences totaling approximately 60-90 words. Be concise yet complete and address the specific request meaningfully without padding.`;
 
   const promptToGeneratePrayer = `You are an expert prayer writer, composing a Catholic-style prayer. The prayer should have a traditional, reverent, and intercessory tone.
 
@@ -293,7 +300,7 @@ Instructions for Generating the Prayer:
 
 6. CRITICAL - NO "AMEN" ENDING: Do NOT end the prayer with "Amen" or any variation. The app has its own "Amen" button. The prayer MUST end with the final petition or doxology WITHOUT "Amen".
 
-7. Length: The prayer should be 50-80 words (similar to The Lord's Prayer at ~65 words). Be concise yet complete - address the specific request meaningfully without padding.
+${lengthInstructions}
 
 8. Output plain text with line breaks between paragraphs. Do NOT use HTML tags.${lang === 'es' ? '\n\nIMPORTANT: Generate this entire prayer in Spanish (Latin American Spanish). All text — the address to God, every petition, every intercession, and every divine name in context — must be written in Spanish.' : ''}`;
 
@@ -323,6 +330,13 @@ Instructions for Generating the Prayer:
   }
 
   if (!chatResult.choices || chatResult.choices.length === 0) {
+    if (extended) {
+      const error = new Error('Extended prayer generation is temporarily unavailable; please retry');
+      error.statusCode = 503;
+      error.code = 'PRAYER_GENERATION_UNAVAILABLE';
+      throw error;
+    }
+
     // Fallback prayer bank — used when OpenAI is unavailable
     const fallbackPrayers = [
       "<strong>Heavenly Father</strong>, we come before You with open hearts, trusting in Your perfect wisdom and boundless <strong>love</strong>. You know the needs of Your children before they speak them aloud. We ask that You <strong>bless</strong>, <strong>guide</strong>, and <strong>protect</strong> all who seek Your face today. Grant them <strong>peace</strong> that surpasses understanding, and may Your <strong>grace</strong> be sufficient in every trial they face.",
@@ -543,6 +557,11 @@ const rosaryRoutes     = require('./routes/rosary');
 const moderationRoutes = require('./routes/moderation');
 const speakerRoutes    = require('./routes/speaker');
 const crmRoutes        = require('./routes/crm');
+const subscriptionRoutes = require('./routes/subscriptions');
+const { RevenueCatProService, createRequirePro } = require('./revenueCatProService');
+
+const proSubscriptionService = new RevenueCatProService({ pool });
+const requirePro = createRequirePro(proSubscriptionService);
 
 const rooms = new Map(); // code -> room object
 
@@ -1141,6 +1160,8 @@ const ctx = {
   path,
   crypto,
   PORT,
+  proSubscriptionService,
+  requirePro,
 };
 
 // Mount all route files
@@ -1156,6 +1177,7 @@ app.use(rosaryRoutes(ctx));
 app.use(moderationRoutes(ctx));
 app.use(speakerRoutes(ctx));
 app.use(crmRoutes(ctx));
+app.use(subscriptionRoutes(ctx));
 
 // Daily backup at 2:00 AM UTC
 cron.schedule('0 2 * * *', async () => {
@@ -1186,10 +1208,46 @@ const globalNotesMigrationReady = auditPool.query(globalNotesMigrationSQL).then(
   throw error;
 });
 
-// The website-request endpoint depends on these columns and the unique index.
-// Provision both databases before accepting traffic so deploys cannot race the
-// first request against a non-blocking startup migration.
+// Request source metadata remains for reporting. The old website-only unique
+// index is removed because active Pro subscribers may submit without a limit.
 async function ensureWebsiteRequestLimitSchema(name, dbPool) {
+  await dbPool.query(
+    `ALTER TABLE public."user"
+     ADD COLUMN IF NOT EXISTS revenuecat_app_user_id TEXT`
+  );
+  const duplicateMappings = await dbPool.query(
+    `SELECT COUNT(*)::int AS duplicate_count
+     FROM (
+       SELECT revenuecat_app_user_id
+       FROM public."user"
+       WHERE revenuecat_app_user_id IS NOT NULL
+       GROUP BY revenuecat_app_user_id
+       HAVING COUNT(*) > 1
+     ) duplicates`
+  );
+  if (duplicateMappings.rows[0].duplicate_count > 0) {
+    // Ownership is ambiguous after a duplicate mapping. Clear every affected
+    // link so the legitimate subscriber can re-confirm it through RevenueCat.
+    await dbPool.query(
+      `WITH duplicate_ids AS (
+         SELECT revenuecat_app_user_id
+         FROM public."user"
+         WHERE revenuecat_app_user_id IS NOT NULL
+         GROUP BY revenuecat_app_user_id
+         HAVING COUNT(*) > 1
+       )
+       UPDATE public."user" AS u
+       SET revenuecat_app_user_id = NULL
+       FROM duplicate_ids
+       WHERE u.revenuecat_app_user_id = duplicate_ids.revenuecat_app_user_id`
+    );
+    console.warn(`⚠️ Cleared all ambiguous duplicate RevenueCat mappings (${name}) before enforcing uniqueness`);
+  }
+  await dbPool.query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS user_revenuecat_app_user_id_unique_idx
+     ON public."user" (revenuecat_app_user_id)
+     WHERE revenuecat_app_user_id IS NOT NULL`
+  );
   await dbPool.query(
     `ALTER TABLE public.request
      ADD COLUMN IF NOT EXISTS request_source VARCHAR(20) NOT NULL DEFAULT 'mobile'`
@@ -1198,11 +1256,7 @@ async function ensureWebsiteRequestLimitSchema(name, dbPool) {
     `ALTER TABLE public.request
      ADD COLUMN IF NOT EXISTS website_request_date DATE`
   );
-  await dbPool.query(
-    `CREATE UNIQUE INDEX IF NOT EXISTS request_website_daily_unique_idx
-     ON public.request (user_id, website_request_date)
-     WHERE request_source = 'website' AND website_request_date IS NOT NULL`
-  );
+  await dbPool.query('DROP INDEX IF EXISTS public.request_website_daily_unique_idx');
   console.log(`✅ Required website request-limit schema (${name}) ready`);
 }
 
@@ -1286,6 +1340,7 @@ const websiteRequestLimitMigrationReady = Promise.all([
     )` },
     { col: 'can_post', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS can_post boolean DEFAULT true` },
     { col: 'email_unsubscribed', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_unsubscribed boolean DEFAULT false` },
+    { col: 'revenuecat_app_user_id', sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS revenuecat_app_user_id TEXT` },
   ];
   for (const [name, p] of [['dev', pool], ['prod', auditPool]]) {
     for (const { col, sql } of migrations) {

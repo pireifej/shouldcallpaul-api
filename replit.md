@@ -27,6 +27,15 @@ Preferred communication style: Simple, everyday language.
 - **Faith Rank System**: Server-side rank computation via `faith_ranks` table and `computeRank()` helper. Ranks cached in memory. A `faith_rank` object (level, title, icon, points, next_rank, progress) is included wherever `faith_points` is returned. `GET /getFaithRanks` returns the full rank ladder. 11 ranks from Newcomer (0 pts) to Prayer Warrior (1000 pts).
 - **Church Member Directory**: `POST /getUsersByChurch` returns all active users for a given `churchId` with profile info and faith rank.
 
+### Pray Over Us Pro
+- **Source of truth**: RevenueCat project `Pray Over Us` and its `Pray Over Us Pro` entitlement. The backend does not store entitlement state.
+- **Subscriber identity**: Pro-aware requests accept `revenuecatAppUserId`. A confirmed active identity is linked to the database user for later checks.
+- **Status endpoint**: Authenticated `POST /api/subscriptions/pro-status` accepts `userId` and optional `revenuecatAppUserId`.
+- **Prayer generation**: Authenticated `POST /api/prayers/generate` accepts `extended` (default `false`). Standard prayers are 3-4 sentences and about 60-90 words. Extended 250-350 word prayers require Pro.
+- **Posting**: `POST /api/prayers/post` is an alias of the legacy creation route. Free users may create one request per UTC day across all clients; Pro users are unlimited.
+- **Premium content**: `POST /api/daily-bread`, `POST /api/prayer-walk/stream`, and legacy full-content/audio equivalents require active Pro. Public `GET /getDailyDevotional` returns metadata-only preview data.
+- **Free-tier response**: A second request returns HTTP 403 with `error: "DAILY_LIMIT_REACHED"`.
+
 ### Blog CMS
 - **Database-backed Content**: Blog articles are stored in the `blog_article` table (`content TEXT` column). Flat files in `blog_articles/` exist as legacy backups but are unused.
 - **API Endpoints**: RESTful endpoints serve blog content and metadata.
@@ -77,6 +86,7 @@ Preferred communication style: Simple, everyday language.
 - **Gmail SMTP**: Email delivery via Nodemailer using a Gmail account and App Password.
 - **Expo Push Notifications**: Mobile push notification service.
 - **Cloudinary**: Cloud-based image management and CDN.
+- **RevenueCat**: Subscription entitlement validation through the Replit connector.
 
 ### Node.js Libraries
 - **express**: Web server framework.
@@ -87,6 +97,7 @@ Preferred communication style: Simple, everyday language.
 - **nodemailer**: Gmail SMTP email sending.
 - **expo-server-sdk**: Expo SDK for push notifications.
 - **multer**: Multipart/form-data handling.
+- **@replit/connectors-sdk**: Server-side access to the configured RevenueCat connection.
 
 ### Environment Configuration
 - **DATABASE_URL**: PostgreSQL connection string (dev).

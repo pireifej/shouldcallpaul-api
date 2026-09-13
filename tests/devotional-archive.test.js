@@ -139,6 +139,7 @@ function makeServer(pool, generationCalls) {
       }
       next();
     },
+    requirePro: (req, res, next) => next(),
     generateDailyDevotional: async () => {
       generationCalls.count++;
       throw new Error('Generation should not be called by archive reads');

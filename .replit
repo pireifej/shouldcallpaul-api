@@ -44,3 +44,10 @@ defaultBucketID = "replit-objstore-ce5ebf5f-9d7e-47fb-9031-b62f49bb244f"
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 180000
+
+[userenv]
+
+[userenv.shared]
+REVENUECAT_PROJECT_ID = "proj12a23433"
+REVENUECAT_PRO_ENTITLEMENT_ID = "entl2974cee2fe"
+REVENUECAT_PRO_ENTITLEMENT_KEY = "Pray Over Us Pro"

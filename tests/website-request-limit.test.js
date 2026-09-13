@@ -2,11 +2,6 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const express = require('express');
-const fs = require('node:fs');
-const path = require('node:path');
-const multer = require('multer');
-const prayersRoutes = require('../routes/prayers');
 const {
   WEBSITE_DAILY_LIMIT_CODE,
   WEBSITE_DOWNLOAD_URL,
@@ -91,60 +86,6 @@ test('the selected-user limit has a stable application-error response', () => {
   sendUserDailyPostLimitResponse(res);
   assert.equal(statusCode, 200);
   assert.equal(responseBody.code, USER_DAILY_POST_LIMIT_CODE);
-});
-
-test('content moderation returns the selected-user limit before calling AI', async () => {
-  let openAiCallCount = 0;
-  const pool = {
-    async query(sql) {
-      if (sql.includes('timestamp::date')) {
-        return { rows: [{ request_id: 2141 }] };
-      }
-      throw new Error(`Unexpected test query: ${sql}`);
-    }
-  };
-  const app = express();
-  app.use(express.json());
-  app.use(prayersRoutes({
-    pool,
-    authenticate: (req, res, next) => next(),
-    openai: {
-      chat: {
-        completions: {
-          create() {
-            openAiCallCount++;
-            return Promise.resolve({ choices: [] });
-          }
-        }
-      }
-    },
-    multer,
-    path,
-    fs
-  }));
-  const server = app.listen(0);
-  await new Promise(resolve => server.once('listening', resolve));
-
-  try {
-    const response = await fetch(
-      `http://127.0.0.1:${server.address().port}/checkPrayerContent`,
-      {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          userId: 1393,
-          requestText: 'Please pray for me'
-        })
-      }
-    );
-    const body = await response.json();
-
-    assert.equal(response.status, 200);
-    assert.equal(body.code, USER_DAILY_POST_LIMIT_CODE);
-    assert.equal(openAiCallCount, 0);
-  } finally {
-    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
-  }
 });
 
 test('mobile requests bypass the website-only lookup', async () => {
@@ -257,63 +198,4 @@ test('the daily-limit response uses HTTP 429', () => {
 
   assert.equal(statusCode, 429);
   assert.equal(responseBody.code, WEBSITE_DAILY_LIMIT_CODE);
-});
-
-test('the legacy endpoint limits the authenticated website identity despite body source', async () => {
-  let websiteLookupCount = 0;
-  const pool = {
-    async query(sql) {
-      if (sql.includes('SELECT can_post')) {
-        return { rows: [{ can_post: true }] };
-      }
-      if (sql.includes('request_source = $2')) {
-        websiteLookupCount++;
-        return { rows: [{ request_id: 9001 }] };
-      }
-      throw new Error(`Unexpected test query: ${sql}`);
-    }
-  };
-  const app = express();
-  app.use(express.json());
-  app.use(prayersRoutes({
-    pool,
-    authenticate: (req, res, next) => {
-      req.apiClientType = WEBSITE_REQUEST_SOURCE;
-      next();
-    },
-    multer,
-    path,
-    fs
-  }));
-  const server = app.listen(0);
-  await new Promise(resolve => server.once('listening', resolve));
-  const idempotencyKey = `website-limit-test-${process.pid}`;
-  const idempotencyFile = path.join(__dirname, '..', 'routes', `${idempotencyKey}.txt`);
-
-  try {
-    const response = await fetch(
-      `http://127.0.0.1:${server.address().port}/createRequestAndPrayer`,
-      {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          userId: 42,
-          requestText: 'Please pray for me',
-          requestTitle: 'A prayer request',
-          sendEmail: 'true',
-          tz: 'Pacific/Kiritimati',
-          idempotencyKey,
-          source: 'mobile'
-        })
-      }
-    );
-    const body = await response.json();
-
-    assert.equal(response.status, 429);
-    assert.equal(body.code, WEBSITE_DAILY_LIMIT_CODE);
-    assert.equal(websiteLookupCount, 1);
-  } finally {
-    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
-    if (fs.existsSync(idempotencyFile)) fs.unlinkSync(idempotencyFile);
-  }
 });
