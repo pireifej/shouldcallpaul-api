@@ -42,6 +42,7 @@ function makeServer(pool) {
   app.use(usersRoutes({
     pool,
     authenticate: (req, res, next) => next(),
+    requireUserSession: (req, res, next) => next(),
     multer,
     path: require('node:path')
   }));

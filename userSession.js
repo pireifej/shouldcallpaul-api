@@ -82,7 +82,7 @@ function requireUserSession(req, res, next) {
     if (bodyUserId !== undefined && Number(bodyUserId) !== payload.sub) {
       return res.status(403).json({
         error: 'USER_ID_MISMATCH',
-        message: 'The request userId does not match the signed-in user.'
+        message: 'The session does not match the requested user.'
       });
     }
 
@@ -92,7 +92,7 @@ function requireUserSession(req, res, next) {
   } catch (error) {
     res.status(401).json({
       error: 'USER_SESSION_REQUIRED',
-      message: 'Please sign in again to continue.'
+      message: 'A valid user session is required.'
     });
   }
 }

@@ -10,6 +10,10 @@ const {
 module.exports = function authRoutes(ctx) {
   const router = express.Router();
   const { pool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, createGmailTransporter, getBaseUrl, log, issueUserSessionToken } = ctx;
+  const requireUserSession = ctx.requireUserSession || ((req, res) => res.status(503).json({
+    error: 'USER_SESSION_UNAVAILABLE',
+    message: 'User session verification is unavailable.'
+  }));
 
   function addUserSession(user) {
     const token = issueUserSessionToken(user.user_id);
@@ -383,10 +387,11 @@ router.post('/resetPassword', async (req, res) => {
   }
 });
 
-router.post('/changePassword', authenticate, async (req, res) => {
+router.post('/changePassword', authenticate, requireUserSession, async (req, res) => {
   try {
     log(req);
-    const { userId, currentPassword, newPassword } = req.body || {};
+    const { currentPassword, newPassword } = req.body || {};
+    const userId = req.userId;
 
     if (!userId || !currentPassword || !newPassword) {
       return res.json({ error: 1, result: 'userId, currentPassword, and newPassword are required' });

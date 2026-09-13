@@ -251,7 +251,17 @@ async function handleGeneratePrayer(req, res) {
     );
     
     if (result.error) {
-      return res.json({ error: result.error });
+      if (extended) {
+        return res.status(503).json({
+          error: 'PRAYER_GENERATION_UNAVAILABLE',
+          message: result.error,
+          retryable: true
+        });
+      }
+      return res.status(500).json({
+        error: 'PRAYER_GENERATION_FAILED',
+        message: result.error
+      });
     }
 
     // Return the generated prayer without storing to database
@@ -279,7 +289,7 @@ router.post('/testGeneratePrayer', authenticate, requireUserSession, handleGener
 router.post('/api/prayers/generate', authenticate, requireUserSession, handleGeneratePrayer);
 
 // POST /checkPrayerContent - Check prayer request against content guidelines
-router.post('/checkPrayerContent', authenticate, async (req, res) => {
+router.post('/checkPrayerContent', authenticate, requireUserSession, async (req, res) => {
   const safe = { flagged: false, type: null, suggestion: null };
   try {
     const { requestText } = req.body;
@@ -928,7 +938,7 @@ const prayerImageUpload = multer({
 });
 
 // POST /editRequest - Edit an existing prayer request (author only)
-router.post('/editRequest', authenticate, (req, res) => {
+router.post('/editRequest', authenticate, requireUserSession, (req, res) => {
   const contentType = req.get('Content-Type') || '';
   
   if (contentType.includes('multipart/form-data')) {
@@ -954,6 +964,14 @@ async function handleEditRequest(req, res, multerError) {
     }
     
     const params = req.body;
+    const submittedUserId = params.userId ?? params.user_id;
+    if (submittedUserId !== undefined && Number(submittedUserId) !== req.userId) {
+      return res.status(403).json({
+        error: 'USER_ID_MISMATCH',
+        message: 'The session does not match the requested user.'
+      });
+    }
+    params.userId = req.userId;
     
     if (!params.requestId || !params.userId) {
       return res.json({ 
@@ -977,19 +995,13 @@ async function handleEditRequest(req, res, multerError) {
     const ownershipQuery = `
       SELECT user_id, request_title, picture 
       FROM public.request 
-      WHERE request_id = $1
+      WHERE request_id = $1 AND user_id = $2
     `;
     
-    const ownershipResult = await pool.query(ownershipQuery, [params.requestId]);
+    const ownershipResult = await pool.query(ownershipQuery, [params.requestId, req.userId]);
     
     if (ownershipResult.rows.length === 0) {
       return res.json({ error: 1, result: "Prayer request not found" });
-    }
-    
-    const requestOwnerId = ownershipResult.rows[0].user_id;
-    
-    if (requestOwnerId !== parseInt(params.userId)) {
-      return res.json({ error: 1, result: "You can only edit your own prayer requests" });
     }
     
     const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
@@ -1640,7 +1652,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
 
 // Root endpoint for deployment health checks
 
-router.post('/addComment', authenticate, async (req, res) => {
+router.post('/addComment', authenticate, requireUserSession, async (req, res) => {
   try {
     const { userId, requestId, comment } = req.body;
     if (!userId) return res.json({ error: 1, result: "Required param 'userId' missing" });
@@ -1661,7 +1673,7 @@ router.post('/addComment', authenticate, async (req, res) => {
 });
 
 
-router.post('/getPrayerByRequestId', authenticate, async (req, res) => {
+router.post('/getPrayerByRequestId', authenticate, requireUserSession, async (req, res) => {
   log(req);
   const params = req.body;
 
@@ -1907,7 +1919,7 @@ router.post('/getPrayer', authenticate, requireUserSession, async (req, res) => 
 });
 
 // POST /getPrayedFor - Get all requests that a user has prayed for (works for any userId)
-router.post('/getPrayedFor', authenticate, async (req, res) => {
+router.post('/getPrayedFor', authenticate, requireUserSession, async (req, res) => {
   try {
     log(req);
     const params = req.body;
@@ -1952,7 +1964,7 @@ router.post('/getPrayedFor', authenticate, async (req, res) => {
 });
 
 // POST /getMyRequests - Get all of user's own prayer requests (active, answered, and archived)
-router.post('/getMyRequests', authenticate, async (req, res) => {
+router.post('/getMyRequests', authenticate, requireUserSession, async (req, res) => {
   log(req);
   const params = req.body;
   
@@ -2004,7 +2016,7 @@ router.post('/getMyRequests', authenticate, async (req, res) => {
 
 // POST /getUserRequests - Get another user's publicly visible active prayer requests (for profile pages)
 // Params: targetUserId (whose posts to show), userId (logged-in user), lang
-router.post('/getUserRequests', authenticate, async (req, res) => {
+router.post('/getUserRequests', authenticate, requireUserSession, async (req, res) => {
   log(req);
   const params = req.body;
 
@@ -2051,7 +2063,7 @@ router.post('/getUserRequests', authenticate, async (req, res) => {
 });
 
 // POST /getAnsweredPrayers - Get user's own answered prayer requests (active = 2)
-router.post('/getAnsweredPrayers', authenticate, async (req, res) => {
+router.post('/getAnsweredPrayers', authenticate, requireUserSession, async (req, res) => {
   log(req);
   const params = req.body;
 
@@ -2097,7 +2109,7 @@ router.post('/getAnsweredPrayers', authenticate, async (req, res) => {
 });
 
 // POST /getCommunityWall - Get community prayer wall with prayer counts and names
-router.post('/getCommunityWall', authenticate, async (req, res) => {
+router.post('/getCommunityWall', authenticate, requireUserSession, async (req, res) => {
   log(req);
   const params = req.body;
   
@@ -2275,7 +2287,7 @@ router.post('/getCommunityWall', authenticate, async (req, res) => {
 
 // POST /deleteRequestById - Soft-delete a request by ID (owner only, active=3 = user-deleted)
 // active=3 is hidden from community wall (which filters active=1) and from Mine tab
-router.post('/deleteRequestById', authenticate, async (req, res) => {
+router.post('/deleteRequestById', authenticate, requireUserSession, async (req, res) => {
   try {
     const params = req.body;
     
@@ -2286,25 +2298,13 @@ router.post('/deleteRequestById', authenticate, async (req, res) => {
       return res.json({ error: 1, result: "Required param 'userId' missing" });
     }
     
-    // Check if request exists and belongs to the caller
-    const checkResult = await pool.query(
-      `SELECT request_id, request_title, user_id FROM public.request WHERE request_id = $1`,
-      [params.request_id]
-    );
-    
-    if (checkResult.rows.length === 0) {
-      return res.json({ error: 1, result: "Request not found" });
-    }
-
-    const request = checkResult.rows[0];
-    if (String(request.user_id) !== String(params.userId)) {
-      return res.json({ error: 1, result: "You can only delete your own prayer requests" });
-    }
-    
     // Soft-delete: set active=3 (user-deleted). Invisible on community wall and Mine tab.
     const deleteResult = await pool.query(
-      `UPDATE public.request SET active = 3 WHERE request_id = $1 RETURNING request_id, request_title`,
-      [params.request_id]
+      `UPDATE public.request
+       SET active = 3
+       WHERE request_id = $1 AND user_id = $2
+       RETURNING request_id, request_title`,
+      [params.request_id, req.userId]
     );
     
     if (deleteResult.rows.length === 0) {
@@ -2328,25 +2328,22 @@ router.post('/deleteRequestById', authenticate, async (req, res) => {
 });
 
 // POST /archivePrayerRequest - Mark own prayer request as answered/archived (sets active = 0)
-router.post('/archivePrayerRequest', authenticate, async (req, res) => {
+router.post('/archivePrayerRequest', authenticate, requireUserSession, async (req, res) => {
   try {
-    const { request_id, user_id } = req.body;
-    if (!request_id || !user_id) {
-      return res.json({ error: 1, result: "request_id and user_id are required" });
+    const { request_id } = req.body;
+    if (!request_id) {
+      return res.json({ error: 1, result: "request_id is required" });
     }
     const check = await pool.query(
-      'SELECT request_id, user_id FROM public.request WHERE request_id = $1',
-      [request_id]
+      'SELECT request_id, user_id FROM public.request WHERE request_id = $1 AND user_id = $2',
+      [request_id, req.userId]
     );
     if (check.rows.length === 0) {
       return res.json({ error: 1, result: "Prayer request not found" });
     }
-    if (check.rows[0].user_id !== parseInt(user_id)) {
-      return res.json({ error: 1, result: "You can only archive your own prayer requests" });
-    }
     await pool.query(
-      'UPDATE public.request SET active = 0 WHERE request_id = $1',
-      [request_id]
+      'UPDATE public.request SET active = 0 WHERE request_id = $1 AND user_id = $2',
+      [request_id, req.userId]
     );
     res.json({ error: 0, result: "Prayer request archived successfully" });
   } catch (error) {
@@ -2356,12 +2353,12 @@ router.post('/archivePrayerRequest', authenticate, async (req, res) => {
 });
 
 // POST /markPrayerAnswered - Mark prayer as answered, notify everyone who prayed for it
-router.post('/markPrayerAnswered', authenticate, async (req, res) => {
+router.post('/markPrayerAnswered', authenticate, requireUserSession, async (req, res) => {
   try {
-    const { request_id, user_id, answered_message } = req.body;
+    const { request_id, answered_message } = req.body;
 
-    if (!request_id || !user_id) {
-      return res.json({ error: 1, result: "request_id and user_id are required" });
+    if (!request_id) {
+      return res.json({ error: 1, result: "request_id is required" });
     }
     if (!answered_message || answered_message.trim().length === 0) {
       return res.json({ error: 1, result: "Please share how your prayer was answered" });
@@ -2373,22 +2370,20 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
               "user".real_name as requester_name
        FROM public.request
        INNER JOIN public."user" ON "user".user_id = request.user_id
-       WHERE request.request_id = $1`,
-      [request_id]
+       WHERE request.request_id = $1 AND request.user_id = $2`,
+      [request_id, req.userId]
     );
 
     if (checkResult.rows.length === 0) {
       return res.json({ error: 1, result: "Prayer request not found" });
     }
     const requestRow = checkResult.rows[0];
-    if (requestRow.user_id !== parseInt(user_id)) {
-      return res.json({ error: 1, result: "You can only mark your own prayer requests as answered" });
-    }
-
     // Mark as answered (active = 2) and save the gratitude message
     await pool.query(
-      `UPDATE public.request SET active = 2, answered_message = $2 WHERE request_id = $1`,
-      [request_id, answered_message.trim()]
+      `UPDATE public.request
+       SET active = 2, answered_message = $2
+       WHERE request_id = $1 AND user_id = $3`,
+      [request_id, answered_message.trim(), req.userId]
     );
 
     // Find all distinct users who prayed for this request (excluding the requester)
@@ -2409,7 +2404,7 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
          AND user_request.user_id != $2
          AND COALESCE("user".email_bounced, false) = false
        ORDER BY "user".fcm_token, "user".user_id`,
-      [request_id, user_id]
+      [request_id, req.userId]
     );
 
     const prayers = prayersResult.rows;
@@ -2439,7 +2434,7 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
               person.fcm_token,
               `${requesterName}'s prayer was answered! 🙌`,
               `"${requestTitle}" — tap to read their testimony`,
-              { type: 'prayer_answered', screen: 'RequestDetail', requestId: request_id.toString(), requesterId: user_id.toString() }
+              { type: 'prayer_answered', screen: 'RequestDetail', requestId: request_id.toString(), requesterId: req.userId.toString() }
             );
             if (pushResult.shouldRemoveToken) {
               await pool.query(
@@ -2520,11 +2515,11 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
       try {
         let newBadge = null;
         const answeredRes = await pool.query(
-          `SELECT COUNT(*) FROM public.request WHERE user_id = $1 AND active = 2`, [user_id]
+          `SELECT COUNT(*) FROM public.request WHERE user_id = $1 AND active = 2`, [req.userId]
         );
         const answeredCount = parseInt(answeredRes.rows[0].count);
-        if (answeredCount >= 5) newBadge = await awardBadge(user_id, 'the_rejoicer') || newBadge;
-        if (answeredCount === 1) newBadge = await awardBadge(user_id, 'chain_breaker') || newBadge;
+        if (answeredCount >= 5) newBadge = await awardBadge(req.userId, 'the_rejoicer') || newBadge;
+        if (answeredCount === 1) newBadge = await awardBadge(req.userId, 'chain_breaker') || newBadge;
 
         const ageRes = await pool.query(
           `SELECT timestamp FROM public.request WHERE request_id = $1`, [request_id]
@@ -2532,8 +2527,8 @@ router.post('/markPrayerAnswered', authenticate, async (req, res) => {
         if (ageRes.rows.length > 0 && ageRes.rows[0].timestamp) {
           const posted = new Date(ageRes.rows[0].timestamp);
           const daysSincePosted = (Date.now() - posted.getTime()) / (1000 * 60 * 60 * 24);
-          if (daysSincePosted <= 7) newBadge = await awardBadge(user_id, 'rainbow_promise') || newBadge;
-          if (daysSincePosted >= 30) newBadge = await awardBadge(user_id, 'persistent') || newBadge;
+          if (daysSincePosted <= 7) newBadge = await awardBadge(req.userId, 'rainbow_promise') || newBadge;
+          if (daysSincePosted >= 30) newBadge = await awardBadge(req.userId, 'persistent') || newBadge;
         }
       } catch (badgeErr) {
         console.warn('Badge check failed (non-blocking):', badgeErr.message);

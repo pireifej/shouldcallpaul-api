@@ -7,6 +7,10 @@ const crypto = require('crypto');
 module.exports = function usersRoutes(ctx) {
   const router = express.Router();
   const { pool, auditPool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, uploadImage, getRandomString, multer, path, log } = ctx;
+  const requireUserSession = ctx.requireUserSession || ((req, res) => res.status(503).json({
+    error: 'USER_SESSION_UNAVAILABLE',
+    message: 'User session verification is unavailable.'
+  }));
 
 router.post('/getUserByEmail', authenticate, async (req, res) => {
   try {
@@ -114,7 +118,7 @@ router.post('/getAllUsers', authenticate, async (req, res) => {
 
 // POST /getRequestCount - Get total count of all requests
 
-router.post('/getUser', authenticate, async (req, res) => {
+router.post('/getUser', authenticate, requireUserSession, async (req, res) => {
   try {
     const params = req.body;
     
@@ -270,7 +274,7 @@ router.post('/getUsersByChurch', authenticate, async (req, res) => {
 });
 
 // POST /updateUser - Update user profile
-router.post('/updateUser', authenticate, async (req, res) => {
+router.post('/updateUser', authenticate, requireUserSession, async (req, res) => {
   try {
     const params = req.body;
     const updatableFields = ['user_about', 'user_title', 'church_id', 'email', 'real_name', 'last_name', 'phone'];
@@ -374,11 +378,11 @@ router.post('/updateUser', authenticate, async (req, res) => {
 });
 
 // POST /updateEmail - Update email for email/password accounts only
-router.post('/updateEmail', authenticate, async (req, res) => {
+router.post('/updateEmail', authenticate, requireUserSession, async (req, res) => {
   try {
-    const { userId, newEmail } = req.body;
+    const { newEmail } = req.body;
+    const userId = req.userId;
 
-    if (!userId) return res.json({ error: 1, result: "Required param 'userId' missing" });
     if (!newEmail) return res.json({ error: 1, result: "Required param 'newEmail' missing" });
 
     // Fetch current user to check auth_provider
@@ -420,7 +424,7 @@ router.post('/updateEmail', authenticate, async (req, res) => {
 
 // POST /getChatCompletion - OpenAI chat completion endpoint  
 
-router.post('/registerFCMToken', authenticate, async (req, res) => {
+router.post('/registerFCMToken', authenticate, requireUserSession, async (req, res) => {
   try {
     const params = req.body;
     
@@ -760,7 +764,7 @@ router.get('/getBadgeDefinitions', async (req, res) => {
 
 // POST /addComment - Add a comment to a prayer request
 
-router.post('/deleteUser', authenticate, async (req, res) => {
+router.post('/deleteUser', authenticate, requireUserSession, async (req, res) => {
   const execPromise = promisify(exec);
   const callerIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
 
@@ -955,7 +959,7 @@ const profilePictureUpload = multer({
 });
 
 // POST /uploadProfilePicture - Upload user profile picture to object storage
-router.post('/uploadProfilePicture', authenticate, (req, res) => {
+router.post('/uploadProfilePicture', authenticate, requireUserSession, (req, res) => {
   // Wrap multer to properly catch and handle errors
   profilePictureUpload.single('image')(req, res, async (err) => {
     try {
@@ -979,16 +983,14 @@ router.post('/uploadProfilePicture', authenticate, (req, res) => {
       }
       
       // Validate and sanitize userId AFTER file is in memory but BEFORE writing to disk
-      const { userId } = req.body;
-      
-      if (!userId) {
-        return res.json({ error: 1, result: 'userId is required' });
+      const submittedUserId = req.body.userId ?? req.body.user_id;
+      if (submittedUserId !== undefined && Number(submittedUserId) !== req.userId) {
+        return res.status(403).json({
+          error: 'USER_ID_MISMATCH',
+          message: 'The session does not match the requested user.'
+        });
       }
-      
-      const userIdNum = parseInt(userId);
-      if (isNaN(userIdNum) || userIdNum <= 0) {
-        return res.json({ error: 1, result: 'Invalid userId' });
-      }
+      const userIdNum = req.userId;
       
       // Check if user exists in database BEFORE writing file
       const userCheckQuery = 'SELECT user_id FROM public."user" WHERE user_id = $1';

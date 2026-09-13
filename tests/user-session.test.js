@@ -9,6 +9,7 @@ const path = require('node:path');
 const multer = require('multer');
 const authRoutes = require('../routes/auth');
 const prayersRoutes = require('../routes/prayers');
+const usersRoutes = require('../routes/users');
 const {
   issueUserSessionToken,
   verifyUserSessionToken,
@@ -279,6 +280,174 @@ test('multipart prayer posting cannot replace the session user ID', async () => 
       const body = await response.json();
       assert.equal(response.status, 403);
       assert.equal(body.error, 'USER_ID_MISMATCH');
+
+      const editForm = new FormData();
+      editForm.set('userId', '99');
+      editForm.set('requestId', '123');
+      editForm.set('requestText', 'Changed text');
+      const editResponse = await fetch(`${baseUrl}/editRequest`, {
+        method: 'POST',
+        headers: { 'x-user-session-token': token },
+        body: editForm
+      });
+      const editBody = await editResponse.json();
+      assert.equal(editResponse.status, 403);
+      assert.equal(editBody.error, 'USER_ID_MISMATCH');
+    });
+  } finally {
+    if (originalSecret === undefined) delete process.env.SESSION_SECRET;
+    else process.env.SESSION_SECRET = originalSecret;
+  }
+});
+
+test('account profile routes require a matching session, including multipart uploads', async () => {
+  const originalSecret = process.env.SESSION_SECRET;
+  process.env.SESSION_SECRET = 'account-route-session-test-secret';
+  const token = issueUserSessionToken(42);
+  const router = usersRoutes({
+    pool: {
+      query: async () => {
+        throw new Error('Database should not be reached for rejected identities');
+      }
+    },
+    auditPool: { query: async () => ({ rows: [] }) },
+    authenticate: (req, res, next) => next(),
+    requireUserSession,
+    multer,
+    path,
+    uploadImage: async () => {
+      throw new Error('Upload should not be reached for rejected identities');
+    }
+  });
+
+  try {
+    await withServer(router, async (baseUrl) => {
+      const missing = await fetch(`${baseUrl}/getUser`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ userId: 42 })
+      });
+      assert.equal(missing.status, 401);
+      assert.deepEqual(await missing.json(), {
+        error: 'USER_SESSION_REQUIRED',
+        message: 'A valid user session is required.'
+      });
+
+      const mismatch = await fetch(`${baseUrl}/updateUser`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-user-session-token': token
+        },
+        body: JSON.stringify({ userId: 99, real_name: 'Wrong account' })
+      });
+      assert.equal(mismatch.status, 403);
+      assert.deepEqual(await mismatch.json(), {
+        error: 'USER_ID_MISMATCH',
+        message: 'The session does not match the requested user.'
+      });
+
+      const emailMismatch = await fetch(`${baseUrl}/updateEmail`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-user-session-token': token
+        },
+        body: JSON.stringify({ userId: 99, newEmail: 'attacker@example.com' })
+      });
+      assert.equal(emailMismatch.status, 403);
+      assert.equal((await emailMismatch.json()).error, 'USER_ID_MISMATCH');
+
+      const uploadForm = new FormData();
+      uploadForm.set('userId', '99');
+      uploadForm.set(
+        'image',
+        new Blob([Buffer.from('not-a-real-png')], { type: 'image/png' }),
+        'profile.png'
+      );
+      const upload = await fetch(`${baseUrl}/uploadProfilePicture`, {
+        method: 'POST',
+        headers: { 'x-user-session-token': token },
+        body: uploadForm
+      });
+      assert.equal(upload.status, 403);
+      assert.equal((await upload.json()).error, 'USER_ID_MISMATCH');
+    });
+  } finally {
+    if (originalSecret === undefined) delete process.env.SESSION_SECRET;
+    else process.env.SESSION_SECRET = originalSecret;
+  }
+});
+
+test('marking a prayer answered uses the signed user throughout the complete flow', async () => {
+  const originalSecret = process.env.SESSION_SECRET;
+  process.env.SESSION_SECRET = 'answered-prayer-session-test-secret';
+  const token = issueUserSessionToken(42);
+  const calls = [];
+  const pool = {
+    async query(sql, params = []) {
+      calls.push({ sql, params });
+      if (sql.includes('requester_name')) {
+        return {
+          rows: [{
+            request_id: 77,
+            user_id: 42,
+            request_title: 'Healing',
+            request_text: 'Please pray',
+            requester_name: 'Pat'
+          }]
+        };
+      }
+      if (sql.includes('SELECT DISTINCT ON')) return { rows: [] };
+      if (sql.includes('SELECT COUNT(*)')) return { rows: [{ count: '1' }] };
+      if (sql.includes('SELECT timestamp')) return { rows: [] };
+      return { rows: [] };
+    }
+  };
+  const router = prayersRoutes({
+    pool,
+    authenticate: (req, res, next) => next(),
+    requireUserSession,
+    requirePro: (req, res, next) => next(),
+    proSubscriptionService: { getProStatus: async () => ({ isPro: false }) },
+    prayerAudioCache: new Map(),
+    MAX_PRAYER_AUDIO_CACHE: 10,
+    PRAYER_AUDIO_DIR: '/tmp',
+    multer,
+    path,
+    fs,
+    awardBadge: async () => null,
+    sendPushNotification: async () => ({ shouldRemoveToken: false }),
+    sendGmailSingle: async () => ({ error: 0 }),
+    log: () => {}
+  });
+
+  try {
+    await withServer(router, async (baseUrl) => {
+      const response = await fetch(`${baseUrl}/markPrayerAnswered`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-user-session-token': token
+        },
+        body: JSON.stringify({
+          request_id: 77,
+          user_id: 42,
+          answered_message: 'Thank you for praying.'
+        })
+      });
+      const body = await response.json();
+      assert.equal(response.status, 200);
+      assert.equal(body.error, 0);
+      await new Promise(resolve => setTimeout(resolve, 20));
+      assert.ok(calls.some(call =>
+        call.sql.includes('SET active = 2') &&
+        call.params[2] === 42
+      ));
+      assert.ok(calls.some(call =>
+        call.sql.includes('SELECT DISTINCT ON') &&
+        call.params[1] === 42
+      ));
     });
   } finally {
     if (originalSecret === undefined) delete process.env.SESSION_SECRET;
