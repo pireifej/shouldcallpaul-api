@@ -19,6 +19,7 @@ const {
   verifyFacebookAccessToken,
   verifyAppleIdentityToken
 } = require('../providerIdentity');
+const { sanitizeParams } = require('../requestSanitizer');
 
 async function withServer(router, callback) {
   const app = express();
@@ -79,9 +80,28 @@ test('email login returns a session token signed for the authenticated user', as
   }
 });
 
+test('request logging redacts provider and app session credentials', () => {
+  const sanitized = sanitizeParams({
+    accessToken: 'google-secret',
+    access_token: 'facebook-secret',
+    identity_token: 'apple-secret',
+    userSessionToken: 'session-secret',
+    user_session_token: 'session-secret-2',
+    code: 'oauth-code',
+    codeVerifier: 'oauth-verifier',
+    email: 'safe@example.com'
+  });
+  for (const [key, value] of Object.entries(sanitized)) {
+    if (key === 'email') assert.equal(value, 'safe@example.com');
+    else assert.equal(value, '***');
+  }
+});
+
 test('Google, Facebook, and Apple identity data comes from verified provider tokens', async () => {
   const originalFetch = global.fetch;
   const originalAppleClientId = process.env.APPLE_CLIENT_ID;
+  const originalFacebookAppId = process.env.FACEBOOK_APP_ID;
+  const originalFacebookAppSecret = process.env.FACEBOOK_APP_SECRET;
   const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
     modulusLength: 2048
   });
@@ -103,6 +123,8 @@ test('Google, Facebook, and Apple identity data comes from verified provider tok
   ).toString('base64url');
 
   process.env.APPLE_CLIENT_ID = 'com.prayoverus.test';
+  process.env.FACEBOOK_APP_ID = 'facebook-app-123';
+  process.env.FACEBOOK_APP_SECRET = 'facebook-test-secret';
   global.fetch = async (url) => {
     const value = String(url);
     if (value.includes('oauth2.googleapis.com/tokeninfo')) {
@@ -125,7 +147,19 @@ test('Google, Facebook, and Apple identity data comes from verified provider tok
         })
       };
     }
-    if (value.includes('graph.facebook.com')) {
+    if (value.includes('graph.facebook.com/debug_token')) {
+      return {
+        ok: true,
+        json: async () => ({
+          data: {
+            is_valid: true,
+            app_id: 'facebook-app-123',
+            user_id: 'facebook-123'
+          }
+        })
+      };
+    }
+    if (value.includes('graph.facebook.com/v20.0/me')) {
       return {
         ok: true,
         json: async () => ({
@@ -171,6 +205,40 @@ test('Google, Facebook, and Apple identity data comes from verified provider tok
     global.fetch = originalFetch;
     if (originalAppleClientId === undefined) delete process.env.APPLE_CLIENT_ID;
     else process.env.APPLE_CLIENT_ID = originalAppleClientId;
+    if (originalFacebookAppId === undefined) delete process.env.FACEBOOK_APP_ID;
+    else process.env.FACEBOOK_APP_ID = originalFacebookAppId;
+    if (originalFacebookAppSecret === undefined) delete process.env.FACEBOOK_APP_SECRET;
+    else process.env.FACEBOOK_APP_SECRET = originalFacebookAppSecret;
+  }
+});
+
+test('Facebook identity rejects a token issued for another app', async () => {
+  const originalFetch = global.fetch;
+  const originalAppId = process.env.FACEBOOK_APP_ID;
+  const originalAppSecret = process.env.FACEBOOK_APP_SECRET;
+  process.env.FACEBOOK_APP_ID = 'pray-over-us-app';
+  process.env.FACEBOOK_APP_SECRET = 'facebook-test-secret';
+  global.fetch = async () => ({
+    ok: true,
+    json: async () => ({
+      data: {
+        is_valid: true,
+        app_id: 'another-app',
+        user_id: 'facebook-123'
+      }
+    })
+  });
+  try {
+    await assert.rejects(
+      () => verifyFacebookAccessToken('wrong-app-token'),
+      /not issued for Pray Over Us/
+    );
+  } finally {
+    global.fetch = originalFetch;
+    if (originalAppId === undefined) delete process.env.FACEBOOK_APP_ID;
+    else process.env.FACEBOOK_APP_ID = originalAppId;
+    if (originalAppSecret === undefined) delete process.env.FACEBOOK_APP_SECRET;
+    else process.env.FACEBOOK_APP_SECRET = originalAppSecret;
   }
 });
 

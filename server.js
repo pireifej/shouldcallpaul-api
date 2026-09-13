@@ -15,6 +15,7 @@ const cron = require("node-cron");
 const multer = require('multer');
 const { sendPushNotification } = require('./pushNotifications');
 const { uploadImage, uploadImageFromUrl, uploadAudio } = require('./cloudinaryService');
+const { sanitizeParams } = require('./requestSanitizer');
 const { createClient: createPexelsClient } = require('pexels');
 require('dotenv').config();
 
@@ -40,17 +41,6 @@ app.use('/audio', (req, res, next) => {
     next();
 }, express.static('public/audio'));
 
-// Fields to strip from logged params so passwords/tokens never reach the DB
-const SENSITIVE_FIELDS = new Set(['password', 'token', 'fcm_token', 'authorization', 'api_key', 'secret']);
-function sanitizeParams(body) {
-  if (!body || typeof body !== 'object') return body;
-  const out = {};
-  for (const [k, v] of Object.entries(body)) {
-    out[k] = SENSITIVE_FIELDS.has(k.toLowerCase()) ? '***' : v;
-  }
-  return out;
-}
-
 // Endpoints that generate too much noise to log every call (read-only feeds)
 const SKIP_LOG_PATHS = new Set(['/api/requests', '/getAllBlogArticles', '/getFaithRanks', '/getDailyDevotional']);
 
@@ -69,12 +59,7 @@ app.use((req, res, next) => {
   console.log(`   Content-Type: ${req.get('Content-Type') || 'none'}`);
 
   if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
-    const SENSITIVE_FIELDS = new Set(['password', 'newPassword', 'confirmPassword', 'token']);
-    const safeBody = Object.fromEntries(
-      Object.entries(req.body || {}).map(([k, v]) =>
-        [k, SENSITIVE_FIELDS.has(k) ? '[REDACTED]' : v]
-      )
-    );
+    const safeBody = sanitizeParams(req.body, '[REDACTED]');
     console.log(`   Payload:`, safeBody);
   }
 
@@ -455,7 +440,7 @@ async function sendGmailSingle(template, fromPerson, toPerson, subject, extraRes
 
 function log(req, params) {
     let date_ob = new Date();
-    console.log(new Date(), req.originalUrl, JSON.stringify(req.body));
+    console.log(new Date(), req.originalUrl, JSON.stringify(sanitizeParams(req.body)));
 }
 
 // Helper function to get base URL from environment or request

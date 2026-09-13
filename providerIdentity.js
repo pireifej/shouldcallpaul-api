@@ -49,10 +49,29 @@ async function verifyGoogleAccessToken(accessToken) {
 
 async function verifyFacebookAccessToken(accessToken) {
   if (!accessToken) throw identityError('Facebook access token is required', 400);
+  const appId = process.env.FACEBOOK_APP_ID;
+  const appSecret = process.env.FACEBOOK_APP_SECRET;
+  if (!appId || !appSecret) {
+    throw identityError('Facebook Sign In is not configured for secure user sessions', 503);
+  }
+  const debugResult = await fetchJson(
+    `https://graph.facebook.com/debug_token?input_token=${encodeURIComponent(accessToken)}&access_token=${encodeURIComponent(`${appId}|${appSecret}`)}`
+  );
+  if (
+    !debugResult.data?.is_valid ||
+    String(debugResult.data.app_id) !== String(appId) ||
+    !debugResult.data.user_id
+  ) {
+    throw identityError('Facebook token was not issued for Pray Over Us');
+  }
   const profile = await fetchJson(
     `https://graph.facebook.com/v20.0/me?fields=id,email,first_name,last_name,picture&access_token=${encodeURIComponent(accessToken)}`
   );
-  if (!profile.id || !profile.email) {
+  if (
+    !profile.id ||
+    String(profile.id) !== String(debugResult.data.user_id) ||
+    !profile.email
+  ) {
     throw identityError('Facebook account did not provide a verified identity');
   }
   return {

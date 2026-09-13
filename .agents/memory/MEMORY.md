@@ -2,3 +2,4 @@
 - [Prayer notification digest design](prayer-notification-digest.md) — per-prayer emails to request owners were replaced with a once-daily digest queue; admin keeps per-event tracking email
 - [Interview-prep content separation](interview-prep-content-separation.md) — personal prep notes and AI-generated prep must remain independently writable and readable.
 - [RevenueCat Pro identity policy](revenuecat-pro-identity.md) — RevenueCat stays authoritative; only confirmed active identities may be linked, uniquely and without silent replacement.
+- [Signed user-session policy](signed-user-sessions.md) — user-owned and Pro routes trust signed session identity, while provider logins require cryptographically verified identities.
