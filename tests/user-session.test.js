@@ -17,6 +17,7 @@ const {
 } = require('../userSession');
 const {
   verifyGoogleAccessToken,
+  issueGoogleLoginAssertion,
   verifyFacebookAccessToken,
   verifyAppleIdentityToken
 } = require('../providerIdentity');
@@ -213,21 +214,15 @@ test('Google, Facebook, and Apple identity data comes from verified provider tok
   }
 });
 
-test('Google login accepts mobile raw JSON without a content-type header', async () => {
+test('Google login accepts the signed identity returned to the Android OAuth flow', async () => {
   const originalSecret = process.env.SESSION_SECRET;
   process.env.SESSION_SECRET = 'raw-google-login-test-secret';
-  const verifyGoogleAccessToken = async token => {
-    assert.equal(token, 'raw-provider-token');
-    return {
-      provider: 'google',
-      providerId: 'google-raw-1',
-      id: 'google-raw-1',
-      email: 'raw-google@example.com',
-      firstName: 'Raw',
-      lastName: 'Google',
-      picture: ''
-    };
-  };
+  const assertion = issueGoogleLoginAssertion({
+    id: 'google-raw-1',
+    email: 'raw-google@example.com',
+    given_name: 'Raw',
+    family_name: 'Google'
+  });
   const pool = {
     query: async () => ({
       rows: [{
@@ -248,7 +243,6 @@ test('Google login accepts mobile raw JSON without a content-type header', async
     loadFaithRanks: async () => [],
     sendGmailSingle: async () => ({ error: 0 }),
     issueUserSessionToken,
-    verifyGoogleAccessToken,
     log: () => {}
   });
 
@@ -256,7 +250,11 @@ test('Google login accepts mobile raw JSON without a content-type header', async
     await withServer(router, async (baseUrl) => {
       const response = await fetch(`${baseUrl}/googleLogin`, {
         method: 'POST',
-        body: JSON.stringify({ access_token: 'raw-provider-token' })
+        body: JSON.stringify({
+          google_id: assertion,
+          email: 'untrusted-attacker@example.com',
+          first_name: 'Untrusted'
+        })
       });
       const body = await response.json();
       assert.equal(response.status, 200);
@@ -264,6 +262,28 @@ test('Google login accepts mobile raw JSON without a content-type header', async
       assert.equal(body.result[0].user_id, 42);
       assert.ok(body.user_session_token);
     });
+  } finally {
+    if (originalSecret === undefined) delete process.env.SESSION_SECRET;
+    else process.env.SESSION_SECRET = originalSecret;
+  }
+});
+
+test('Google assertions cannot be issued for missing or unverified identities', () => {
+  const originalSecret = process.env.SESSION_SECRET;
+  process.env.SESSION_SECRET = 'google-assertion-validation-secret';
+  try {
+    assert.throws(
+      () => issueGoogleLoginAssertion({ id: 'google-1', email: '' }),
+      /email is not verified/
+    );
+    assert.throws(
+      () => issueGoogleLoginAssertion({
+        id: 'google-1',
+        email: 'unverified@example.com',
+        verified_email: false
+      }),
+      /email is not verified/
+    );
   } finally {
     if (originalSecret === undefined) delete process.env.SESSION_SECRET;
     else process.env.SESSION_SECRET = originalSecret;

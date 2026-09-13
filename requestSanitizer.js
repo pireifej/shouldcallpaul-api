@@ -23,7 +23,14 @@ function sanitizeParams(body, replacement = '***') {
   if (!body || typeof body !== 'object') return body;
   const out = {};
   for (const [key, value] of Object.entries(body)) {
-    out[key] = SENSITIVE_FIELDS.has(key.toLowerCase()) ? replacement : value;
+    const normalizedKey = key.toLowerCase();
+    const isSignedGoogleAssertion =
+      (normalizedKey === 'google_id' || normalizedKey === 'googleid') &&
+      typeof value === 'string' &&
+      value.startsWith('gsi.');
+    out[key] = SENSITIVE_FIELDS.has(normalizedKey) || isSignedGoogleAssertion
+      ? replacement
+      : value;
   }
   return out;
 }

@@ -16,6 +16,71 @@ function identityError(message, statusCode = 401) {
   return error;
 }
 
+function getGoogleAssertionSecret() {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) throw identityError('Google Sign In is not configured', 503);
+  return secret;
+}
+
+function normalizeGoogleUserInfo(userInfo) {
+  if (!userInfo?.id || !userInfo?.email || userInfo.verified_email === false) {
+    throw identityError('Google account email is not verified');
+  }
+  return {
+    provider: 'google',
+    providerId: String(userInfo.id),
+    email: String(userInfo.email).toLowerCase(),
+    firstName: userInfo.given_name || '',
+    lastName: userInfo.family_name || '',
+    picture: userInfo.picture || ''
+  };
+}
+
+function issueGoogleLoginAssertion(userInfo) {
+  const identity = normalizeGoogleUserInfo(userInfo);
+  const now = Math.floor(Date.now() / 1000);
+  const payload = Buffer.from(JSON.stringify({
+    ...identity,
+    exp: now + 300
+  })).toString('base64url');
+  const signature = crypto
+    .createHmac('sha256', getGoogleAssertionSecret())
+    .update(payload)
+    .digest('base64url');
+  return `gsi.${payload}.${signature}`;
+}
+
+function verifyGoogleLoginAssertion(assertion) {
+  if (typeof assertion !== 'string' || !assertion.startsWith('gsi.')) {
+    throw identityError('Google access token is required', 400);
+  }
+  const parts = assertion.split('.');
+  if (parts.length !== 3) throw identityError('Invalid Google login assertion');
+  const expected = crypto
+    .createHmac('sha256', getGoogleAssertionSecret())
+    .update(parts[1])
+    .digest();
+  const actual = Buffer.from(parts[2], 'base64url');
+  if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) {
+    throw identityError('Invalid Google login assertion');
+  }
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+  } catch {
+    throw identityError('Invalid Google login assertion');
+  }
+  if (
+    payload.provider !== 'google' ||
+    !payload.providerId ||
+    !payload.email ||
+    payload.exp <= Math.floor(Date.now() / 1000)
+  ) {
+    throw identityError('Google login assertion expired or invalid');
+  }
+  return payload;
+}
+
 async function fetchJson(url, options) {
   const response = await fetch(url, options);
   const data = await response.json();
@@ -34,17 +99,7 @@ async function verifyGoogleAccessToken(accessToken) {
   const userInfo = await fetchJson('https://www.googleapis.com/userinfo/v2/me', {
     headers: { Authorization: `Bearer ${accessToken}` }
   });
-  if (!userInfo.id || !userInfo.email || userInfo.verified_email === false) {
-    throw identityError('Google account email is not verified');
-  }
-  return {
-    provider: 'google',
-    providerId: String(userInfo.id),
-    email: userInfo.email.toLowerCase(),
-    firstName: userInfo.given_name || '',
-    lastName: userInfo.family_name || '',
-    picture: userInfo.picture || ''
-  };
+  return normalizeGoogleUserInfo(userInfo);
 }
 
 async function verifyFacebookAccessToken(accessToken) {
@@ -147,6 +202,8 @@ async function verifyAppleIdentityToken(identityToken, expectedUserId) {
 
 module.exports = {
   verifyGoogleAccessToken,
+  issueGoogleLoginAssertion,
+  verifyGoogleLoginAssertion,
   verifyFacebookAccessToken,
   verifyAppleIdentityToken
 };

@@ -3,6 +3,8 @@ const express = require('express');
 const crypto = require('crypto');
 const {
   verifyGoogleAccessToken,
+  issueGoogleLoginAssertion,
+  verifyGoogleLoginAssertion,
   verifyFacebookAccessToken,
   verifyAppleIdentityToken
 } = require('../providerIdentity');
@@ -617,9 +619,10 @@ router.post('/socialLogin', authenticate, async (req, res) => {
 router.post('/googleLogin', parseGoogleLoginBody, async (req, res) => {
   try {
     const bearerToken = req.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1];
-    const verifiedIdentity = await googleAccessTokenVerifier(
-      req.body?.access_token || req.body?.accessToken || bearerToken
-    );
+    const accessToken = req.body?.access_token || req.body?.accessToken || bearerToken;
+    const verifiedIdentity = accessToken
+      ? await googleAccessTokenVerifier(accessToken)
+      : verifyGoogleLoginAssertion(req.body?.google_id || req.body?.googleId);
     const email = verifiedIdentity.email;
     const google_id = verifiedIdentity.providerId;
     const first_name = verifiedIdentity.firstName;
@@ -972,8 +975,19 @@ router.post('/appleLogin', async (req, res) => {
         headers: { Authorization: `Bearer ${tokenData.access_token}` },
       });
       const userInfo = await userInfoRes.json();
+      if (!userInfoRes.ok) {
+        return res.status(401).json({ error: 'Google identity verification failed' });
+      }
       console.log(`✅ Google token exchange success (${isIOS ? 'iOS' : 'Android/Web'}) for: ${userInfo.email}`);
-      res.json({ access_token: tokenData.access_token, ...userInfo });
+      const providerId = userInfo.id;
+      const googleLoginAssertion = issueGoogleLoginAssertion(userInfo);
+      res.json({
+        access_token: tokenData.access_token,
+        ...userInfo,
+        provider_id: providerId,
+        id: googleLoginAssertion,
+        google_id: googleLoginAssertion
+      });
     } catch (err) {
       console.error('❌ /auth/google/token exception:', err.message);
       res.status(500).json({ error: err.message });
