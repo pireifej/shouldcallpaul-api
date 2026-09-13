@@ -40,3 +40,7 @@ build = ["npm", "install"]
 
 [objectStorage]
 defaultBucketID = "replit-objstore-ce5ebf5f-9d7e-47fb-9031-b62f49bb244f"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 180000
