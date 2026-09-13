@@ -213,6 +213,63 @@ test('Google, Facebook, and Apple identity data comes from verified provider tok
   }
 });
 
+test('Google login accepts mobile raw JSON without a content-type header', async () => {
+  const originalSecret = process.env.SESSION_SECRET;
+  process.env.SESSION_SECRET = 'raw-google-login-test-secret';
+  const verifyGoogleAccessToken = async token => {
+    assert.equal(token, 'raw-provider-token');
+    return {
+      provider: 'google',
+      providerId: 'google-raw-1',
+      id: 'google-raw-1',
+      email: 'raw-google@example.com',
+      firstName: 'Raw',
+      lastName: 'Google',
+      picture: ''
+    };
+  };
+  const pool = {
+    query: async () => ({
+      rows: [{
+        user_id: 42,
+        email: 'raw-google@example.com',
+        active: 1,
+        google_id: 'google-raw-1',
+        faith_points: 0
+      }]
+    })
+  };
+  const router = authRoutes({
+    pool,
+    bcrypt: { hash: async () => 'unused' },
+    authenticate: (req, res, next) => next(),
+    computeRank: () => 'Seed',
+    awardBadge: async () => null,
+    loadFaithRanks: async () => [],
+    sendGmailSingle: async () => ({ error: 0 }),
+    issueUserSessionToken,
+    verifyGoogleAccessToken,
+    log: () => {}
+  });
+
+  try {
+    await withServer(router, async (baseUrl) => {
+      const response = await fetch(`${baseUrl}/googleLogin`, {
+        method: 'POST',
+        body: JSON.stringify({ access_token: 'raw-provider-token' })
+      });
+      const body = await response.json();
+      assert.equal(response.status, 200);
+      assert.equal(body.error, 0);
+      assert.equal(body.result[0].user_id, 42);
+      assert.ok(body.user_session_token);
+    });
+  } finally {
+    if (originalSecret === undefined) delete process.env.SESSION_SECRET;
+    else process.env.SESSION_SECRET = originalSecret;
+  }
+});
+
 test('Facebook identity rejects a token issued for another app', async () => {
   const originalFetch = global.fetch;
   const originalAppId = process.env.FACEBOOK_APP_ID;

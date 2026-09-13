@@ -10,6 +10,7 @@ const {
 module.exports = function authRoutes(ctx) {
   const router = express.Router();
   const { pool, authenticate, bcrypt, saltRounds, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, createGmailTransporter, getBaseUrl, log, issueUserSessionToken } = ctx;
+  const googleAccessTokenVerifier = ctx.verifyGoogleAccessToken || verifyGoogleAccessToken;
   const requireUserSession = ctx.requireUserSession || ((req, res) => res.status(503).json({
     error: 'USER_SESSION_UNAVAILABLE',
     message: 'User session verification is unavailable.'
@@ -19,6 +20,31 @@ module.exports = function authRoutes(ctx) {
     const token = issueUserSessionToken(user.user_id);
     user.user_session_token = token;
     return token;
+  }
+
+  function parseGoogleLoginBody(req, res, next) {
+    if (req.body && Object.keys(req.body).length > 0) return next();
+    if (req.readableEnded) return next();
+
+    let raw = '';
+    req.setEncoding('utf8');
+    req.on('data', chunk => {
+      raw += chunk;
+      if (raw.length > 100000) req.destroy();
+    });
+    req.on('end', () => {
+      try {
+        if (raw.trim().startsWith('{')) {
+          req.body = JSON.parse(raw);
+        } else if (raw.trim()) {
+          req.body = Object.fromEntries(new URLSearchParams(raw));
+        }
+        next();
+      } catch {
+        res.status(400).json({ error: 1, result: 'Invalid Google login request.' });
+      }
+    });
+    req.on('error', next);
   }
 
 router.post('/login', authenticate, async (req, res) => {
@@ -588,10 +614,11 @@ router.post('/socialLogin', authenticate, async (req, res) => {
   }
 });
 
-router.post('/googleLogin', async (req, res) => {
+router.post('/googleLogin', parseGoogleLoginBody, async (req, res) => {
   try {
-    const verifiedIdentity = await verifyGoogleAccessToken(
-      req.body.access_token || req.body.accessToken
+    const bearerToken = req.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1];
+    const verifiedIdentity = await googleAccessTokenVerifier(
+      req.body?.access_token || req.body?.accessToken || bearerToken
     );
     const email = verifiedIdentity.email;
     const google_id = verifiedIdentity.providerId;
