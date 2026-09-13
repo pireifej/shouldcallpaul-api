@@ -269,10 +269,11 @@ router.post('/getUsersByChurch', authenticate, async (req, res) => {
   }
 });
 
-// POST /updateUser - Update user profile (About, Title, Church, Email)
+// POST /updateUser - Update user profile
 router.post('/updateUser', authenticate, async (req, res) => {
   try {
     const params = req.body;
+    const updatableFields = ['user_about', 'user_title', 'church_id', 'email', 'real_name', 'last_name', 'phone'];
     
     // Validate required parameters
     if (!params.userId) {
@@ -280,8 +281,12 @@ router.post('/updateUser', authenticate, async (req, res) => {
     }
     
     // Validate that at least one field is being updated
-    if (!params.user_about && !params.user_title && !params.church_id && !params.email && !params.real_name && !params.last_name) {
-      return res.json({ error: 1, result: "At least one field (user_about, user_title, church_id, email, real_name, or last_name) must be provided" });
+    if (!updatableFields.some(field => params[field] !== undefined)) {
+      return res.json({ error: 1, result: `At least one field (${updatableFields.join(', ')}) must be provided` });
+    }
+
+    if (params.phone !== undefined && (typeof params.phone !== 'string' || params.phone.length > 50)) {
+      return res.json({ error: 1, result: "Phone must be a string containing no more than 50 characters" });
     }
     
     // If email is being updated, check for uniqueness
@@ -337,6 +342,12 @@ router.post('/updateUser', authenticate, async (req, res) => {
       queryParams.push(params.last_name);
       paramIndex++;
     }
+
+    if (params.phone !== undefined) {
+      updateFields.push(`phone = $${paramIndex}`);
+      queryParams.push(params.phone);
+      paramIndex++;
+    }
     
     // Add userId as the last parameter for WHERE clause
     queryParams.push(params.userId);
@@ -345,7 +356,7 @@ router.post('/updateUser', authenticate, async (req, res) => {
       UPDATE public."user" 
       SET ${updateFields.join(', ')}
       WHERE user_id = $${paramIndex}
-      RETURNING user_id, user_about, user_title, church_id, email, real_name, last_name
+      RETURNING user_id, user_about, user_title, church_id, email, real_name, last_name, phone
     `;
     
     const result = await pool.query(query, queryParams);
