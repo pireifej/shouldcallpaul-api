@@ -345,8 +345,8 @@ async function handleMobileDailyDevotional(req, res) {
   }
 }
 
-router.post('/getDailyDevotional', authenticate, requireUserSession, requirePro, handleMobileDailyDevotional);
-router.post('/api/daily-bread', authenticate, requireUserSession, requirePro, handleMobileDailyDevotional);
+router.post('/getDailyDevotional', authenticate, requireUserSession, handleMobileDailyDevotional);
+router.post('/api/daily-bread', authenticate, requireUserSession, handleMobileDailyDevotional);
 
 // POST /getDailyDevotionalById — fetch a previously saved Daily Bread article
 router.post('/getDailyDevotionalById', authenticate, requireUserSession, requirePro, async (req, res) => {

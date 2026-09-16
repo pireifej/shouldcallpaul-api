@@ -330,19 +330,42 @@ test('extended generation reports a retryable failure instead of a short fallbac
   });
 });
 
-test('Daily Bread and prayer-walk API aliases enforce the Pro guard', async () => {
+test('today’s Daily Bread is free while premium devotional features enforce the Pro guard', async () => {
   const deny = (req, res) => res.status(403).json(PRO_REQUIRED_RESPONSE);
   const dailyRouter = devotionalRoutes({
-    pool: { query: async () => ({ rows: [] }) },
+    pool: {
+      query: async () => ({
+        rows: [{
+          id: 1,
+          date: '2026-09-16',
+          lang: 'en',
+          title: 'Daily Bread',
+          bible_verse: 'Be still.',
+          verse_reference: 'Psalm 46:10',
+          article_body: 'A devotional for today.',
+          prayer: 'Amen.',
+          theme: 'Peace',
+          image_url: null
+        }]
+      })
+    },
     authenticate: (req, res, next) => next(),
     requireUserSession: (req, res, next) => next(),
     requirePro: deny
   });
 
   await withServer(dailyRouter, async (baseUrl) => {
+    for (const endpoint of ['/api/daily-bread', '/getDailyDevotional']) {
+      const response = await fetch(`${baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ userId: 42 })
+      });
+      assert.equal(response.status, 200, endpoint);
+      assert.equal((await response.json()).error, 0, endpoint);
+    }
+
     for (const endpoint of [
-      '/api/daily-bread',
-      '/getDailyDevotional',
       '/getDailyDevotionalById',
       '/getDailyDevotionalArchive',
       '/getDailyBreadAudio',
