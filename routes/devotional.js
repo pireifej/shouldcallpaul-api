@@ -93,7 +93,7 @@ module.exports = function devotionalRoutes(ctx) {
     return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   }
 
-router.post('/getDailyBreadAudio', authenticate, requireUserSession, requirePro, async (req, res) => {
+router.post('/getDailyBreadAudio', authenticate, requireUserSession, async (req, res) => {
   try {
     const { date, title, content, bibleVerse, verseReference, prayer, checkOnly, lang = 'en' } = req.body;
 

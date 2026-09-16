@@ -330,7 +330,7 @@ test('extended generation reports a retryable failure instead of a short fallbac
   });
 });
 
-test('today’s Daily Bread is free while premium devotional features enforce the Pro guard', async () => {
+test('today’s Daily Bread content and audio are free while archive features enforce the Pro guard', async () => {
   const deny = (req, res) => res.status(403).json(PRO_REQUIRED_RESPONSE);
   const dailyRouter = devotionalRoutes({
     pool: {
@@ -351,7 +351,8 @@ test('today’s Daily Bread is free while premium devotional features enforce th
     },
     authenticate: (req, res, next) => next(),
     requireUserSession: (req, res, next) => next(),
-    requirePro: deny
+    requirePro: deny,
+    dailyBreadAudioCache: new Map()
   });
 
   await withServer(dailyRouter, async (baseUrl) => {
@@ -365,10 +366,17 @@ test('today’s Daily Bread is free while premium devotional features enforce th
       assert.equal((await response.json()).error, 0, endpoint);
     }
 
+    const audioResponse = await fetch(`${baseUrl}/getDailyBreadAudio`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ userId: 42, date: '2026-09-16', checkOnly: true })
+    });
+    assert.equal(audioResponse.status, 200);
+    assert.equal((await audioResponse.json()).success, true);
+
     for (const endpoint of [
       '/getDailyDevotionalById',
       '/getDailyDevotionalArchive',
-      '/getDailyBreadAudio',
       '/readDailyBread'
     ]) {
       const response = await fetch(`${baseUrl}${endpoint}`, {
