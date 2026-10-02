@@ -1767,8 +1767,9 @@ async function handlePrayerAudio(req, res) {
   }
 }
 
-router.post('/getPrayerAudio', authenticate, requireUserSession, requirePro, handlePrayerAudio);
-router.post('/api/prayer-walk/stream', authenticate, requireUserSession, requirePro, handlePrayerAudio);
+// Temporary free access while mobile IAP is pending; signed sessions remain required.
+router.post('/getPrayerAudio', authenticate, requireUserSession, handlePrayerAudio);
+router.post('/api/prayer-walk/stream', authenticate, requireUserSession, handlePrayerAudio);
 
 // POST /getDetailedPrayerByRequestId - Get or generate a longer detailed prayer for a request
 

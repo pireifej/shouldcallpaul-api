@@ -4,3 +4,4 @@
 - [RevenueCat Pro identity policy](revenuecat-pro-identity.md) — RevenueCat stays authoritative; only confirmed active identities may be linked, uniquely and without silent replacement.
 - [Daily Bread access policy](daily-bread-access.md) — Today’s devotional content and audio remain available to all signed-in users; archives and reward actions remain Pro-gated.
 - [Signed user-session policy](signed-user-sessions.md) — user-owned and Pro routes trust signed session identity, while provider logins require cryptographically verified identities.
+- [Prayer Walk temporary access](prayer-walk-access.md) — Audio is free for signed-in users while IAP is pending; extended prayer generation stays Pro-only.

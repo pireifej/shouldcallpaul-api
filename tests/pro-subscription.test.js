@@ -390,8 +390,6 @@ test('today’s Daily Bread content and audio are free while archive features en
 
   await withServer(prayerRouter({ requirePro: deny }), async (baseUrl) => {
     for (const endpoint of [
-      '/api/prayer-walk/stream',
-      '/getPrayerAudio',
       '/getDetailedPrayerByRequestId'
     ]) {
       const response = await fetch(`${baseUrl}${endpoint}`, {
@@ -402,6 +400,54 @@ test('today’s Daily Bread content and audio are free while archive features en
       assert.equal(response.status, 403, endpoint);
     }
   });
+});
+
+test('Prayer Walk audio is available without Pro on both routes but still requires app and user authentication', async () => {
+  const originalSecret = process.env.SESSION_SECRET;
+  process.env.SESSION_SECRET = 'prayer-walk-test-session-secret';
+  try {
+    const audio = Buffer.from('cached-mp3-test-data');
+    const router = prayerRouter({
+      authenticate: (req, res, next) => req.get('authorization') === 'Basic test'
+        ? next()
+        : res.status(401).json({ error: 'APP_AUTH_REQUIRED' }),
+      requireUserSession,
+      prayerAudioCache: new Map([['1', audio]]),
+      serveAudioBuffer: (req, res, buffer) => res.type('audio/mpeg').send(buffer)
+    });
+    await withServer(router, async baseUrl => {
+      for (const endpoint of ['/getPrayerAudio', '/api/prayer-walk/stream']) {
+        const request = headers => fetch(`${baseUrl}${endpoint}`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', ...headers },
+          body: JSON.stringify({ userId: 42, requestId: 1, text: 'Prayer' })
+        });
+        const noAppAuth = await request({});
+        assert.equal(noAppAuth.status, 401, endpoint);
+        assert.equal((await noAppAuth.json()).error, 'APP_AUTH_REQUIRED');
+        const noSession = await request({ authorization: 'Basic test' });
+        assert.equal(noSession.status, 401, endpoint);
+        assert.equal((await noSession.json()).error, 'USER_SESSION_REQUIRED');
+        const headers = {
+          authorization: 'Basic test',
+          'x-user-session-token': issueUserSessionToken(42)
+        };
+        const response = await request(headers);
+        assert.equal(response.status, 200, endpoint);
+        assert.match(response.headers.get('content-type'), /audio\/mpeg/);
+        assert.deepEqual(Buffer.from(await response.arrayBuffer()), audio);
+        const mismatch = await request({
+          ...headers,
+          'x-user-session-token': issueUserSessionToken(43)
+        });
+        assert.equal(mismatch.status, 403, endpoint);
+        assert.equal((await mismatch.json()).error, 'USER_ID_MISMATCH');
+      }
+    });
+  } finally {
+    if (originalSecret === undefined) delete process.env.SESSION_SECRET;
+    else process.env.SESSION_SECRET = originalSecret;
+  }
 });
 
 test('signed user sessions verify their user ID and expiration', () => {
