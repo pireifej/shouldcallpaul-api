@@ -5,3 +5,4 @@
 - [Daily Bread access policy](daily-bread-access.md) — Today’s devotional content and audio remain available to all signed-in users; archives and reward actions remain Pro-gated.
 - [Signed user-session policy](signed-user-sessions.md) — user-owned and Pro routes trust signed session identity, while provider logins require cryptographically verified identities.
 - [Prayer Walk temporary access](prayer-walk-access.md) — Audio is free for signed-in users while IAP is pending; extended prayer generation stays Pro-only.
+- [Free posting baseline](free-posting-policy.md) — User confirmed one request per day stays in place even while IAP is unfinished.
