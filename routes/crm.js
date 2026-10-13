@@ -2,6 +2,7 @@
 const express = require('express');
 const fsSync = require('fs');
 const pathMod = require('path');
+const { validateResumeEntryReference } = require('../resumeWorkshopCatalog');
 
 // ── Build Paul's resume context once at startup from existing resume_data/ files ──
 function stripHtml(str) {
@@ -140,6 +141,10 @@ module.exports = function crmRoutes(ctx) {
 
   const prepareWorkshopWrite = (input, current = {}) => {
     const body = { ...input };
+    if (hasOwn(body, 'resume_entry_id')) {
+      const referenceError = validateResumeEntryReference(body.resume_entry_id);
+      if (referenceError) return { error: referenceError };
+    }
     for (const field of ['venue_name', 'venue_address']) {
       if (hasOwn(body, field) && body[field] !== null && typeof body[field] !== 'string') {
         return { error: `${field} must be text or null` };
@@ -181,12 +186,13 @@ module.exports = function crmRoutes(ctx) {
 
   const serializeWorkshop = (workshop) => ({
     ...workshop,
+    resume_entry_id: workshop.resume_entry_id ?? null,
     fee_amount: workshop.fee_amount === null || workshop.fee_amount === undefined
       ? null
       : Number(workshop.fee_amount)
   });
 
-  const findEditableWorkshop = async (id, res) => {
+  const findEditableWorkshop = async (id, res, { allowResumeLinkOnly = false } = {}) => {
     const result = await pool.query(
       `SELECT id, status, fee_amount, fee_type, cost_basis FROM crm_workshops WHERE id = $1`,
       [id]
@@ -195,7 +201,7 @@ module.exports = function crmRoutes(ctx) {
       err(res, 'Workshop not found', 404);
       return null;
     }
-    if (!mutableWorkshopStatuses.has(normalizeWorkshopStatus(result.rows[0].status))) {
+    if (!mutableWorkshopStatuses.has(normalizeWorkshopStatus(result.rows[0].status)) && !allowResumeLinkOnly) {
       err(res, 'Complete workshops are read-only', 409);
       return null;
     }
@@ -597,7 +603,7 @@ module.exports = function crmRoutes(ctx) {
       if (prepared.error) return err(res, prepared.error, 400);
       const {
         organization_name, contact_id, status, workshop_title, historical_date,
-        venue_name, venue_address, fee_amount, fee_type, cost_basis, notes
+        venue_name, venue_address, fee_amount, fee_type, cost_basis, notes, resume_entry_id
       } = prepared.body;
       if (!organization_name) return err(res, 'organization_name is required', 400);
       const normalizedStatus = status === undefined ? 'Active' : normalizeWorkshopStatus(status);
@@ -607,12 +613,12 @@ module.exports = function crmRoutes(ctx) {
       const result = await pool.query(
         `INSERT INTO crm_workshops
            (organization_name, contact_id, status, workshop_title, historical_date,
-            venue_name, venue_address, fee_amount, fee_type, cost_basis, notes)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+            venue_name, venue_address, fee_amount, fee_type, cost_basis, notes, resume_entry_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
         [
           organization_name, contact_id || null, normalizedStatus, workshop_title,
           historical_date || null, venue_name, venue_address, fee_amount, fee_type,
-          cost_basis, notes
+          cost_basis, notes, resume_entry_id ?? null
         ]
       );
       ok(res, serializeWorkshop(result.rows[0]));
@@ -647,14 +653,15 @@ module.exports = function crmRoutes(ctx) {
   router.put('/api/workshops/:id', authenticate, async (req, res) => {
     try {
       const { id } = req.params;
-      const workshop = await findEditableWorkshop(id, res);
+      const allowResumeLinkOnly = Object.keys(req.body || {}).length === 1 && hasOwn(req.body, 'resume_entry_id');
+      const workshop = await findEditableWorkshop(id, res, { allowResumeLinkOnly });
       if (!workshop) return;
       const prepared = prepareWorkshopWrite(req.body, workshop);
       if (prepared.error) return err(res, prepared.error, 400);
       const body = prepared.body;
       const fields = [
         'organization_name','contact_id','status','workshop_title','historical_date',
-        'venue_name','venue_address','fee_amount','fee_type','cost_basis','notes'
+        'venue_name','venue_address','fee_amount','fee_type','cost_basis','notes','resume_entry_id'
       ];
       if (body.status !== undefined) {
         body.status = normalizeWorkshopStatus(body.status);
@@ -679,14 +686,15 @@ module.exports = function crmRoutes(ctx) {
   router.patch('/api/workshops/:id', authenticate, async (req, res) => {
     try {
       const { id } = req.params;
-      const workshop = await findEditableWorkshop(id, res);
+      const allowResumeLinkOnly = Object.keys(req.body || {}).length === 1 && hasOwn(req.body, 'resume_entry_id');
+      const workshop = await findEditableWorkshop(id, res, { allowResumeLinkOnly });
       if (!workshop) return;
       const prepared = prepareWorkshopWrite(req.body, workshop);
       if (prepared.error) return err(res, prepared.error, 400);
       const body = prepared.body;
       const fields = [
         'organization_name','contact_id','status','workshop_title','historical_date',
-        'venue_name','venue_address','fee_amount','fee_type','cost_basis','notes'
+        'venue_name','venue_address','fee_amount','fee_type','cost_basis','notes','resume_entry_id'
       ];
       if (body.status !== undefined) {
         body.status = normalizeWorkshopStatus(body.status);

@@ -4,3 +4,5 @@ backups/
 *.sql
 attached_assets/
 *.json
+!resume_data/workshops.json
+!migrations/workshop-resume-entry-reference.sql

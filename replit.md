@@ -60,6 +60,7 @@ Preferred communication style: Simple, everyday language.
 - **Structured fees**: `fee_amount` is a nullable non-negative number and `fee_type` is nullable with values `flat`, `hour`, or `session`.
 - **Legacy fee compatibility**: `cost_basis` remains in all workshop responses. Recognized values such as `$75`, `$75/hour`, and `$50/session` populate the structured fee fields. Saving a complete structured fee synchronizes `cost_basis`.
 - **Partial updates**: Both PUT and PATCH update only fields included in the request. An omitted field is unchanged; an explicit `null` clears a nullable field. Unrecognized legacy `cost_basis` text is preserved during unrelated updates.
+- **Resume reference**: Nullable `resume_entry_id` links a CRM workshop to an existing permanent `id` in this project's manually maintained `/resume/workshops` JSON feed. Multiple CRM rows can share an entry. Complete records permit reference-only PUT/PATCH updates; other historical edits remain blocked. See `docs/workshop-resume-links.md` for validation, migration and examples. Never merge the resume tally with CRM deliveries or automatically sync on completion.
 
 ### Image Uploads
 - **Profile Pictures**: Users can upload profile pictures (JPG, PNG, WEBP) to Cloudinary.

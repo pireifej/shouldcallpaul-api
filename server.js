@@ -1257,7 +1257,7 @@ const websiteRequestLimitMigrationReady = Promise.all([
 });
 
 // ── Startup migration: add any missing columns ────────────────────────────────
-(async () => {
+const crmSchemaMigrationReady = (async () => {
   const migrations = [
     { col: 'email_bounced',  sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS email_bounced boolean DEFAULT false` },
     { col: 'apple_id',       sql: `ALTER TABLE public."user" ADD COLUMN IF NOT EXISTS apple_id TEXT` },
@@ -1391,6 +1391,9 @@ const websiteRequestLimitMigrationReady = Promise.all([
       created_at        TIMESTAMP DEFAULT NOW(),
       updated_at        TIMESTAMP DEFAULT NOW()
     )` },
+    { col: 'crm_workshops_resume_entry_reference', sql: fs.readFileSync(
+      path.join(__dirname, 'migrations', 'workshop-resume-entry-reference.sql'), 'utf8'
+    ) },
     { col: 'crm_workshops_four_statuses', sql: `
       BEGIN;
       ALTER TABLE public.crm_workshops
@@ -1469,6 +1472,10 @@ const websiteRequestLimitMigrationReady = Promise.all([
         await p.query(sql);
         console.log(`✅ CRM migration (${name}): ${col} ready`);
       } catch (e) {
+        if (col === 'crm_workshops_resume_entry_reference') {
+          console.error(`❌ Required CRM resume-reference migration (${name}) failed:`, e.message);
+          throw e;
+        }
         console.error(`⚠️  CRM migration (${name}): ${col} failed (non-fatal):`, e.message);
       }
     }
@@ -1772,7 +1779,7 @@ console.log('⏰ Push token cleanup scheduled at 4:00 AM UTC (tokens older than 
 // ──────────────────────────────────────────────────────────────────────────────
 
 // Start server only after schemas required by request-facing routes are ready.
-Promise.all([globalNotesMigrationReady, websiteRequestLimitMigrationReady]).then(() => server.listen(PORT, '0.0.0.0', () => {
+Promise.all([globalNotesMigrationReady, websiteRequestLimitMigrationReady, crmSchemaMigrationReady]).then(() => server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`API endpoint: http://0.0.0.0:${PORT}/api/requests`);
   console.log(`WebSocket (Group Rosary) ready on ws://0.0.0.0:${PORT}`);

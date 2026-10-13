@@ -1,0 +1,618 @@
+{
+    "records": [
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/monmouth_fall_2026_find_your_voice.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/monmouth_fall_2026_find_your_voice.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/monmouth_fall_2026_expo_portrait.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/monmouth_fall_2026_event_selfie.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/monmouth_fall_2026_pumpkin_socks.jpg"
+            ],
+            "label": "Find Your Voice / Speak So Others Will Listen",
+            "id": "ad177f44-9344-492a-bb41-a1ccb1a77d26",
+            "type": "workshops",
+            "sessions": [
+                { "time": "09:00", "timeZone": "America/New_York", "durationMinutes": 50, "attendees": 46 },
+                { "time": "13:00", "timeZone": "America/New_York", "durationMinutes": 50, "attendees": 21 }
+            ],
+            "totalAttendance": 67,
+            "details": {
+                "date": "October 7, 2026",
+                "location": "Monmouth County Fire Academy, Freehold, NJ",
+                "attendees": "67 across two sessions (46 at 9:00 AM; 21 at 1:00 PM)",
+                "duration": "Two 50-minute sessions"
+            },
+            "desc": "<p>Presented twice at the <strong>Monmouth County Fall Employee Expo</strong> at the Monmouth County Fire Academy in Freehold, NJ, on October 7, 2026. <strong>Find Your Voice / Speak So Others Will Listen</strong> focused on finding your voice and communicating so others will listen.</p><p>The 9:00 AM session had <strong>46 attendees</strong>, and the 1:00 PM session had <strong>21 attendees</strong>, for <strong>67 session attendances</strong> across two 50-minute sessions.</p><p>This was one of two different workshops presented at the Expo, alongside <em>De-escalation &amp; Diplomacy Under Pressure</em>, which was delivered at 10:00 AM and 2:00 PM. Together, the two topics comprised four completed 50-minute sessions with <strong>147 session attendances</strong> overall; this total does not necessarily represent unique individuals.</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/monmouth_fall_2026_expo_portrait.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/monmouth_fall_2026_expo_portrait.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/monmouth_fall_2026_find_your_voice.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/monmouth_fall_2026_event_selfie.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/monmouth_fall_2026_pumpkin_socks.jpg"
+            ],
+            "label": "De-escalation & Diplomacy Under Pressure",
+            "id": "aa108100-d012-4e30-aff2-e75bfebcf3d7",
+            "type": "workshops",
+            "sessions": [
+                { "time": "10:00", "timeZone": "America/New_York", "durationMinutes": 50, "attendees": 34 },
+                { "time": "14:00", "timeZone": "America/New_York", "durationMinutes": 50, "attendees": 46 }
+            ],
+            "totalAttendance": 80,
+            "details": {
+                "date": "October 7, 2026",
+                "location": "Monmouth County Fire Academy, Freehold, NJ",
+                "attendees": "80 across two sessions (34 at 10:00 AM; 46 at 2:00 PM)",
+                "duration": "Two 50-minute sessions"
+            },
+            "desc": "<p>Presented twice at the <strong>Monmouth County Fall Employee Expo</strong> at the Monmouth County Fire Academy in Freehold, NJ, on October 7, 2026. <strong>De-escalation &amp; Diplomacy Under Pressure</strong> focused on navigating challenging interactions with calm, diplomatic communication.</p><p>The 10:00 AM session had <strong>34 attendees</strong>, and the 2:00 PM session had <strong>46 attendees</strong>, for <strong>80 session attendances</strong> across two 50-minute sessions.</p><p>This was one of two different workshops presented at the Expo, alongside <em>Find Your Voice / Speak So Others Will Listen</em>, which was delivered at 9:00 AM and 1:00 PM. Together, the two topics comprised four completed 50-minute sessions with <strong>147 session attendances</strong> overall; this total does not necessarily represent unique individuals.</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "https://res.cloudinary.com/dclyvhsee/image/upload/v1788390603/resume/holmdel_ai_keynote_humanity_main_2026.jpg",
+            "gallery": [
+                "https://res.cloudinary.com/dclyvhsee/image/upload/v1788390604/resume/holmdel_ai_keynote_humanity_01_2026.jpg",
+                "https://res.cloudinary.com/dclyvhsee/image/upload/v1788390604/resume/holmdel_ai_keynote_humanity_02_2026.jpg",
+                "https://res.cloudinary.com/dclyvhsee/image/upload/v1788390605/resume/holmdel_ai_keynote_humanity_03_2026.jpg",
+                "https://res.cloudinary.com/dclyvhsee/image/upload/v1788390606/resume/holmdel_ai_keynote_humanity_04_2026.jpg"
+            ],
+            "label": "Embracing the Future, Honoring Our Humanity",
+            "id": "12436371-6b4c-4924-9525-f66c342c3856",
+            "type": "workshops",
+            "details": {
+                "date": "September 1, 2026",
+                "location": "Holmdel High School Auditorium",
+                "attendees": "300+",
+                "duration": "30 minutes"
+            },
+            "desc": "<p><strong>Embracing the Future, Honoring Our Humanity</strong> is a powerful 30-minute keynote, delivered entirely without notes or slides, that explores the complex intersection of artificial intelligence and the irreplaceable nature of human connection.</p><p>Challenging the fear of automation, the keynote reframes AI not as a conscious entity or a replacement, but as an <em>Ultra-Recursive, Pattern-Matching, Mimicry Matrix</em>—a \"co-pilot\" tool capable of handling administrative mechanics to free up educators and parents for the profound, relational work of teaching.</p><p>Through a practical \"Traffic Light\" framework for classrooms and historical insights, the keynote argues that while AI can optimize tasks, it cannot replicate the intuition, empathy, and belief in student potential that defines true mentorship. Ultimately, the talk shifts the focus from technical anxiety to a human-centric \"Contribution Economy,\" urging us to let machines handle the chores so we can protect the \"quiet miracles\" and authentic human heart that must remain at the center of every classroom.</p>",
+            "category": "ai"
+        },
+        {
+            "image": "https://res.cloudinary.com/dclyvhsee/image/upload/v1784296951/resume/macoc_elevator_speech_main.jpg",
+            "gallery": [
+                "https://res.cloudinary.com/dclyvhsee/image/upload/v1784296951/resume/macoc_elevator_speech_speaking.jpg"
+            ],
+            "label": "Mastering the 30-Second Elevator Speech for Networking Success",
+            "id": "9662efc7-02fb-477f-a054-0b7fa8155aea",
+            "type": "workshops",
+            "details": {
+                "date": "July 9, 2026",
+                "location": "Hyderabad Spice, Matawan, NJ",
+                "duration": "1.5 hours (12:00 – 1:30 PM)"
+            },
+            "desc": "<p>A workshop presented at the <strong>Matawan-Aberdeen Chamber of Commerce</strong> luncheon at Hyderabad Spice in Matawan, NJ. Attendees learned how to craft and deliver a compelling 30-second elevator speech for networking success.</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-teaching.jpg",
+            "gallery": [
+                "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-signage.jpg",
+                "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-lobby.jpg"
+            ],
+            "label": "Effective Public Speaking Skills",
+            "id": "c3c6cba3-8de0-45d4-8e5b-584275ab338c",
+            "type": "workshops",
+            "details": {
+                "date": "May 13, 2026",
+                "location": "Monmouth County Fire Academy",
+                "attendees": "20+",
+                "duration": "Two 50-min sessions (9:00 AM & 1:00 PM)",
+                "cost": "$75/hr"
+            },
+            "desc": "<p>Presented twice at the <strong>Monmouth County Employee Development Expo</strong> — at 9:00 AM and again at 1:00 PM — as part of a full-day event running 9:00 AM to 4:00 PM. This session covered practical techniques for effective public speaking in professional settings, including vocal delivery, body language, message structure, and audience engagement. Also presented at this same event: <em>Active Listening &amp; Communication Skills</em>.</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-butterflies-1.jpg",
+            "gallery": [
+                "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-butterflies-2.jpg",
+                "https://www.shouldcallpaul.com/img-new/monmouth-photos/public-speaking-thoughtful.jpg"
+            ],
+            "label": "Active Listening & Communication Skills",
+            "id": "77bdc757-8ca3-41c1-89c9-7a4705748bd9",
+            "type": "workshops",
+            "details": {
+                "date": "May 13, 2026",
+                "location": "Monmouth County Fire Academy",
+                "attendees": "45+ (first session)",
+                "duration": "Two 50-min sessions (11:00 AM & 3:00 PM)",
+                "cost": "$75/hr"
+            },
+            "desc": "<p>Presented twice at the <strong>Monmouth County Employee Development Expo</strong> — at 11:00 AM and again at 3:00 PM — as part of a full-day event running 9:00 AM to 4:00 PM. The 11:00 AM session drew 45+ attendees. This session focused on the skills of active listening and effective two-way communication in the workplace. Also presented at this same event: <em>Effective Public Speaking Skills</em>.</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/ysa_finale_group.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/ysa_finale_certificates.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/ysa_session7_pizza.jpg"
+            ],
+            "label": "Young Speakers Academy",
+            "id": "955f14ba-3478-4bec-8476-69b523e5784f",
+            "type": "workshops",
+            "link": "https://www.shouldcallpaul.com/speak.html",
+            "details": {
+                "date": "February 4 – March 24, 2026",
+                "location": "Holmdel, NJ",
+                "duration": "Eight 1-hour sessions",
+                "cost": "$150 per student"
+            },
+            "desc": "<p>An 8-week youth public speaking program culminating in a live showcase before the Holmdel Township Committee and the Holmdel Mayor. Each session built on the last, covering: Introduction to Confidence, Impromptu Speaking, Speech Structure &amp; Organization, Vocal Variety &amp; Body Language, Storytelling &amp; Personal Narratives, Speech Evaluation &amp; Feedback, Preparing for the Big Day, and a Live Community Showcase. Students graduated with certificates of completion and a performance in front of a real public audience.</p>",
+            "category": "youth"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_future_thinking_main.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/ai_future_thinking_audience.jpg"
+            ],
+            "label": "The Future of Thinking",
+            "id": "8aa9d977-20d2-4363-8a54-40e143e0a4cb",
+            "type": "workshops",
+            "link": "https://mapl.events.mylibrary.digital/event?id=292860",
+            "details": {
+                "date": "May 11, 2026",
+                "location": "Matawan-Aberdeen Public Library",
+                "attendees": "20+",
+                "duration": "1 hour",
+                "cost": "$200"
+            },
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 5: The Future of Thinking — Explore the exciting potential of AI and its impact on work, creativity, and the human experience. The group exercise challenged teams to brainstorm new, ethical ways AI could solve a real local community problem.</p>",
+            "category": "ai"
+        },
+        {
+            "image": "https://www.shouldcallpaul.com/img-new/session-4/paul-title-slide.jpg",
+            "gallery": [
+                "https://www.shouldcallpaul.com/img-new/session-4/paul-audience.jpg"
+            ],
+            "label": "Securing the Future",
+            "id": "1a08f12e-c994-4759-a439-f95debafd7ed",
+            "type": "workshops",
+            "link": "https://mapl.events.mylibrary.digital/event?id=292859",
+            "details": {
+                "date": "April 27, 2026",
+                "location": "Matawan-Aberdeen Public Library",
+                "attendees": "20+",
+                "duration": "1 hour",
+                "cost": "$200"
+            },
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 4: Securing the Future — A session focusing on the challenges of fraud and security in the age of AI, and the defenses being developed. The group exercise was a short \"spot the deepfake\" activity using provided examples to increase awareness of AI-generated deceit.</p>",
+            "category": "ai"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_under_hood_main.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/ai_under_hood_tokens.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/ai_under_hood_audience.jpg"
+            ],
+            "label": "A Look Under the Hood",
+            "id": "9bd4eb04-a4c4-4d39-a5df-ef307c918813",
+            "type": "workshops",
+            "link": "https://mapl.events.mylibrary.digital/event?id=292858",
+            "details": {
+                "date": "March 30, 2026",
+                "location": "Matawan-Aberdeen Public Library",
+                "attendees": "20",
+                "duration": "1 hour",
+                "cost": "$200"
+            },
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 3: A Look Under the Hood - A simple, non-technical exploration of how Large Language Models (LLMs) actually work and how they generate text and images. The group exercise involved passing around short, incomplete stories for the group to finish, illustrating the predictive text nature of LLMs.</p>",
+            "category": "ai"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/macoc_chamber_main.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/macoc_chamber_speaking.jpg"
+            ],
+            "label": "Guest Speaker at Matawan-Aberdeen Chamber of Commerce",
+            "id": "2af7b521-cce2-4847-9bbf-321455e58e43",
+            "type": "workshops",
+            "link": "https://macocnj.com/event-6562096",
+            "details": {
+                "date": "March 3, 2026",
+                "location": "Ginkaku Japanese Bistro",
+                "attendees": "24",
+                "duration": "1.5 hours",
+                "cost": "Free"
+            },
+            "desc": "<p>AI expert, Paul Ireifej of Should Call Paul, will present on how businesses can effectively use AI and help clear up some of the \"fog\" surrounding this rapidly evolving technology.</p>",
+            "category": "ai"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_daily_life_main.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/ai_daily_life_audience.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/ai_daily_life_group.jpg"
+            ],
+            "label": "AI in Your Daily Life",
+            "id": "8bf03309-fe1d-46c3-b453-236d4c335319",
+            "type": "workshops",
+            "link": "https://mapl.events.mylibrary.digital/event?id=292857",
+            "details": {
+                "date": "March 2, 2026",
+                "location": "Matawan-Aberdeen Public Library",
+                "attendees": "30+",
+                "duration": "1 hour",
+                "cost": "$200"
+            },
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 2: AI in Your Daily Life - Explore current, practical applications of AI, from recommendation systems to tools like ChatGPT, and discuss the associated ethical considerations. The group exercise included a small prompt contest where teams tried to get an AI to generate the most creative or useful result.</p>",
+            "category": "ai"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/ai_building_blocks_main.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/ai_building_blocks_audience1.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/ai_building_blocks_audience2.jpg"
+            ],
+            "label": "The Building Blocks of AI",
+            "id": "0fb35ab2-2757-4663-a60e-431c98f60578",
+            "type": "workshops",
+            "link": "https://mapl.events.mylibrary.digital/event?id=292592",
+            "details": {
+                "date": "February 2, 2026",
+                "location": "Matawan-Aberdeen Public Library",
+                "attendees": "30+",
+                "duration": "1 hour",
+                "cost": "$200"
+            },
+            "desc": "<p>AI Decoded: Understanding the Present and Future of Artificial Intelligence — Session 1: The Building Blocks of AI - Define Artificial Intelligence, Machine Learning, and Neural Networks with simple, real-world examples. The group exercise involved categorizing various common tools as examples of AI, Machine Learning, or simple Automation.</p>",
+            "category": "ai"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/bbbs_asbury_park.jpg",
+            "id": "0df76f68-4872-4481-8ef3-62cd3c47c820",
+            "label": "Big Brothers Big Sisters",
+            "type": "workshops",
+            "details": {
+                "date": "January 16, 2026",
+                "location": "Asbury Park, NJ",
+                "attendees": "20+",
+                "duration": "1.5 hours",
+                "cost": "$100"
+            },
+            "desc": "<p>A public speaking and communication workshop designed to help Big Brothers Big Sisters staff craft and deliver their message effectively. Participants learned practical techniques to communicate confidently in front of a crowd, on the phone, and in one-on-one settings to continue fostering relationships with mentors and community partners.</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/speak_princeton_main.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/speak_princeton_audience.jpg"
+            ],
+            "label": "Speak So Others Will Listen",
+            "id": "0d26a371-4741-495b-8338-c1df0ce0ca21",
+            "type": "workshops",
+            "details": {
+                "date": "November 14, 2025",
+                "location": "Princeton Fitness & Wellness",
+                "attendees": "20+",
+                "duration": "1 hour",
+                "cost": "Free"
+            },
+            "desc": "<p>Find Your Voice. Be Heard. Learn how to boost your communication and leadership skills through vocal exercises, interactive activities, and more. Practical tools you can use immediately. Walk away with techniques to speak with confidence, command attention, and make your message memorable.</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/think_feet_main.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/think_feet_audience.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/think_feet_activity.jpg"
+            ],
+            "label": "Think on Your Feet",
+            "id": "8619409e-a35e-406d-bf37-3d6be057150f",
+            "type": "workshops",
+            "link": "https://monmouthcountylib.libcal.com/event/15454751",
+            "details": {
+                "date": "November 3, 2025",
+                "location": "Hazlet Township Branch Library",
+                "attendees": "10",
+                "duration": "1 hour",
+                "cost": "$100"
+            },
+            "desc": "<p>An improv workshop.</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/bbbs_group.jpg",
+            "id": "e2815940-466e-4802-b6a4-1b4b759e7d52",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/bbbs_materials.jpg"
+            ],
+            "label": "Big Brothers Big Sisters",
+            "type": "workshops",
+            "details": {
+                "date": "October 10, 2025",
+                "location": "Morristown, NJ",
+                "attendees": "20",
+                "duration": "1.5 hours",
+                "cost": "Free"
+            },
+            "desc": "<p>A public speaking and communication workshop designed to help Big Brothers Big Sisters staff effectively promote their mentoring program and services. Participants learned practical techniques to craft compelling messages, speak with confidence, and connect with potential mentors and community partners.</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/storytelling_main.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/storytelling_presentation.jpg"
+            ],
+            "label": "Telling Tales: The Art of Storytelling",
+            "id": "648b6735-a58d-4513-b4e6-814ce53919f7",
+            "type": "workshops",
+            "link": "https://www.redbanklibrary.org/calendar/tellingtales",
+            "details": {
+                "date": "Friday, October 2, 2025",
+                "location": "Red Bank Public Library",
+                "duration": "1 hour",
+                "cost": "Free"
+            },
+            "desc": "<p>There are a lot of ways to tell stories. Find out what suits your style as we explore and learn about storytelling. Listen, learn, and share during this evening program led by Paul Ireifej.</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/future_school_ai_main.jpg",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/future_school_ai_group.jpg"
+            ],
+            "label": "The Future of School Leadership with AI",
+            "id": "7b36afe9-b2d6-4ce0-ad60-b9b4760bb95e",
+            "type": "workshops",
+            "details": {
+                "date": "August 25, 2025",
+                "location": "Holmdel School District",
+                "attendees": "20",
+                "duration": "1.5 hours",
+                "cost": "Free"
+            },
+            "desc": "<p>We'll explore how school leaders can personally use AI to save time. You'll choose one real administrative task like newsletters or evaluation summaries and use an AI assistant to create a draft version, refining it through prompt engineering.</p>",
+            "category": "ai"
+        },
+        {
+            "image": "img/teentalk3.jpg",
+            "gallery": [
+                "img/teentalk1.jpg"
+            ],
+            "label": "Teen Talk: Mastering Public Speaking for Success In-Person",
+            "id": "666b0263-8b77-40cb-9ac4-2ac1e3541b7c",
+            "type": "workshops",
+            "link": "https://monmouthcountylib.libcal.com/event/14704222",
+            "details": {
+                "date": "July 24, 2025",
+                "location": "Hazlet Public Library",
+                "attendees": "20",
+                "duration": "1 hour",
+                "cost": "Free"
+            },
+            "desc": "<p>Attention Teens! Do you want to feel more confident when speaking in front of a group? Whether it's for class presentations, interviews, or leadership roles, strong public speaking skills can make a big difference. With experienced public speaker and coach, Paul Ireifej, you'll get practical tools to become a more effective and confident communicator. No prior experience needed -- just bring your voice and an open mind!</p>",
+            "category": "youth"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/career_day_2026_classroom.jpg",
+            "id": "a6882b3c-e2e9-41c7-a3f3-b779fe01117d",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/img/career_day_2026_slide.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/career_day_2026_sign.jpg",
+                "https://shouldcallpaul.replit.app/resume_data/img/career_day_2026_student.jpg"
+            ],
+            "label": "Career Day at Indian Hill",
+            "type": "workshops",
+            "details": {
+                "date": "May 29, 2026",
+                "location": "Holmdel, NJ",
+                "attendees": "20+",
+                "duration": "Eight 50-min sessions",
+                "cost": "Free"
+            },
+            "desc": "<p>Returned to Indian Hill School for Career Day for the third consecutive year, presenting eight 50-minute sessions to 4th, 5th, and 6th grade classes. This year's talk covered a career in telecommunications and software development, followed by a hands-on AI segment: students gave a computer instructions to draw shapes, created original music using AI, and collaborated on AI-generated stories with corresponding illustrations starring student volunteers.</p>",
+            "category": "youth"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/career-day-1.jpg",
+            "id": "63399dd0-99ee-4c41-94a9-371187ba0dc0",
+            "gallery": [
+                "https://shouldcallpaul.replit.app/resume_data/career-day-2.jpg"
+            ],
+            "label": "Career Day at Indian Hill",
+            "type": "workshops",
+            "details": {
+                "date": "May 30, 2025",
+                "location": "Holmdel, NJ",
+                "attendees": "20+",
+                "duration": "20 min x 7",
+                "cost": "Free"
+            },
+            "desc": "<p>Gave a total of seven presentations to 4, 5 and 6 grade classes at Indian Hill School during their Career Day to showcase having a job in Software Engineering and Computer Programming. This was my second year in a row doing it.</p>",
+            "category": "youth"
+        },
+        {
+            "image": "https://shouldcallpaul.replit.app/resume_data/img/rpi_workshop.jpg",
+            "label": "Find Your Voice with Paul Ireifej '07",
+            "id": "d2ac0965-1364-427d-9b53-b31fe27400bc",
+            "type": "workshops",
+            "link": "https://www.alumni.rpi.edu/s/1225/alumni/index.aspx?sid=1225&gid=1&pgid=10367&cid=23580&ecid=23580&crid=0&calpgid=364&calcid=14131",
+            "details": {
+                "date": "March 26, 2025",
+                "location": "RPI Alumni Event",
+                "duration": "1 hour",
+                "cost": "Free"
+            },
+            "desc": "<p>\"The human brain starts working the moment you are born and never stops until you stand up to speak in public.\" – George Jessel</p><p>Join us for a night of dinner and gain some public speaking skills! This workshop combines interactive activities, practical exercises, and real-time feedback to help you build skills and confidence in a supportive environment of fellow alumni and friends. Whether you're a beginner or looking to refine your speaking abilities, this workshop is your first step to becoming a more dynamic speaker!</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "img/redbankaione.jpg",
+            "gallery": [
+                "img/airedbanktwo.jpg"
+            ],
+            "label": "AI for Beginners Workshop - Red Bank",
+            "id": "b8e969ea-c5ab-4d89-a535-bfe67014e8de",
+            "type": "workshops",
+            "link": "https://www.redbanklibrary.org/calendar/aiforbeginners",
+            "details": {
+                "date": "March 6, 2025",
+                "location": "Red Bank Public Library",
+                "attendees": "10",
+                "duration": "1 hour",
+                "cost": "Free"
+            },
+            "desc": "<p>You're invited to join our free, one-hour workshop with seasoned speaker and tech enthusiast Paul Ireifej and receive a hands-on introduction to AI.</p><p>Discover practical and simple ways to use ChatGPT in your daily life while shedding fears and demystifying artificial intelligence. Learn how AI can simplify tasks, spark creativity, and become a helpful, approachable tool in your everyday routine.</p><p>Let's make AI work for you - no tech experience required!</p>",
+            "category": "ai"
+        },
+        {
+            "image": "img/gallery/PXL_20250210_233640519.jpg",
+            "gallery": [
+                "img/gallery/PXL_20250210_232745346.jpg"
+            ],
+            "label": "AI Program with Paul Ireifej - Matawan",
+            "id": "f5d167d1-ba3f-42b0-9f52-67b8e7821b8f",
+            "type": "workshops",
+            "link": "https://mapl.events.mylibrary.digital/event?id=165278",
+            "details": {
+                "date": "February 10, 2025",
+                "location": "Matawan Aberdeen Public Library",
+                "attendees": "4",
+                "duration": "1 hour",
+                "cost": "Free"
+            },
+            "desc": "<p>Curious about AI but feeling overwhelmed? Join us for a one-hour workshop with Paul Ireifej, a seasoned speaker and tech enthusiast. Discover practical and simple ways to use ChatGPT in your daily life while shedding fears and demystifying artificial intelligence. Learn how AI can simplify tasks, spark creativity, and become a helpful, approachable tool in your everyday routine. Let's make AI work for you - no tech experience required!</p>",
+            "category": "ai"
+        },
+        {
+            "image": "img/gallery/PXL_20250206_224814234.jpg",
+            "gallery": [
+                "img/gallery/PXL_20250206_223919834.jpg",
+                "img/gallery/PXL_20250206_224049552.jpg"
+            ],
+            "label": "Find Your Voice - Red Bank",
+            "id": "176649b2-e946-4482-83c6-df23b83cd5ac",
+            "type": "workshops",
+            "link": "https://www.redbanklibrary.org/calendar/publicspeaking26",
+            "details": {
+                "date": "February 06, 2025",
+                "location": "Red Bank Public Library",
+                "duration": "1 hour",
+                "cost": "Free"
+            },
+            "desc": "<p>Find your voice at our free workshop, hosted by experienced public speaker Paul Ireifej!</p><p>Adults and young adults are invited to join our free, one-hour workshop and discover the tools to speak with confidence, structure your message effectively, and captivate any audience.</p><p>This workshop combines interactive activities, practical exercises, and real-time feedback to help you build skills and confidence in a supportive environment. Whether you're a beginner or looking to refine your speaking abilities, this workshop is your first step to becoming a dynamic speaker!</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "img/gallery/PXL_20250116_000043349.jpg",
+            "gallery": [
+                "img/gallery/PXL_20250115_233554604.MP.jpg",
+                "img/gallery/PXL_20250115_225851074.MP.jpg"
+            ],
+            "label": "Find Your Voice - Matawan",
+            "id": "bdf17152-5fc4-4875-ac6b-fc65eb194649",
+            "type": "workshops",
+            "link": "https://mapl.events.mylibrary.digital/event?id=156850&fbclid=IwY2xjawHq2ZtleHRuA2FlbQIxMQABHUhJOhjuVasHedD0P8IEAe92faTzBslqv826l87irI2xMCJUluBiliZqmw_aem_xmUHldDL1CgU_W9dfJElug",
+            "details": {
+                "date": "January 15, 2025",
+                "location": "Matawan Aberdeen Public Library",
+                "attendees": "9",
+                "duration": "1 hour",
+                "cost": "Free"
+            },
+            "desc": "<p>Discover the tools to speak with confidence, structure your message effectively, and captivate any audience. In this engaging session, you'll learn how to:  Craft a compelling speech with a clear, introduction, body, and conclusion, Enhance your delivery using vocal variety and powerful body language, Conquer stage fright with proven techniques like breathing exercises and visualization. This workshop combines interactive activities, practical exercises, and real-time feedback to help you build skills and confidence in a supportive environment. Whether you're a beginner or looking to refine your speaking abilities, this workshop is your first step to becoming a dynamic speaker!</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "img/gallery/respect2.jpg",
+            "gallery": [
+                "img/gallery/respect1.jpg",
+                "img/gallery/respect3.jpg"
+            ],
+            "label": "Week of Respect - Franklin School",
+            "id": "f6a1ed72-fc62-4c96-8f3b-7ddb97ce9181",
+            "type": "workshops",
+            "link": "https://youtu.be/YI2_SnK2B0g",
+            "details": {
+                "date": "October 9, 2024",
+                "location": "Franklin School in North Bergen, NJ",
+                "attendees": "100+",
+                "duration": "Two 30 minute sessions",
+                "cost": "Free"
+            },
+            "desc": "<p>The week of 10/7 is the \"Week of Respect\" in NJ, and Franklin School in North Bergen is looking for a volunteer speaker who can go into classrooms to speak to students grades 4 - 8 about the importance of respect, kindness, friendship, responsibility, or something that inspires them to be mindful of their actions.</p>",
+            "category": "youth"
+        },
+        {
+            "label": "Master the Art of Public Speaking - Bell Works",
+            "id": "37fb0da2-dae9-45ed-b700-292d9fa597ff",
+            "type": "workshops",
+            "details": {
+                "date": "September 12, 2024",
+                "location": "Holmdel Public Library",
+                "attendees": "10",
+                "duration": "1 hour",
+                "cost": "Free"
+            },
+            "desc": "<p>Embark on a transformative journey in our \"Mastering the Art of Public Speaking\" workshop, featuring voluntary audience interaction with impromptu questions, examples of conststructive criticism. Discover your authentic voice, enhance public speaking skills, and gain a competitive edge. Join us for a concise, impactful session to unlock your full potential in communication and leadership.</p>",
+            "category": "speaking"
+        },
+        {
+            "image": "img/PXL_20240824_152158036.MP.jpg",
+            "label": "Youth Leadership Program - Coordinator",
+            "id": "4fa998ed-b121-4c89-bee3-94d255e38859",
+            "type": "workshops",
+            "link": "https://www.shouldcallpaul.com/ylp.html",
+            "details": {
+                "date": "July & August 2024",
+                "location": "Red Bank Public Library",
+                "attendees": "10",
+                "duration": "Eight 1-hour sessions",
+                "cost": "Free"
+            },
+            "desc": "<p>An 8-week youth public speaking program following Toastmasters International conventions and format. Participants learned chairmanship, introduction to public speaking, impromptu speaking, organizing your speech, listening and body gestures, and voice and vocabulary. Each one-hour session included speeches with feedback from both the instructor and peers. The program culminated in a final debate project where participants demonstrated their newly developed skills.</p>",
+            "category": "youth"
+        },
+        {
+            "image": "img/gallery/20240531_112847.jpg",
+            "gallery": [
+                "img/gallery/indianhill.png"
+            ],
+            "label": "Career Day",
+            "id": "c8dae0cc-59aa-4595-b17e-a8df53128261",
+            "type": "workshops",
+            "details": {
+                "date": "March 31, 2024",
+                "location": "Indian Hill School in Holmdel",
+                "attendees": "20+",
+                "duration": "20 min x 7",
+                "cost": "Free"
+            },
+            "desc": "<p>Gave a total of seven presentations to 4, 5 and 6 grade classes at Indian Hill School during their Career Day to showcase having a job in Software Engineering and Computer Programming.</p>",
+            "category": "youth"
+        },
+        {
+            "image": "img/gallery/facebook_1716907117027_7201230388578389877.jpg",
+            "label": "Youth Leadership Program - Guest",
+            "id": "d68334d1-edbb-4c22-9a7a-9f10cc621f42",
+            "type": "workshops",
+            "details": {
+                "date": "March 9, 2024",
+                "location": "SCLSNJ's Somerville Library Branch",
+                "attendees": "15",
+                "duration": "20 min",
+                "cost": "Free"
+            },
+            "desc": "<p>Gave a presentation about impromptu speaking for the Youth Leadership Program.</p>",
+            "category": "youth"
+        },
+        {
+            "image": "img/gallery/facebook_1716907083993_7201230250024254985.jpg",
+            "label": "Master the Art of Public Speaking - Matawan",
+            "id": "9b2e295b-0c1d-433e-ac14-7482e3a86398",
+            "type": "workshops",
+            "details": {
+                "date": "March 14, 2024",
+                "location": "Matawan Aberdeen Public Library",
+                "attendees": "9",
+                "duration": "1 hour",
+                "cost": "Free"
+            },
+            "desc": "<p>Embark on a transformative journey in our \"Mastering the Art of Public Speaking\" workshop, featuring voluntary audience interaction with impromptu questions, examples of conststructive criticism. Discover your authentic voice, enhance public speaking skills, and gain a competitive edge. Join us for a concise, impactful session to unlock your full potential in communication and leadership.</p>",
+            "category": "speaking"
+        }
+    ]
+}
