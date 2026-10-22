@@ -166,12 +166,14 @@ test('RevenueCat lookups reject excess distinct work when concurrency queue is f
   await first;
 });
 
-test('free tier is limited after one request on the UTC day and Pro bypasses lookup', async () => {
+test('free tier is limited after one request on the Eastern day and Pro bypasses lookup', async () => {
   let queryCount = 0;
   const pool = {
     async query(sql, params) {
       queryCount++;
-      assert.match(sql, /timestamp::date = \$2::date/);
+      assert.match(sql, /timestamp >=/);
+      assert.match(sql, /timestamp </);
+      assert.match(sql, /AT TIME ZONE 'America\/New_York'/);
       assert.deepEqual(params, [42, '2026-09-13']);
       return { rows: [{ request_id: 9001 }] };
     }

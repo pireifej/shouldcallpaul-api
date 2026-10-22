@@ -5,8 +5,20 @@ const DAILY_LIMIT_RESPONSE = Object.freeze({
   message: 'Free tier is limited to 1 request per day. Upgrade to Pro for unlimited requests.'
 });
 
-function getUtcCalendarDate(now = new Date()) {
-  return now.toISOString().slice(0, 10);
+// One app-wide day, not a caller-provided timezone or a rolling 24-hour window.
+const POSTING_TIME_ZONE = 'America/New_York';
+const postingDateFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: POSTING_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+});
+
+function getPostingCalendarDate(now = new Date()) {
+  const parts = Object.fromEntries(
+    postingDateFormatter.formatToParts(now).map(({ type, value }) => [type, value])
+  );
+  return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
 async function checkFreeTierDailyLimit(pool, userId, isPro, now = new Date()) {
@@ -19,12 +31,13 @@ async function checkFreeTierDailyLimit(pool, userId, isPro, now = new Date()) {
     throw error;
   }
 
-  const requestDate = getUtcCalendarDate(now);
+  const requestDate = getPostingCalendarDate(now);
   const result = await pool.query(
     `SELECT request_id
      FROM public.request
      WHERE user_id = $1
-       AND timestamp::date = $2::date
+       AND timestamp >= (($2::date::timestamp AT TIME ZONE '${POSTING_TIME_ZONE}') AT TIME ZONE 'UTC')
+       AND timestamp < ((($2::date + 1)::timestamp AT TIME ZONE '${POSTING_TIME_ZONE}') AT TIME ZONE 'UTC')
      LIMIT 1`,
     [numericUserId, requestDate]
   );
@@ -38,7 +51,8 @@ function sendFreeTierDailyLimitResponse(res) {
 
 module.exports = {
   DAILY_LIMIT_RESPONSE,
-  getUtcCalendarDate,
+  POSTING_TIME_ZONE,
+  getPostingCalendarDate,
   checkFreeTierDailyLimit,
   sendFreeTierDailyLimitResponse
 };

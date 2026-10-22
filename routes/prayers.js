@@ -40,6 +40,7 @@ function buildModerationCopy(flagType, modelSuggestion) {
 
 module.exports = function prayersRoutes(ctx) {
   const router = express.Router();
+  const postingNow = ctx.postingNow || (() => new Date());
   const { pool, auditPool, authenticate, generatePrayer, translateText, computeRank, awardBadge, loadFaithRanks, sendGmailSingle, createGmailTransporter, uploadImage, sendPushNotification, prayerAudioCache, MAX_PRAYER_AUDIO_CACHE, PRAYER_AUDIO_DIR, openai, multer, path, fs, log, serveAudioBuffer } = ctx;
   const proSubscriptionService = ctx.proSubscriptionService || {
     async getProStatus() {
@@ -1252,7 +1253,8 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
     const freeTierLimit = await checkFreeTierDailyLimit(
       pool,
       params.userId,
-      proStatus.isPro
+      proStatus.isPro,
+      postingNow()
     );
     if (freeTierLimit.limited) {
       cleanupIdempotencyFile();
@@ -1288,7 +1290,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
         user_id, request_text, request_title, picture, fk_prayer_id,
         active, my_church_only, timestamp, updated_timestamp,
         content_en, content_es, request_source, website_request_date
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), $8, $9, $10, $11)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $12::timestamp, $12::timestamp, $8, $9, $10, $11)
       RETURNING request_id
     `;
 
@@ -1315,7 +1317,8 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
       lang === 'en' ? params.requestText : null,  // $8 - content_en
       lang === 'es' ? params.requestText : null,  // $9 - content_es
       requestSource,                                   // $10
-      requestSource === WEBSITE_REQUEST_SOURCE ? freeTierLimit.requestDate : null // $11
+      requestSource === WEBSITE_REQUEST_SOURCE ? freeTierLimit.requestDate : null, // $11
+      postingNow().toISOString() // $12 - explicit UTC; column is timestamp without time zone
     ];
 
     let insertResult;
@@ -1334,10 +1337,16 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
           [Number(params.userId)]
         );
 
+        // Recompute after waiting for the lock: midnight may have passed.
+        // Use this same instant for the bucket and INSERT. PostgreSQL NOW()
+        // would instead use the earlier transaction-start time, and casting it
+        // to timestamp would also depend on the database session timezone.
+        const insertTime = postingNow();
         const lockedFreeTierLimit = await checkFreeTierDailyLimit(
           dailyLimitClient,
           params.userId,
-          false
+          false,
+          insertTime
         );
         if (lockedFreeTierLimit.limited) {
           await dailyLimitClient.query('ROLLBACK');
@@ -1347,6 +1356,9 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
           cleanupIdempotencyFile();
           return sendFreeTierDailyLimitResponse(res);
         }
+        queryParams[10] = requestSource === WEBSITE_REQUEST_SOURCE
+          ? lockedFreeTierLimit.requestDate : null;
+        queryParams[11] = insertTime.toISOString();
       } catch (limitCheckError) {
         if (dailyLimitTransactionStarted) {
           await dailyLimitClient.query('ROLLBACK').catch(() => {});

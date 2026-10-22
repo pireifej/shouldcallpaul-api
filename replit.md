@@ -34,7 +34,7 @@ Preferred communication style: Simple, everyday language.
 - **Social identity proof**: Google and Facebook login calls must include their provider `access_token`; Apple login uses `identity_token`. Provider identity fields are derived server-side after token and audience validation.
 - **Status endpoint**: Authenticated `POST /api/subscriptions/pro-status` accepts `userId` and optional `revenuecatAppUserId`.
 - **Prayer generation**: Authenticated `POST /api/prayers/generate` accepts `extended` (default `false`). Standard prayers are 3-4 sentences and about 60-90 words. Extended 250-350 word prayers require Pro.
-- **Posting**: `POST /api/prayers/post` is an alias of the legacy creation route. Free users may create one request per UTC day across all clients; Pro users are unlimited.
+- **Posting**: `POST /api/prayers/post` is an alias of the legacy creation route. Free users may create one request per calendar day in `America/New_York` across all clients; Pro users are unlimited. The allowance resets at midnight Eastern (EST/EDT automatically), not midnight UTC or after 24 hours. Client `tz` cannot change the allowance. Hidden, archived, answered and edited posts still count. See `docs/prayoverus-website-request-limit.md`.
 - **Premium content**: `POST /api/daily-bread`, `POST /api/prayer-walk/stream`, and legacy full-content/audio equivalents require active Pro. Public `GET /getDailyDevotional` returns metadata-only preview data.
 - **Free-tier response**: A second request returns HTTP 403 with `error: "DAILY_LIMIT_REACHED"`.
 
