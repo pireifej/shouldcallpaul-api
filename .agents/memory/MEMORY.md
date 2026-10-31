@@ -6,3 +6,4 @@
 - [Signed user-session policy](signed-user-sessions.md) — user-owned and Pro routes trust signed session identity, while provider logins require cryptographically verified identities.
 - [Prayer Walk temporary access](prayer-walk-access.md) — Audio is free for signed-in users while IAP is pending; extended prayer generation stays Pro-only.
 - [Free posting baseline](free-posting-policy.md) — User confirmed one request per day stays in place even while IAP is unfinished.
+- [Resume speech display fields](resume-speech-display.md) — The separate GUI displays detail keys; reuse existing speech fields and put extra event context in the description.

@@ -4,7 +4,7 @@
             "image": "https://res.cloudinary.com/dclyvhsee/image/upload/v1793455194/speeches/hunterdon-speak-easy-2026-10-26/pzbts4mwzx2g6j5lheae.jpg",
             "label": "Guest Speaker at Hunterdon Speak Easy Toastmasters",
             "type": "speech",
-            "desc": "<p>Paul Ireifej was the guest speaker at the Hunterdon Speak Easy Toastmasters open house on Monday, October 26, 2026, at 6:30 PM at the Hunterdon County Library in Flemington, New Jersey.</p><p>Relying on dense slides and word-for-word scripts often creates a barrier between speaker and audience. But presenting without notes doesn’t require photographic memory—it requires a system. In this talk, Paul Ireifej breaks down the practical methods used to map core ideas into clear mental anchor points, internalize complex material without rote memorization, and deliver structured, authentic presentations that command the room without a safety net.</p>",
+            "desc": "<p>Paul Ireifej was the guest speaker at the Hunterdon Speak Easy Toastmasters open house on Monday, October 26, 2026, at 6:30 PM Eastern at the Hunterdon County Library, 314 State Route 12, Building #3, Flemington, NJ 08822.</p><p>Relying on dense slides and word-for-word scripts often creates a barrier between speaker and audience. But presenting without notes doesn’t require photographic memory—it requires a system. In this talk, Paul Ireifej breaks down the practical methods used to map core ideas into clear mental anchor points, internalize complex material without rote memorization, and deliver structured, authentic presentations that command the room without a safety net.</p>",
             "gallery": [
                 "https://res.cloudinary.com/dclyvhsee/image/upload/v1793455194/speeches/hunterdon-speak-easy-2026-10-26/qxzmwsqhmy9lxxo9ruzc.jpg",
                 "https://res.cloudinary.com/dclyvhsee/image/upload/v1793455194/speeches/hunterdon-speak-easy-2026-10-26/fse5juvbgj3qvgrdkags.jpg",
@@ -13,13 +13,8 @@
             "link": "https://www.youtube.com/watch?v=tZAoEadSCR8&t=3s",
             "details": {
                 "date": "October 26, 2026",
-                "time": "6:30 PM",
-                "timeZone": "America/New_York",
                 "club": "Hunterdon Speak Easy Toastmasters",
-                "event": "Open House",
-                "role": "Guest Speaker",
-                "location": "Hunterdon County Library, Flemington, NJ",
-                "address": "314 State Route 12, Building #3, Flemington, NJ 08822"
+                "location": "Hunterdon County Library, Flemington, NJ"
             }
         },
         {
