@@ -1,0 +1,21 @@
+{
+  "certifications": [
+    {
+      "designation": "IAIM",
+      "title": "Certified AI Management Professional",
+      "issuingOrganization": "IAIM",
+      "completionDate": "June 27, 2026",
+      "expirationDate": "June 27, 2027",
+      "Identifier": "2F4266E-805B7-79029",
+      "formattedEntry": "IAIM - Certified AI Management Professional, IAIM (2026)",
+      "Description": "Advanced training and ongoing professional education in AI, machine learning, and DevOps, focusing on their strategic application within security contexts."
+    },
+    {
+      "designation": "AZ-900",
+      "title": "Microsoft Azure Fundamentals",
+      "issuingOrganization": "Microsoft",
+      "completionDate": "December 2022",
+      "formattedEntry": "AZ-900 - Microsoft Azure Fundamentals, Microsoft (2022)"
+    }
+  ]
+}

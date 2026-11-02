@@ -120,36 +120,7 @@ router.post('/contact', authenticate, async (req, res) => {
   }
 });
 
-// GET /resume/:filename - Serve resume JSON files
-router.get('/resume/:filename', async (req, res) => {
-  try {
-    const filename = req.params.filename;
-    
-    // Sanitize filename to prevent directory traversal
-    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
-      return res.status(400).json({ error: 'Invalid filename' });
-    }
-    
-    // Add .json extension if not provided
-    const jsonFilename = filename.endsWith('.json') ? filename : filename + '.json';
-    const filePath = path.join(__dirname, '..', 'resume_data', jsonFilename);
-    
-    // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: 'Resume file not found' });
-    }
-    
-    // Read and return JSON file
-    const jsonData = fs.readFileSync(filePath, 'utf8');
-    const parsedData = JSON.parse(jsonData);
-    
-    res.json(parsedData);
-    
-  } catch (error) {
-    console.error('Error serving resume file:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+// Public resume feeds now live in routes/portfolio.js and read the CRM database.
 
 // POST /registerFCMToken - Register or update a user's Expo push token for push notifications
 // NOTE: Endpoint name kept as "registerFCMToken" for backward compatibility

@@ -1,0 +1,44 @@
+{
+    "records": [
+        {
+            "title": "AT&T Connection Award — Avertack Disaster Recovery",
+            "date": "April 14, 2025",
+            "desc": "Awarded an AT&T Connection Award for outstanding contributions to the Avertack Disaster Recovery initiative."
+        },
+        {
+            "title": "AT&T Connection Award — GitHub and DORA Integrations",
+            "date": "October 31, 2024",
+            "desc": "Awarded an AT&T Connection Award for outstanding contributions to GitHub and DORA Integrations."
+        },
+        {
+            "title": "AT&T Connection Award — Avertack Cloud Migration and Dora Integration",
+            "date": "October 02, 2023",
+            "desc": "Awarded an AT&T Connection Award for outstanding contributions to the Avertack Cloud Migration and Dora Integration."
+        },
+        {
+            "title": "AT&T \"Can-Do\" Excellence Award",
+            "date": "January 2013",
+            "desc": "Strong leadership skills that helped to resolve complex issues that blocked deployment for CCS 2.0."
+        },
+        {
+            "title": "AT&T Vice President Excellence Award — Cloud Services",
+            "date": "January 2012",
+            "desc": "Innovation and implementation of cloud services features for Encore Compliance."
+        },
+        {
+            "title": "AT&T \"Can-Do\" Excellence Award",
+            "date": "January 2012",
+            "desc": "Drastically improving initial case load time for the analyst for CCS 1.3."
+        },
+        {
+            "title": "AT&T Vice President Excellence Award — Compliance",
+            "date": "January 2011",
+            "desc": "Outstanding performance in application functionality and agency process automation supporting land-line subpoenas for Compliance."
+        },
+        {
+            "title": "AT&T Vice President Excellence Award — Fraud Detection",
+            "date": "January 2010",
+            "desc": "Successful production deployment of Mobility Communities of Interest in support of fraud detection and marketing."
+        }
+    ]
+}

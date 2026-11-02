@@ -35,7 +35,11 @@ app.use('/profile_images', express.static('profile_images'));
 app.use('/profile-pictures', express.static('public/profile-pictures'));
 app.use('/prayer-images', express.static('public/prayer-images'));
 app.use('/img', express.static('blog_articles/img'));
-app.use('/resume_data', express.static('resume_data'));
+// JSON feeds are database-backed; keep only static media in this directory.
+app.use('/resume_data', (req, res, next) => {
+  if (/\.json$/i.test(req.path)) return next();
+  return express.static('resume_data')(req, res, next);
+});
 app.use('/audio', (req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     next();
@@ -1161,6 +1165,7 @@ app.use(devotionalRoutes(ctx));
 app.use(blogRoutes(ctx));
 app.use(adminRoutes(ctx));
 app.use(resumeRoutes(ctx));
+app.use(require('./routes/portfolio')(ctx));
 app.use(rosaryRoutes(ctx));
 app.use(moderationRoutes(ctx));
 app.use(speakerRoutes(ctx));
@@ -1779,7 +1784,11 @@ console.log('⏰ Push token cleanup scheduled at 4:00 AM UTC (tokens older than 
 // ──────────────────────────────────────────────────────────────────────────────
 
 // Start server only after schemas required by request-facing routes are ready.
-Promise.all([globalNotesMigrationReady, websiteRequestLimitMigrationReady, crmSchemaMigrationReady]).then(() => server.listen(PORT, '0.0.0.0', () => {
+const portfolioMigrationReady = crmSchemaMigrationReady
+  .then(() => require('./portfolio/migrate').migratePortfolio(auditPool))
+  .then(result => console.log('✅ Database-backed portfolio ready:', JSON.stringify(result)));
+
+Promise.all([globalNotesMigrationReady, websiteRequestLimitMigrationReady, crmSchemaMigrationReady, portfolioMigrationReady]).then(() => server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`API endpoint: http://0.0.0.0:${PORT}/api/requests`);
   console.log(`WebSocket (Group Rosary) ready on ws://0.0.0.0:${PORT}`);

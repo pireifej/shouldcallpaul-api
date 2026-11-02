@@ -52,7 +52,7 @@ Preferred communication style: Simple, everyday language.
 ### Resume/Portfolio Data Endpoints
 - **Purpose**: Provides structured JSON data for shouldcallpaul.com.
 - **Content**: Includes workshops, conferences, speeches, projects, races, and patent information.
-- **Storage**: Static JSON files and associated images in `resume_data/`.
+- **Storage**: Category-specific database tables in the existing CRM database. JSON files in `resume_data/` and `speaker_data/` are immutable first-import inputs/backups only, not editable sources or runtime fallbacks. Static media URLs remain unchanged. See `docs/portfolio-database-api.md`.
 
 ### CRM Workshop API
 - **Endpoints**: Authenticated `GET/POST /api/workshops` and `GET/PUT/PATCH/DELETE /api/workshops/:id`.
@@ -60,7 +60,8 @@ Preferred communication style: Simple, everyday language.
 - **Structured fees**: `fee_amount` is a nullable non-negative number and `fee_type` is nullable with values `flat`, `hour`, or `session`.
 - **Legacy fee compatibility**: `cost_basis` remains in all workshop responses. Recognized values such as `$75`, `$75/hour`, and `$50/session` populate the structured fee fields. Saving a complete structured fee synchronizes `cost_basis`.
 - **Partial updates**: Both PUT and PATCH update only fields included in the request. An omitted field is unchanged; an explicit `null` clears a nullable field. Unrecognized legacy `cost_basis` text is preserved during unrelated updates.
-- **Resume reference**: Nullable `resume_entry_id` links a CRM workshop to an existing permanent `id` in this project's manually maintained `/resume/workshops` JSON feed. Multiple CRM rows can share an entry. Complete records permit reference-only PUT/PATCH updates; other historical edits remain blocked. See `docs/workshop-resume-links.md` for validation, migration and examples. Never merge the resume tally with CRM deliveries or automatically sync on completion.
+- **Resume reference**: Nullable `resume_entry_id` is a many-to-one FK to this project's database-backed résumé workshop entries. Keep public résumé entries separate from private CRM engagements; no automatic matching by title, combined tally, history copying, or publication on Complete.
+- **Workshop relationships**: Organizations, optional events, sessions, contacts, direct workshop activity FKs, and automatic before/after change history. All statuses, including Complete, allow corrections. Status is no longer an editing lock. New résumé entries are drafts until explicitly published. See `docs/portfolio-database-api.md` for all management endpoints and migration guarantees.
 
 ### Image Uploads
 - **Profile Pictures**: Users can upload profile pictures (JPG, PNG, WEBP) to Cloudinary.

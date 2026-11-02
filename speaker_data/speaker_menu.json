@@ -1,0 +1,151 @@
+{
+  "title": "Speaker Menu",
+  "subtitle": "Workshops & Programs by Paul",
+  "categories": [
+    {
+      "id": "ai_technology",
+      "title": "AI & Technology Literacy Workshops",
+      "items": [
+        {
+          "id": "ai_decoded_series",
+          "title": "The AI Decoded Series",
+          "type": "series",
+          "description": "A comprehensive 5-part curriculum covering the foundations and future of artificial intelligence.",
+          "parts": [
+            "The Building Blocks of AI",
+            "AI in Your Daily Life",
+            "A Look Under the Hood",
+            "Securing the Future",
+            "The Future of Thinking"
+          ]
+        },
+        {
+          "id": "ai_for_beginners",
+          "title": "AI for Beginners",
+          "type": "workshop",
+          "description": "A hands-on introduction demystifying ChatGPT and exploring practical ways to make AI a helpful, approachable tool in your everyday routine."
+        },
+        {
+          "id": "ai_for_businesses",
+          "title": "How Businesses Can Effectively Use AI",
+          "type": "workshop",
+          "description": "Learn how local professionals can leverage AI for everyday efficiency and clear up the confusion surrounding this rapidly evolving technology."
+        },
+        {
+          "id": "ai_administrative_assistant",
+          "title": "The AI Administrative Assistant",
+          "type": "workshop",
+          "description": "Learn how to use AI to automate grueling daily office tasks, from summarizing meeting minutes to drafting multi-channel announcements."
+        },
+        {
+          "id": "ai_school_leadership",
+          "title": "The Future of School Leadership with AI",
+          "type": "workshop",
+          "description": "A workshop teaching school administrators how to use AI to draft newsletters, summarize evaluations, and save valuable time."
+        },
+        {
+          "id": "ai_career_search",
+          "title": "AI Career Search & ATS Optimization",
+          "type": "workshop",
+          "description": "Discover how AI recruiter filters work and learn to optimize your resume for Applicant Tracking Systems (ATS) while maintaining your authentic human voice."
+        },
+        {
+          "id": "no_code_app_building",
+          "title": "No-Code App Building",
+          "type": "workshop",
+          "description": "Build and deploy your first live web app or digital portfolio using free AI companions without writing a single line of code."
+        },
+        {
+          "id": "parents_guide_ai_safety",
+          "title": "The Parent's Guide to AI Safety",
+          "type": "workshop",
+          "description": "Learn to protect your family from AI-generated scams like phone spoofing, while shifting AI from a potential hazard into a safe, constructive learning tool for your kids."
+        },
+        {
+          "id": "parents_guide_ai_homework",
+          "title": "The Parent's Guide to AI Homework Companions",
+          "type": "workshop",
+          "description": "Shift AI from a 'cheating machine' to a patient, step-by-step Socratic tutor to safely guide your child's learning."
+        },
+        {
+          "id": "notebooklm_masterclass",
+          "title": "NotebookLM Masterclass",
+          "type": "workshop",
+          "description": "Learn how to transform your messy notes, meeting minutes, and research documents into powerful learning tools like custom podcasts, study guides, flashcards, and quizzes."
+        },
+        {
+          "id": "ai_for_historians",
+          "title": "AI for Local Historians, Genealogists, and Writers",
+          "type": "workshop",
+          "description": "Bridge old archives with new tech by using multi-modal AI to decipher handwritten cursive, structure timelines, and brainstorm historical context."
+        }
+      ]
+    },
+    {
+      "id": "public_speaking",
+      "title": "Public Speaking & Communication Workshops",
+      "items": [
+        {
+          "id": "elevator_speech",
+          "title": "Mastering the 30-Second Elevator Speech for Networking Success",
+          "type": "workshop",
+          "description": "Learn how to craft and deliver a compelling, memorable introduction for professional and community networking."
+        },
+        {
+          "id": "effective_public_speaking",
+          "title": "Effective Public Speaking Skills & Active Listening",
+          "type": "workshop",
+          "description": "Practical techniques for professional settings, covering vocal delivery, body language, message structure, and effective two-way communication."
+        },
+        {
+          "id": "find_your_voice",
+          "title": "Speak So Others Will Listen (Find Your Voice)",
+          "type": "workshop",
+          "description": "Walk away with interactive, immediate techniques to conquer stage fright, speak with confidence, and command an audience's attention."
+        },
+        {
+          "id": "storytelling",
+          "title": "Telling Tales: The Art of Storytelling",
+          "type": "workshop",
+          "description": "Listen, learn, and explore different styles of structuring and delivering personal narratives that connect with your audience."
+        },
+        {
+          "id": "think_on_your_feet",
+          "title": "Think on Your Feet",
+          "type": "workshop",
+          "description": "A highly interactive, improvisational speaking workshop designed to help you think quickly and respond eloquently under pressure."
+        }
+      ]
+    },
+    {
+      "id": "youth_education",
+      "title": "Youth & Educational Programs",
+      "items": [
+        {
+          "id": "young_speakers_academy",
+          "title": "Young Speakers Academy / Youth Leadership Program",
+          "type": "program",
+          "description": "A multi-week youth public speaking and leadership program covering speech structure, impromptu speaking, and debate, culminating in a live community showcase."
+        },
+        {
+          "id": "teen_talk",
+          "title": "Teen Talk - Mastering Public Speaking",
+          "type": "program",
+          "description": "Practical tools to help teens become more effective and confident communicators for class presentations, interviews, and leadership roles."
+        },
+        {
+          "id": "career_day_tech",
+          "title": "Career Day Tech & AI Showcases",
+          "type": "program",
+          "description": "Engaging, hands-on sessions for students demonstrating software engineering, telecommunications, and real-time AI generation (music, art, and storytelling)."
+        },
+        {
+          "id": "week_of_respect_franklin",
+          "title": "Week of Respect Presentation — Franklin School",
+          "type": "presentation",
+          "description": "A special presentation delivered at Franklin School during the Week of Respect, promoting kindness, inclusion, and positive communication among students."
+        }
+      ]
+    }
+  ]
+}

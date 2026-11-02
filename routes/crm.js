@@ -1,26 +1,20 @@
 'use strict';
 const express = require('express');
-const fsSync = require('fs');
-const pathMod = require('path');
 const { validateResumeEntryReference } = require('../resumeWorkshopCatalog');
+const { readFeed, readSpeakerMenu } = require('../portfolio/store');
 
-// ── Build Paul's resume context once at startup from existing resume_data/ files ──
+// Read current database content; website edits must reach AI prep without a restart.
 function stripHtml(str) {
   return (str || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-function buildPaulResumeContext() {
-  const base = pathMod.join(__dirname, '..', 'resume_data');
+async function buildPaulResumeContext(pool) {
   const sections = [];
 
-  // Helper: read a JSON file safely
-  function read(filename) {
-    try { return JSON.parse(fsSync.readFileSync(pathMod.join(base, filename), 'utf8')); }
-    catch { return null; }
-  }
+  const read = filename => readFeed(pool, filename.replace(/\.json$/, ''));
 
   // CERTIFICATIONS
-  const certs = read('certificates.json');
+  const certs = await read('certificates.json');
   if (certs?.certifications?.length) {
     sections.push('CERTIFICATIONS:\n' + certs.certifications
       .map(c => `- ${c.title} (${c.issuingOrganization}, ${c.completionDate})${c.Description ? ': ' + c.Description.slice(0, 120) : ''}`)
@@ -28,7 +22,7 @@ function buildPaulResumeContext() {
   }
 
   // AWARDS
-  const awards = read('awards.json');
+  const awards = await read('awards.json');
   if (awards?.records?.length) {
     sections.push('AWARDS & RECOGNITION:\n' + awards.records
       .map(a => `- ${a.title} (${a.date}): ${stripHtml(a.desc).slice(0, 120)}`)
@@ -36,7 +30,7 @@ function buildPaulResumeContext() {
   }
 
   // PATENT
-  const patents = read('patent.json');
+  const patents = await read('patent.json');
   if (patents?.records?.length) {
     sections.push('PATENTS:\n' + patents.records
       .map(p => `- ${p.label}: ${stripHtml(p.desc).slice(0, 200)}`)
@@ -44,7 +38,7 @@ function buildPaulResumeContext() {
   }
 
   // PROJECTS
-  const projects = read('projects.json');
+  const projects = await read('projects.json');
   if (projects?.records?.length) {
     sections.push('KEY PROJECTS:\n' + projects.records
       .map(p => `- ${p.label}${p.details?.technology ? ' | Tech: ' + p.details.technology : ''}: ${stripHtml(p.desc).slice(0, 200)}`)
@@ -52,7 +46,7 @@ function buildPaulResumeContext() {
   }
 
   // CONFERENCE TALKS
-  const conf = read('conference.json');
+  const conf = await read('conference.json');
   if (conf?.records?.length) {
     sections.push('CONFERENCE TALKS:\n' + conf.records
       .map(c => `- ${c.label}: ${stripHtml(c.desc).slice(0, 150)}`)
@@ -60,7 +54,7 @@ function buildPaulResumeContext() {
   }
 
   // HACKATHONS
-  const hack = read('hackathon.json');
+  const hack = await read('hackathon.json');
   if (hack?.records?.length) {
     sections.push('HACKATHONS:\n' + hack.records
       .map(h => `- ${h.label}: ${stripHtml(h.desc).slice(0, 150)}`)
@@ -68,7 +62,7 @@ function buildPaulResumeContext() {
   }
 
   // WORKSHOPS DELIVERED
-  const wkp = read('workshops.json');
+  const wkp = await read('workshops.json');
   if (wkp?.records?.length) {
     sections.push('WORKSHOPS DELIVERED:\n' + wkp.records
       .map(w => `- ${w.label}${w.details?.date ? ' (' + w.details.date + ')' : ''}: ${stripHtml(w.desc).slice(0, 120)}`)
@@ -76,37 +70,27 @@ function buildPaulResumeContext() {
   }
 
   // SPEECHES (Toastmasters / public speaking)
-  const speech = read('speech.json');
+  const speech = await read('speech.json');
   if (speech?.records?.length) {
     sections.push('PUBLIC SPEAKING / TOASTMASTERS:\n' + speech.records
       .map(s => `- ${s.label}: ${stripHtml(s.desc).slice(0, 100)}`)
       .join('\n'));
   }
 
-  // Speaker topics (from speaker_menu.json)
-  try {
-    const sm = JSON.parse(fsSync.readFileSync(pathMod.join(__dirname, '..', 'speaker_data', 'speaker_menu.json'), 'utf8'));
+  // Speaker topics are database-managed too.
+  {
+    const sm = await readSpeakerMenu(pool);
     if (sm?.categories?.length) {
       const topics = sm.categories.flatMap(cat => cat.items?.map(i => i.title) || []);
       sections.push('SPEAKING TOPICS OFFERED:\n' + topics.map(t => `- ${t}`).join('\n'));
     }
-  } catch {}
+  }
 
   return [
     'CANDIDATE: Paul Ireifej — Principal Data/Platform Engineer & AI Workshop Speaker',
     'BACKGROUND: 15+ years at AT&T as Principal Software Engineer. Surplus as of June 17, 2026 (LDP Sept 15, 2026). Deep expertise in Python, PySpark, Azure (AKS, ADF, Synapse, Fabric), Kubernetes/Helm, Terraform, RAG systems, agentic AI frameworks, ETL pipelines, ML deployment, and enterprise data engineering at scale. Also an active public speaker, Toastmasters member, and workshop facilitator on AI literacy and professional development.',
     ...sections
   ].join('\n\n');
-}
-
-// Cache it — built once when the module loads
-let PAUL_RESUME_CONTEXT;
-try {
-  PAUL_RESUME_CONTEXT = buildPaulResumeContext();
-  console.log(`📄 Paul resume context built (${PAUL_RESUME_CONTEXT.length} chars)`);
-} catch (e) {
-  PAUL_RESUME_CONTEXT = 'Paul Ireifej — Principal Software/Data Engineer with 15+ years at AT&T. Python, Azure, AKS, PySpark, ETL, agentic AI, RAG systems.';
-  console.warn('⚠️  Resume context build failed, using fallback:', e.message);
 }
 
 module.exports = function crmRoutes(ctx) {
@@ -118,7 +102,6 @@ module.exports = function crmRoutes(ctx) {
   const err = (res, msg, status = 500) => res.status(status).json({ success: false, error: msg });
   const WORKSHOP_STATUSES = Object.freeze(['Active', 'In Progress', 'Complete', 'Inactive']);
   const LEGACY_WORKSHOP_STATUS_ALIASES = Object.freeze({ Completed: 'Complete' });
-  const mutableWorkshopStatuses = new Set(['Active', 'In Progress', 'Inactive']);
   const workshopStatusError = `status must be one of: ${WORKSHOP_STATUSES.join(', ')}`;
   const normalizeWorkshopStatus = (status) => LEGACY_WORKSHOP_STATUS_ALIASES[status] || status;
   const WORKSHOP_FEE_TYPES = Object.freeze(['flat', 'hour', 'session']);
@@ -139,11 +122,32 @@ module.exports = function crmRoutes(ctx) {
     return `$${Number(feeAmount)}${suffix}`;
   };
 
-  const prepareWorkshopWrite = (input, current = {}) => {
+  const prepareWorkshopWrite = async (input, current = {}) => {
     const body = { ...input };
     if (hasOwn(body, 'resume_entry_id')) {
-      const referenceError = validateResumeEntryReference(body.resume_entry_id);
+      const referenceError = await validateResumeEntryReference(body.resume_entry_id, pool);
       if (referenceError) return { error: referenceError };
+    }
+    for (const key of ['organization_id', 'event_id']) {
+      if (hasOwn(body, key) && body[key] !== null && (!Number.isSafeInteger(body[key]) || body[key] <= 0)) {
+        return { error: `${key} must be a positive integer or null` };
+      }
+    }
+    if (hasOwn(body, 'organization_id') && body.organization_id !== null) {
+      const org = await pool.query('SELECT name FROM public.crm_organizations WHERE id = $1', [body.organization_id]);
+      if (!org.rows.length) return { error: 'organization_id does not match an existing organization' };
+      if (hasOwn(body, 'organization_name') && body.organization_name !== org.rows[0].name) {
+        return { error: 'organization_name must match organization_id' };
+      }
+      body.organization_name = org.rows[0].name;
+    }
+    if (hasOwn(body, 'organization_name') &&
+        (typeof body.organization_name !== 'string' || !body.organization_name.trim())) {
+      return { error: 'organization_name must be non-empty text' };
+    }
+    if (hasOwn(body, 'event_id') && body.event_id !== null) {
+      const event = await pool.query('SELECT id FROM public.crm_events WHERE id = $1', [body.event_id]);
+      if (!event.rows.length) return { error: 'event_id does not match an existing event' };
     }
     for (const field of ['venue_name', 'venue_address']) {
       if (hasOwn(body, field) && body[field] !== null && typeof body[field] !== 'string') {
@@ -192,17 +196,13 @@ module.exports = function crmRoutes(ctx) {
       : Number(workshop.fee_amount)
   });
 
-  const findEditableWorkshop = async (id, res, { allowResumeLinkOnly = false } = {}) => {
+  const findEditableWorkshop = async (id, res) => {
     const result = await pool.query(
       `SELECT id, status, fee_amount, fee_type, cost_basis FROM crm_workshops WHERE id = $1`,
       [id]
     );
     if (!result.rows.length) {
       err(res, 'Workshop not found', 404);
-      return null;
-    }
-    if (!mutableWorkshopStatuses.has(normalizeWorkshopStatus(result.rows[0].status)) && !allowResumeLinkOnly) {
-      err(res, 'Complete workshops are read-only', 409);
       return null;
     }
     return result.rows[0];
@@ -577,6 +577,9 @@ module.exports = function crmRoutes(ctx) {
         WHERE 1=1`;
       const params = [];
       if (status) { params.push(status); query += ` AND w.status = $${params.length}`; }
+      if (req.query.organization_id) { params.push(req.query.organization_id); query += ` AND w.organization_id = $${params.length}`; }
+      if (req.query.event_id) { params.push(req.query.event_id); query += ` AND w.event_id = $${params.length}`; }
+      if (req.query.resume_entry_id) { params.push(req.query.resume_entry_id); query += ` AND w.resume_entry_id = $${params.length}`; }
       query += ` ORDER BY w.updated_at DESC`;
       const result = await pool.query(query, params);
       ok(res, result.rows.map(serializeWorkshop));
@@ -599,11 +602,12 @@ module.exports = function crmRoutes(ctx) {
   // POST /api/workshops
   router.post('/api/workshops', authenticate, async (req, res) => {
     try {
-      const prepared = prepareWorkshopWrite(req.body);
+      const prepared = await prepareWorkshopWrite(req.body);
       if (prepared.error) return err(res, prepared.error, 400);
       const {
         organization_name, contact_id, status, workshop_title, historical_date,
-        venue_name, venue_address, fee_amount, fee_type, cost_basis, notes, resume_entry_id
+        venue_name, venue_address, fee_amount, fee_type, cost_basis, notes, resume_entry_id,
+        organization_id, event_id
       } = prepared.body;
       if (!organization_name) return err(res, 'organization_name is required', 400);
       const normalizedStatus = status === undefined ? 'Active' : normalizeWorkshopStatus(status);
@@ -613,12 +617,13 @@ module.exports = function crmRoutes(ctx) {
       const result = await pool.query(
         `INSERT INTO crm_workshops
            (organization_name, contact_id, status, workshop_title, historical_date,
-            venue_name, venue_address, fee_amount, fee_type, cost_basis, notes, resume_entry_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
+            venue_name, venue_address, fee_amount, fee_type, cost_basis, notes, resume_entry_id,
+            organization_id, event_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
         [
           organization_name, contact_id || null, normalizedStatus, workshop_title,
           historical_date || null, venue_name, venue_address, fee_amount, fee_type,
-          cost_basis, notes, resume_entry_id ?? null
+          cost_basis, notes, resume_entry_id ?? null, organization_id ?? null, event_id ?? null
         ]
       );
       ok(res, serializeWorkshop(result.rows[0]));
@@ -640,7 +645,7 @@ module.exports = function crmRoutes(ctx) {
       const result = await pool.query(
         `UPDATE crm_workshops
          SET status = $1, updated_at = NOW()
-         WHERE id = $2 AND status IN ('Active', 'In Progress', 'Inactive')
+         WHERE id = $2
          RETURNING *`,
         [normalizedStatus, req.params.id]
       );
@@ -656,12 +661,12 @@ module.exports = function crmRoutes(ctx) {
       const allowResumeLinkOnly = Object.keys(req.body || {}).length === 1 && hasOwn(req.body, 'resume_entry_id');
       const workshop = await findEditableWorkshop(id, res, { allowResumeLinkOnly });
       if (!workshop) return;
-      const prepared = prepareWorkshopWrite(req.body, workshop);
+      const prepared = await prepareWorkshopWrite(req.body, workshop);
       if (prepared.error) return err(res, prepared.error, 400);
       const body = prepared.body;
       const fields = [
         'organization_name','contact_id','status','workshop_title','historical_date',
-        'venue_name','venue_address','fee_amount','fee_type','cost_basis','notes','resume_entry_id'
+        'venue_name','venue_address','fee_amount','fee_type','cost_basis','notes','resume_entry_id','organization_id','event_id'
       ];
       if (body.status !== undefined) {
         body.status = normalizeWorkshopStatus(body.status);
@@ -689,12 +694,12 @@ module.exports = function crmRoutes(ctx) {
       const allowResumeLinkOnly = Object.keys(req.body || {}).length === 1 && hasOwn(req.body, 'resume_entry_id');
       const workshop = await findEditableWorkshop(id, res, { allowResumeLinkOnly });
       if (!workshop) return;
-      const prepared = prepareWorkshopWrite(req.body, workshop);
+      const prepared = await prepareWorkshopWrite(req.body, workshop);
       if (prepared.error) return err(res, prepared.error, 400);
       const body = prepared.body;
       const fields = [
         'organization_name','contact_id','status','workshop_title','historical_date',
-        'venue_name','venue_address','fee_amount','fee_type','cost_basis','notes','resume_entry_id'
+        'venue_name','venue_address','fee_amount','fee_type','cost_basis','notes','resume_entry_id','organization_id','event_id'
       ];
       if (body.status !== undefined) {
         body.status = normalizeWorkshopStatus(body.status);
@@ -724,7 +729,10 @@ module.exports = function crmRoutes(ctx) {
       const result = await pool.query(`DELETE FROM crm_workshops WHERE id = $1 RETURNING id`, [req.params.id]);
       if (!result.rows.length) return err(res, 'Workshop not found', 404);
       ok(res, { deleted_id: result.rows[0].id });
-    } catch (e) { err(res, e.message); }
+    } catch (e) {
+      if (e.code === '23503') return err(res, 'Workshop has linked sessions or activity; remove those explicitly before deleting', 409);
+      err(res, e.message);
+    }
   });
 
   // ─────────────────────────────────────────────────────────────
@@ -856,6 +864,7 @@ module.exports = function crmRoutes(ctx) {
       if (!entity_type || !entity_id || !log_text) return err(res, 'entity_type, entity_id, and log_text are required', 400);
       const validTypes = ['position', 'workshop', 'contact'];
       if (!validTypes.includes(entity_type)) return err(res, `entity_type must be one of: ${validTypes.join(', ')}`, 400);
+      if (entity_type === 'workshop' && !await findEditableWorkshop(entity_id, res)) return;
 
       // Insert log (log_date defaults to CURRENT_TIMESTAMP in schema)
       const result = await pool.query(
@@ -1015,8 +1024,7 @@ Return exactly this structure (use null for any field not found):
       if (!posResult.rows.length) return err(res, 'Position not found', 404);
       const position = posResult.rows[0];
 
-      // Use caller-supplied summary as override, otherwise use the auto-built context from resume_data/
-      const resumeContext = user_resume_summary || PAUL_RESUME_CONTEXT;
+      const resumeContext = user_resume_summary || await buildPaulResumeContext(pool);
 
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',

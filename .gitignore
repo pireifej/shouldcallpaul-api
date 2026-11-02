@@ -7,3 +7,6 @@ attached_assets/
 !resume_data/workshops.json
 !resume_data/speech.json
 !migrations/workshop-resume-entry-reference.sql
+!resume_data/*.json
+!speaker_data/speaker_menu.json
+!migrations/portfolio-relations.sql

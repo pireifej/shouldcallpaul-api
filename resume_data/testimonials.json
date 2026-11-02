@@ -1,0 +1,22 @@
+{
+    "records": [
+        {
+            "name": "Kathleen McGurrin",
+            "title": "Human Resources",
+            "organization": "County of Monmouth",
+            "quote": "Paul was a key part of our Employee Development Expo. We heard such positive feedback from everyone who participated in his training sessions. I attended the Public Speaking Training and thought it was wonderful — I came away with some very useful tips. We would definitely be interested in working with Paul again, and are very interested in one of his AI Trainings.",
+            "event": "Monmouth County Employee Development Expo",
+            "date": "May 2026",
+            "category": "speaking"
+        },
+        {
+            "name": "Glenn Talavera",
+            "title": "Director, Department of Human Resources",
+            "organization": "County of Monmouth",
+            "quote": "I wanted to reach out to thank you for your informative presentations — we received very good feedback! We would love to set up a call to discuss a presentation to our AI committee.",
+            "event": "Monmouth County Employee Development Expo",
+            "date": "May 2026",
+            "category": "speaking"
+        }
+    ]
+}

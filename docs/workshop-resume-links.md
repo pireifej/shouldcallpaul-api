@@ -1,3 +1,13 @@
+# Current database-backed contract
+
+The JSON-based catalog and Complete-only editing restrictions described below
+have been superseded by `portfolio-database-api.md`. `resume_entry_id` now
+references `resume_workshops.id` through a real database FK. All statuses allow
+edits; null unlinks, omission preserves, and multiple CRM rows may share an entry.
+The public feed URLs/envelopes remain compatible. Do not edit the old JSON files.
+
+The remainder is historical documentation of the initial linking rollout.
+
 # CRM workshop links to completed resume entries
 
 ## Ownership and separation

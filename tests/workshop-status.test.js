@@ -7,13 +7,14 @@ const crmRoutes = require('../routes/crm');
 const fs = require('node:fs');
 const path = require('node:path');
 const resumeRoutes = require('../routes/resume');
+const portfolioRoutes = require('../routes/portfolio');
 const {
-  RESUME_WORKSHOPS_PATH,
-  validateResumeWorkshopEntries,
-  readResumeWorkshopIds
+  validateResumeWorkshopEntries
 } = require('../resumeWorkshopCatalog');
+const RESUME_WORKSHOPS_PATH = path.join(__dirname, '..', 'resume_data/workshops.json');
 const resumeBefore = fs.readFileSync(RESUME_WORKSHOPS_PATH, 'utf8');
-const resumeIds = [...readResumeWorkshopIds()];
+const fixtureRecords = JSON.parse(resumeBefore).records;
+const resumeIds = [...validateResumeWorkshopEntries(fixtureRecords)];
 
 class FakeWorkshopPool {
   constructor() {
@@ -44,6 +45,15 @@ class FakeWorkshopPool {
 
   async query(sql, params = []) {
     this.queries.push({ sql, params });
+    if (sql.includes('SELECT id FROM public.resume_workshops')) {
+      return { rows: resumeIds.includes(params[0]) ? [{ id: params[0] }] : [] };
+    }
+    if (sql.includes('SELECT * FROM public.resume_workshops')) {
+      return { rows: fixtureRecords.map(record => ({ ...record, field_names: Object.keys(record) })) };
+    }
+    if (sql.includes('SELECT content FROM public.resume_workshop_sessions')) {
+      return { rows: (fixtureRecords.find(r => r.id === params[0]).sessions || []).map(content => ({ content })) };
+    }
     if (sql.includes('SELECT id, status, fee_amount, fee_type, cost_basis FROM crm_workshops')) {
       const workshop = this.workshops.find(candidate => candidate.id === Number(params[0]));
       return {
@@ -92,9 +102,9 @@ class FakeWorkshopPool {
       return { rows: [{ ...workshop }] };
     }
 
-    if (sql.includes('UPDATE crm_workshops') && sql.includes("status IN ('Active', 'In Progress', 'Inactive')")) {
+    if (sql.includes('UPDATE crm_workshops') && sql.includes('SET status = $1')) {
       const workshop = this.workshops.find(candidate => candidate.id === Number(params[1]));
-      if (!workshop || !['Active', 'In Progress', 'Inactive'].includes(workshop.status)) return { rows: [] };
+      if (!workshop) return { rows: [] };
       workshop.status = params[0];
       return { rows: [{ ...workshop }] };
     }
@@ -129,6 +139,7 @@ function makeServer(pool) {
     openai: {}
   }));
   app.use(resumeRoutes({ fs, path, authenticate: (req, res, next) => next() }));
+  app.use(portfolioRoutes({ auditPool: pool, authenticate: (req, res, next) => next() }));
   return app;
 }
 
@@ -345,8 +356,8 @@ test('active and In Progress workshops can move through the lifecycle', async ()
   assert.equal((await response.json()).data.status, 'Complete');
 
   response = await changeStatus(1, 'Active');
-  assert.equal(response.status, 409);
-  assert.equal((await response.json()).error, 'Complete workshops are read-only');
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).data.status, 'Active');
 });
 
 test('legacy Completed input is normalized to canonical Complete', async () => {
@@ -370,11 +381,11 @@ test('unknown workshop statuses are rejected with the canonical values', async (
   );
 });
 
-test('complete workshop records are read-only', async () => {
+test('complete workshop records remain editable', async () => {
   const response = await changeStatus(2, 'Active');
-  assert.equal(response.status, 409);
-  assert.equal((await response.json()).error, 'Complete workshops are read-only');
-  assert.equal(pool.workshops[1].status, 'Complete');
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).data.status, 'Active');
+  assert.equal(pool.workshops[1].status, 'Active');
 });
 
 async function createLinkedWorkshop(fields = {}) {
@@ -492,9 +503,9 @@ test('Complete workshops allow reference-only linking and unlinking, retaining h
       assert.match(writes[0].sql, /SET resume_entry_id = \$1, updated_at/);
     }
     const blocked = await apiRequest(`/api/workshops/${workshop.id}`, {
-      method, body: JSON.stringify({ resume_entry_id: resumeIds[0], notes: 'Not allowed' })
+      method, body: JSON.stringify({ resume_entry_id: resumeIds[0], notes: 'Correction allowed' })
     });
-    assert.equal(blocked.status, 409);
+    assert.equal(blocked.status, 200);
   }
 });
 

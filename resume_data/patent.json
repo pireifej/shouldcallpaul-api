@@ -1,0 +1,42 @@
+{
+    "records": [
+	{
+	    "image": "img-new/banner/patentBanner.jpg",
+	    "gallery": ["img/gallery/transformation.jpeg"],
+	    "label": "Transformation as a Service",
+	    "type": "patent",
+	    "link": "https://patents.justia.com/patent/20220318194",
+	    "disclosure": "docs/IP20230124083051910.pdf",
+	    "desc": "<p>Providing dynamic, flexible transformation (or normalization) of data, and facilitating communication of transformed data across systems. In exemplary embodiments, a transformation platform may be implemented to provide \"transformation as a service.\"</p>",
+	    "details": {
+		"date": "Jan 24, 2023",
+		"applicationNo": "US 11,561,933 B2"
+	    }
+	},
+	{
+	    "image": "img/gallery/patentAward.jpg",
+	    "gallery": ["img/gallery/network.jpg"],
+	    "label": "Routing Optimization Based On Historical Network Measures",
+	    "type": "patent",
+	    "link": "https://patents.justia.com/patent/20200112905",
+	    "disclosure": "docs/US10827413.pdf",
+	    "desc": "<p>The present disclosure relates generally to network communications, and relates more particularly to devices, computer-readable media, and methods for optimizing the routing of communications through networks based on historical network measures.</p>",
+	    "details": {
+		"date": "Oct 09, 2018",
+		"applicationNo": "20200112905"
+	    }
+	},
+	{
+	    "image": "img/gallery/interface.jpg",
+	    "label": "Extending Legacy Scripting Languages with Graphical References",
+	    "type": "patent",
+	    "link": "https://patents.google.com/patent/US20170329620A1/en",
+	    "disclosure": "docs/US20170329620A1.pdf",
+	    "desc": "<p>A graphical data type inference transparently transforms a legacy text-oriented command line interface (CLI) into a graphic-oriented or graphic-aware CLI (G-CLI).</p>",
+	    "details": {
+		"date": "Dec 08, 2010",
+		"applicationNo": "US20120150939A1"
+	    }
+	}
+    ]
+}
