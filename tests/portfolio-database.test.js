@@ -11,6 +11,7 @@ const { migratePortfolio, verifyPortfolioReady } = require('../portfolio/migrate
 const portfolioRoutes = require('../routes/portfolio');
 const crmRoutes = require('../routes/crm');
 const speakerRoutes = require('../routes/speaker');
+const { importTestimonials } = require('../portfolio/testimonial-import');
 
 test('relational portfolio migration and authenticated APIs (isolated PostgreSQL)', {
   skip: !process.env.DATABASE_URL && 'DATABASE_URL is required for isolated PostgreSQL tests'
@@ -389,6 +390,54 @@ test('relational portfolio migration and authenticated APIs (isolated PostgreSQL
       await api('/api/speaker-menu/topics/new-topic', 'DELETE');
       await api('/api/speaker-menu/categories/new-category', 'DELETE');
       await api('/api/speaker-menu', 'PATCH', { subtitle: menu.subtitle });
+    });
+    await t.test('testimonial imports are atomic, repeatable, preserve IDs/dates and keep distinct events', async () => {
+      const before = (await pool.query('SELECT * FROM public.resume_testimonials ORDER BY id')).rows;
+      const original = before.find(row => row.name === 'Kathleen McGurrin');
+      const glenn = before.find(row => row.name === 'Glenn Talavera');
+      const rows = [
+        { name: 'Kathleen McGurrin', title: 'Human Resources', organization: 'County of Monmouth',
+          event: 'Monmouth County Fall Employee Expo', date: '2026', category: 'WORKSHOP & EVENT ATTENDEES',
+          quote: 'Exact new quote — with punctuation!' },
+        { name: original.name, title: original.title, organization: original.organization,
+          event: original.event, date: '', category: 'WORKSHOP & EVENT ATTENDEES',
+          quote: 'Exact replacement quote.' },
+        { name: glenn.name, title: glenn.title, organization: glenn.organization,
+          event: 'Monmouth County · Public Speaking & Active Listening', date: '',
+          category: 'WORKSHOP & EVENT ATTENDEES', quote: 'Exact Glenn quote.' }
+      ];
+      const preview = await importTestimonials(pool, rows, { dryRun: true });
+      assert.equal(preview.created, 1);
+      assert.equal(preview.matched, 2);
+      assert.deepEqual((await pool.query('SELECT * FROM public.resume_testimonials ORDER BY id')).rows, before);
+      const faultPool = { ...pool, async connect() {
+        const db = await pool.connect();
+        return { ...db, query(sql, params) {
+          if (sql.startsWith('UPDATE public.resume_testimonials')) throw new Error('Import write failed');
+          return db.query(sql, params);
+        } };
+      } };
+      await assert.rejects(importTestimonials(faultPool, rows), /Import write failed/);
+      assert.deepEqual((await pool.query('SELECT * FROM public.resume_testimonials ORDER BY id')).rows, before);
+      const workshopBefore = (await request('/resume/workshops')).body;
+      await importTestimonials(pool, rows);
+      const imported = (await pool.query('SELECT * FROM public.resume_testimonials ORDER BY sort_order, id')).rows;
+      assert.equal(imported.length, before.length + 1);
+      assert.equal(imported[0].date, '2026');
+      assert.equal(imported[1].id, original.id);
+      assert.equal(imported[1].date, original.date);
+      assert.equal(imported[2].id, glenn.id);
+      assert.equal(imported[2].date, glenn.date);
+      assert.deepEqual(imported.map(row => row.quote), rows.map(row => row.quote));
+      const again = await importTestimonials(pool, rows);
+      assert.equal(again.created, 0);
+      assert.deepEqual((await pool.query('SELECT * FROM public.resume_testimonials ORDER BY sort_order, id')).rows, imported);
+      const feed = (await request('/resume/testimonials', 'GET', undefined, false)).body;
+      assert.deepEqual(feed.records.map(row => row.quote), rows.map(row => row.quote));
+      assert.deepEqual((await request('/resume/workshops')).body, workshopBefore);
+      // Ambiguous matches must stop the entire import, not guess or remove records.
+      await api('/api/resume/testimonials', 'POST', { entry: { ...rows[0] } });
+      await assert.rejects(importTestimonials(pool, rows), /Ambiguous/);
     });
   } finally {
     if (server) await new Promise(resolve => server.close(resolve));
