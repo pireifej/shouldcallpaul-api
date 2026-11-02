@@ -391,6 +391,7 @@ test('relational portfolio migration and authenticated APIs (isolated PostgreSQL
       await api('/api/speaker-menu/categories/new-category', 'DELETE');
       await api('/api/speaker-menu', 'PATCH', { subtitle: menu.subtitle });
     });
+    await require('./helpers/workshop-resource-checks')(t, { pool, api, request, migratePortfolio });
     await t.test('testimonial imports are atomic, repeatable, preserve IDs/dates and keep distinct events', async () => {
       const before = (await pool.query('SELECT * FROM public.resume_testimonials ORDER BY id')).rows;
       const original = before.find(row => row.name === 'Kathleen McGurrin');

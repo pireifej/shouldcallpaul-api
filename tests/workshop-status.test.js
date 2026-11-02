@@ -45,7 +45,7 @@ class FakeWorkshopPool {
 
   async query(sql, params = []) {
     this.queries.push({ sql, params });
-    if (sql.includes("to_regclass('public.crm_workshop_resume_links')")) {
+    if (/to_regclass\('public\.crm_workshop_(resume_links|resources)'\)/.test(sql)) {
       return { rows: [{ relation: null }] }; // pre-Publish compatibility
     }
     if (sql.includes('SELECT id FROM public.resume_workshops')) {
@@ -407,6 +407,14 @@ test('new link endpoints report pending schema without breaking legacy workshop 
   const legacy = await apiRequest('/api/workshops/1');
   assert.equal(legacy.status, 200);
   assert.deepEqual((await legacy.json()).data.resume_entry_ids, []);
+});
+
+test('resource endpoints explicitly report pending schema without changing legacy workshops', async () => {
+  const response = await apiRequest('/api/workshops/1/resources');
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).error, /Publish/);
+  const legacy = await apiRequest('/api/workshops/1');
+  assert.equal(legacy.status, 200);
 });
 
 test('resume workshop IDs are unique permanent strings, independent of labels and ordering', () => {

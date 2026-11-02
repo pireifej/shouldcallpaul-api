@@ -240,6 +240,11 @@ silently deleting that history. Prefer Inactive when preserving records matters.
 
 ## Sessions, activity, and change history
 
+Private workshop shortcut links are documented separately in
+[workshop-resources-api.md](workshop-resources-api.md). Authenticated CRUD and
+reorder operations live under `/api/workshops/:id/resources`. These links belong
+to CRM workshops and never appear in public résumé feeds.
+
 CRM session endpoints:
 - `GET/POST /api/workshops/:id/sessions`.
 - `PUT/PATCH/DELETE /api/workshops/:id/sessions/:session_id`.

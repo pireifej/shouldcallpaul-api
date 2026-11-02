@@ -99,6 +99,7 @@ module.exports = function crmRoutes(ctx) {
   // CRM data lives in the NEON (production) database
   const { auditPool: pool, authenticate, openai } = ctx;
   router.use(require('./workshop-resume-links')(ctx));
+  router.use(require('./workshop-resources')(ctx));
   const linksReady = linkSchema(pool);
   const linkColumns = async alias => await linksReady() ? resumeIdsSql(alias)
     : `ARRAY(SELECT ${alias}.resume_entry_id WHERE ${alias}.resume_entry_id IS NOT NULL) AS resume_entry_ids`;

@@ -10,3 +10,4 @@
 - [Publishing database targets](publishing-database-targets.md) — A Neon-named secret does not prove the CRM database is outside managed Publish; verify schema targets before recommending publishing.
 - [Workshop link compatibility](workshop-link-compatibility.md) — Preserve old-client unlink behavior without erasing additional links or requiring a production backfill.
 - [Testimonial editorial policy](testimonial-editorial-policy.md) — Keep quotes verbatim, names abbreviated, date precision intact, and separate-event testimonials distinct.
+- [Workshop resource ownership](workshop-resource-ownership.md) — Private working-material shortcuts are shared across an engagement’s linked public presentations, not published with them.

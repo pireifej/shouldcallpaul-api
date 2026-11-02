@@ -8,8 +8,9 @@ const { transaction, saveEntry, readFeed, readSpeakerMenu } = require('./store')
 const IMPORT_NAME = 'resume-json-to-relational-database';
 const base = path.join(__dirname, '..');
 
-async function createWorkshopResumeLinks(db) {
+async function createWorkshopAdditions(db) {
   await db.query(fs.readFileSync(path.join(base, 'migrations/workshop-resume-links.sql'), 'utf8'));
+  await db.query(fs.readFileSync(path.join(base, 'migrations/workshop-resources.sql'), 'utf8'));
 }
 
 async function createSchema(db) {
@@ -116,14 +117,14 @@ async function migratePortfolio(pool) {
     if (exists.rows[0].relation) {
       const done = await db.query('SELECT imported_counts FROM public.portfolio_migrations WHERE name = $1', [IMPORT_NAME]);
       if (done.rows.length) {
-        await createWorkshopResumeLinks(db);
+        await createWorkshopAdditions(db);
         return { alreadyImported: true, counts: done.rows[0].imported_counts };
       }
     }
     await createSchema(db);
     const counts = await importLegacy(db);
     await installConstraintsAndHistory(db);
-    await createWorkshopResumeLinks(db);
+    await createWorkshopAdditions(db);
     await db.query('INSERT INTO public.portfolio_migrations(name, imported_counts) VALUES ($1,$2)',
       [IMPORT_NAME, JSON.stringify(counts)]);
     return { alreadyImported: false, counts };

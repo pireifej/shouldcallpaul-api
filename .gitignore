@@ -11,3 +11,4 @@ attached_assets/
 !speaker_data/speaker_menu.json
 !migrations/portfolio-relations.sql
 !migrations/workshop-resume-links.sql
+!migrations/workshop-resources.sql
