@@ -288,7 +288,7 @@ test('relational portfolio migration and authenticated APIs (isolated PostgreSQL
       await api(`/api/activity-logs/${log.id}`, 'DELETE');
       assert.ok((await api('/api/workshops/1/history')).some(h => h.resource_type === 'crm_activity_logs' && h.operation === 'DELETE'));
     });
-    await t.test('resume links remain many-to-one, nullable, validated and never title-matched', async () => {
+    await t.test('legacy resume links remain nullable, validated and never title-matched', async () => {
       const publicEntry = (await api('/api/resume/workshops'))[0];
       const first = await api('/api/workshops', 'POST', { organization_name: 'Link Org', resume_entry_id: publicEntry.id });
       const second = await api('/api/workshops', 'POST', { organization_name: 'Link Org', resume_entry_id: publicEntry.id });
@@ -304,6 +304,69 @@ test('relational portfolio migration and authenticated APIs (isolated PostgreSQL
       assert.equal((await api(`/api/workshops/${second.id}`)).resume_entry_id, publicEntry.id);
       const noAuto = await api('/api/workshops', 'POST', { organization_name: 'Link Org', workshop_title: publicEntry.entry.label });
       assert.equal(noAuto.resume_entry_id, null);
+    });
+    await t.test('many-to-many links preserve legacy links, private CRM state and public tallies', async () => {
+      const entries = await api('/api/resume/workshops');
+      const [a, b] = entries.map(row => row.id);
+      const draft = await api('/api/resume/workshops', 'POST', { entry: { label: 'Private draft linked talk' } });
+      const first = await api('/api/workshops', 'POST', {
+        organization_name: 'Expo links', status: 'Complete', notes: 'Private notes', contact_id: 1,
+        fee_amount: 100, fee_type: 'flat', resume_entry_id: a
+      });
+      const second = await api('/api/workshops', 'POST', { organization_name: 'Another delivery' });
+      const path = `/api/workshops/${first.id}/resume-entries`;
+      const before = (await pool.query(`SELECT to_jsonb(w) - 'resume_entry_id' AS state
+        FROM public.crm_workshops w WHERE id = $1`, [first.id])).rows[0].state;
+      const activityBefore = (await pool.query('SELECT * FROM public.crm_activity_logs ORDER BY id')).rows;
+      const contactsBefore = (await pool.query('SELECT * FROM public.crm_workshop_contacts ORDER BY workshop_id, contact_id')).rows;
+      const publicBefore = (await request('/resume/workshops')).body;
+      // Re-running development preparation must not reset legacy links or feeds.
+      await migratePortfolio(pool);
+      assert.deepEqual((await api(path)).resume_entry_ids, [a]);
+      assert.equal((await request(path, 'GET', undefined, false)).status, 401);
+      assert.equal((await request(path, 'POST', { resume_entry_id: b }, false)).status, 401);
+      assert.equal((await request(`${path}/${encodeURIComponent(a)}`, 'DELETE', undefined, false)).status, 401);
+      assert.equal((await request('/api/workshops/999999/resume-entries')).status, 404);
+      assert.equal((await request('/api/workshops/no/resume-entries')).status, 400);
+      for (const body of [{ resume_entry_id: 'missing' }, { resume_entry_id: null },
+        { resume_entry_id: '' }, { resume_entry_ids: [a] }, { resume_entry_id: b, status: 'Active' }]) {
+        assert.equal((await request(path, 'POST', body)).status, 400);
+      }
+      assert.deepEqual((await api(path, 'POST', { resume_entry_id: b })).resume_entry_ids, [a, b].sort());
+      assert.deepEqual((await api(path, 'POST', { resume_entry_id: b })).resume_entry_ids, [a, b].sort());
+      await api(path, 'POST', { resume_entry_id: a }); // primary is not duplicated
+      assert.equal((await pool.query(`SELECT count(*)::int AS n FROM public.crm_workshop_resume_links
+        WHERE workshop_id = $1`, [first.id])).rows[0].n, 1);
+      await api(`/api/workshops/${second.id}/resume-entries`, 'POST', { resume_entry_id: b });
+      const reverse = await api(`/api/workshops?resume_entry_id=${encodeURIComponent(b)}`);
+      assert.ok(reverse.some(w => w.id === first.id));
+      assert.ok(reverse.some(w => w.id === second.id));
+      const listed = (await api('/api/workshops')).find(w => w.id === first.id);
+      assert.deepEqual(listed.resume_entry_ids, [a, b].sort());
+      assert.deepEqual((await api(`/api/workshops/${first.id}`)).resume_entry_ids, [a, b].sort());
+      await api(path, 'POST', { resume_entry_id: draft.id });
+      assert.equal((await request(`/api/resume/workshops/${draft.id}`, 'DELETE')).status, 409);
+      assert.equal((await api(`/api/resume/workshops/${draft.id}`)).published, false);
+      await api(`${path}/${encodeURIComponent(draft.id)}`, 'DELETE');
+      assert.deepEqual((await api(`${path}/unknown`, 'DELETE')).resume_entry_ids, [a, b].sort());
+      assert.deepEqual((await api(`${path}/${encodeURIComponent(a)}`, 'DELETE')).resume_entry_ids, [b]);
+      assert.equal((await api(`/api/workshops/${first.id}`)).resume_entry_id, null);
+      assert.deepEqual((await pool.query(`SELECT to_jsonb(w) - 'resume_entry_id' AS state
+        FROM public.crm_workshops w WHERE id = $1`, [first.id])).rows[0].state, before);
+      assert.deepEqual((await pool.query('SELECT * FROM public.crm_activity_logs ORDER BY id')).rows, activityBefore);
+      assert.deepEqual((await pool.query('SELECT * FROM public.crm_workshop_contacts ORDER BY workshop_id, contact_id')).rows, contactsBefore);
+      assert.deepEqual((await request('/resume/workshops')).body, publicBefore);
+      // Old clients replace/clear only the legacy slot; extra links survive.
+      assert.deepEqual((await api(`/api/workshops/${first.id}`, 'PATCH', { resume_entry_id: a })).resume_entry_ids, [a, b].sort());
+      assert.deepEqual((await api(`/api/workshops/${first.id}`, 'PUT', { resume_entry_id: null })).resume_entry_ids, [b]);
+      assert.deepEqual((await api(`/api/workshops/${first.id}`, 'PATCH', { notes: 'Edited' })).resume_entry_ids, [b]);
+      assert.deepEqual((await api(`/api/workshops/${first.id}/status`, 'PATCH', { status: 'Complete' })).resume_entry_ids, [b]);
+      const rejected = await request(`/api/workshops/${first.id}`, 'PATCH', { resume_entry_ids: [], notes: 'Do not save' });
+      assert.equal(rejected.status, 400);
+      assert.equal((await api(`/api/workshops/${first.id}`)).notes, 'Edited');
+      await api(`${path}/${encodeURIComponent(b)}`, 'DELETE');
+      assert.deepEqual((await api(`/api/workshops/${second.id}/resume-entries`)).resume_entry_ids, [b]);
+      await api(`/api/resume/workshops/${draft.id}`, 'DELETE');
     });
     await t.test('speaker menu is editable in the database with ordered categories and topics', async () => {
       const menu = await api('/api/speaker-menu');

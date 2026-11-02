@@ -209,6 +209,15 @@ Additional response/create/update fields: `organization_id`, `event_id`.
 Existing fields, fee compatibility, `resume_entry_id`, and response envelopes remain.
 Collection filters: `status`, `organization_id`, `event_id`, `resume_entry_id`.
 
+Many-to-many résumé linking is now available. See
+[workshop-many-to-many-links.md](workshop-many-to-many-links.md) for the complete
+frontend contract. Workshop responses include read-only `resume_entry_ids`.
+Use GET/POST `/api/workshops/:id/resume-entries` and DELETE
+`/api/workshops/:id/resume-entries/:resume_entry_id` to manage individual links.
+The `resume_entry_id` list filter searches both legacy and additional links.
+The single legacy field below remains compatible, but represents only its own
+slot, not the complete set of links.
+
 New clients should use `organization_id`. Older clients may keep sending
 `organization_name`: an exact-name organization is linked or created automatically.
 If sending both, the name must match the ID. The returned `organization_name`

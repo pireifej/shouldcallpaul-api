@@ -2,6 +2,7 @@
 const express = require('express');
 const { validateResumeEntryReference } = require('../resumeWorkshopCatalog');
 const { readFeed, readSpeakerMenu } = require('../portfolio/store');
+const { resumeIdsSql, linkSchema } = require('../portfolio/workshop-links');
 
 // Read current database content; website edits must reach AI prep without a restart.
 function stripHtml(str) {
@@ -97,6 +98,10 @@ module.exports = function crmRoutes(ctx) {
   const router = express.Router();
   // CRM data lives in the NEON (production) database
   const { auditPool: pool, authenticate, openai } = ctx;
+  router.use(require('./workshop-resume-links')(ctx));
+  const linksReady = linkSchema(pool);
+  const linkColumns = async alias => await linksReady() ? resumeIdsSql(alias)
+    : `ARRAY(SELECT ${alias}.resume_entry_id WHERE ${alias}.resume_entry_id IS NOT NULL) AS resume_entry_ids`;
 
   const ok  = (res, data)  => res.json({ success: true,  data });
   const err = (res, msg, status = 500) => res.status(status).json({ success: false, error: msg });
@@ -124,6 +129,9 @@ module.exports = function crmRoutes(ctx) {
 
   const prepareWorkshopWrite = async (input, current = {}) => {
     const body = { ...input };
+    if (hasOwn(body, 'resume_entry_ids')) {
+      return { error: 'resume_entry_ids is read-only; add or remove links through /api/workshops/:id/resume-entries' };
+    }
     if (hasOwn(body, 'resume_entry_id')) {
       const referenceError = await validateResumeEntryReference(body.resume_entry_id, pool);
       if (referenceError) return { error: referenceError };
@@ -191,6 +199,7 @@ module.exports = function crmRoutes(ctx) {
   const serializeWorkshop = (workshop) => ({
     ...workshop,
     resume_entry_id: workshop.resume_entry_id ?? null,
+    resume_entry_ids: workshop.resume_entry_ids ?? (workshop.resume_entry_id ? [workshop.resume_entry_id] : []),
     fee_amount: workshop.fee_amount === null || workshop.fee_amount === undefined
       ? null
       : Number(workshop.fee_amount)
@@ -571,7 +580,7 @@ module.exports = function crmRoutes(ctx) {
     try {
       const status = req.query.status ? normalizeWorkshopStatus(req.query.status) : undefined;
       let query = `
-        SELECT w.*, c.name AS contact_name, c.email AS contact_email
+        SELECT w.*, ${await linkColumns('w')}, c.name AS contact_name, c.email AS contact_email
         FROM crm_workshops w
         LEFT JOIN crm_contacts c ON c.id = w.contact_id
         WHERE 1=1`;
@@ -579,7 +588,13 @@ module.exports = function crmRoutes(ctx) {
       if (status) { params.push(status); query += ` AND w.status = $${params.length}`; }
       if (req.query.organization_id) { params.push(req.query.organization_id); query += ` AND w.organization_id = $${params.length}`; }
       if (req.query.event_id) { params.push(req.query.event_id); query += ` AND w.event_id = $${params.length}`; }
-      if (req.query.resume_entry_id) { params.push(req.query.resume_entry_id); query += ` AND w.resume_entry_id = $${params.length}`; }
+      if (req.query.resume_entry_id) {
+        params.push(req.query.resume_entry_id);
+        query += await linksReady() ? ` AND (w.resume_entry_id = $${params.length} OR EXISTS (
+          SELECT 1 FROM public.crm_workshop_resume_links l
+          WHERE l.workshop_id = w.id AND l.resume_entry_id = $${params.length}))`
+          : ` AND w.resume_entry_id = $${params.length}`;
+      }
       query += ` ORDER BY w.updated_at DESC`;
       const result = await pool.query(query, params);
       ok(res, result.rows.map(serializeWorkshop));
@@ -590,7 +605,7 @@ module.exports = function crmRoutes(ctx) {
   router.get('/api/workshops/:id', authenticate, async (req, res) => {
     try {
       const result = await pool.query(`
-        SELECT w.*, c.name AS contact_name, c.email AS contact_email
+        SELECT w.*, ${await linkColumns('w')}, c.name AS contact_name, c.email AS contact_email
         FROM crm_workshops w
         LEFT JOIN crm_contacts c ON c.id = w.contact_id
         WHERE w.id = $1`, [req.params.id]);
@@ -619,7 +634,7 @@ module.exports = function crmRoutes(ctx) {
            (organization_name, contact_id, status, workshop_title, historical_date,
             venue_name, venue_address, fee_amount, fee_type, cost_basis, notes, resume_entry_id,
             organization_id, event_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *, ${await linkColumns('crm_workshops')}`,
         [
           organization_name, contact_id || null, normalizedStatus, workshop_title,
           historical_date || null, venue_name, venue_address, fee_amount, fee_type,
@@ -646,7 +661,7 @@ module.exports = function crmRoutes(ctx) {
         `UPDATE crm_workshops
          SET status = $1, updated_at = NOW()
          WHERE id = $2
-         RETURNING *`,
+         RETURNING *, ${await linkColumns('crm_workshops')}`,
         [normalizedStatus, req.params.id]
       );
       if (!result.rows.length) return err(res, 'Workshop is no longer editable', 409);
@@ -681,7 +696,7 @@ module.exports = function crmRoutes(ctx) {
       if (!updates.length) return err(res, 'No fields to update', 400);
       params.push(id);
       const result = await pool.query(
-        `UPDATE crm_workshops SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *`, params
+        `UPDATE crm_workshops SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *, ${await linkColumns('crm_workshops')}`, params
       );
       if (!result.rows.length) return err(res, 'Workshop not found', 404);
       ok(res, serializeWorkshop(result.rows[0]));
@@ -714,7 +729,7 @@ module.exports = function crmRoutes(ctx) {
       if (!updates.length) return err(res, 'No fields to update', 400);
       params.push(id);
       const result = await pool.query(
-        `UPDATE crm_workshops SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *`, params
+        `UPDATE crm_workshops SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *, ${await linkColumns('crm_workshops')}`, params
       );
       if (!result.rows.length) return err(res, 'Workshop not found', 404);
       ok(res, serializeWorkshop(result.rows[0]));

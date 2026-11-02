@@ -10,3 +10,4 @@ attached_assets/
 !resume_data/*.json
 !speaker_data/speaker_menu.json
 !migrations/portfolio-relations.sql
+!migrations/workshop-resume-links.sql
