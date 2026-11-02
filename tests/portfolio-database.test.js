@@ -7,7 +7,7 @@ const { randomUUID } = require('node:crypto');
 const { Client } = require('pg');
 const express = require('express');
 const { categories } = require('../portfolio/catalog');
-const { migratePortfolio } = require('../portfolio/migrate');
+const { migratePortfolio, verifyPortfolioReady } = require('../portfolio/migrate');
 const portfolioRoutes = require('../routes/portfolio');
 const crmRoutes = require('../routes/crm');
 const speakerRoutes = require('../routes/speaker');
@@ -96,6 +96,26 @@ test('relational portfolio migration and authenticated APIs (isolated PostgreSQL
       assert.equal((await pool.query('SELECT notes FROM public.crm_workshops WHERE id = 1')).rows[0].notes, 'Private original notes');
     });
     const migration = await migratePortfolio(pool);
+    await t.test('runtime verifies readiness using SELECT only, never creating or importing production data', async () => {
+      const queries = [];
+      const readOnlyPool = { query(sql, params) {
+        queries.push(sql);
+        assert.match(sql.trim(), /^SELECT\b/);
+        return pool.query(sql, params);
+      } };
+      const ready = await verifyPortfolioReady(readOnlyPool);
+      assert.equal(ready.alreadyImported, true);
+      assert.deepEqual(ready.counts, migration.counts);
+      assert.equal(queries.length, 2);
+      await assert.rejects(verifyPortfolioReady({ query: async () => ({ rows: [{}] }) }), /schema is not ready/);
+      let calls = 0;
+      await assert.rejects(verifyPortfolioReady({ query: async () => ++calls === 1
+        ? { rows: [Object.fromEntries(Object.values(categories).map(c => [c.table, true]).concat(
+          ['portfolio_migrations', 'portfolio_change_history', 'crm_organizations', 'crm_events',
+            'crm_organization_contacts', 'crm_workshop_sessions', 'resume_workshop_sessions',
+            'speaker_menu', 'speaker_categories', 'speaker_topics'].map(table => [table, true])))] }
+        : { rows: [] } }), /data import is not complete/);
+    });
     await t.test('all ten feeds and speaker menu import losslessly, with stable workshop IDs', async () => {
       assert.equal(migration.alreadyImported, false);
       assert.equal(migration.counts.preserved_orphan_activity_logs, 1);

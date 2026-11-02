@@ -6,8 +6,10 @@ This backend owns the public résumé feeds and the CRM data. Both now use the
 existing CRM database (`auditPool`, configured using `NEON_DATABASE_URL`).
 This does not replace the prayer database or move CRM data to another provider.
 
-The startup migration in `portfolio/migrate.js` waits for the existing CRM
-migrations, then performs an advisory-locked, transactional import. It:
+Development schema preparation runs via
+`node scripts/prepare-portfolio-development.js` and the post-merge setup hook.
+It targets **development `DATABASE_URL` only**, never `NEON_DATABASE_URL`.
+`portfolio/migrate.js` performs an advisory-locked, transactional import. It:
 
 1. Creates category-specific résumé tables, workshop relationships, and speaker-menu tables.
 2. Imports all ten `resume_data/*.json` files and `speaker_data/speaker_menu.json`.
@@ -16,9 +18,21 @@ migrations, then performs an advisory-locked, transactional import. It:
 4. Installs the résumé workshop FK and change-history triggers.
 5. Writes a durable completion marker and counts in `portfolio_migrations`.
 
-A failure rolls everything in this migration back and prevents the server from
-serving partially migrated feeds. Later restarts skip the import entirely. They
-never overwrite website edits or recreate deleted entries.
+A failure rolls everything in this migration back. Replit Publish compares this
+prepared development schema to production and applies schema changes through the
+Publish UI. Do not approve DROP statements for these tables or use the option
+to overwrite production data with development data.
+
+The existing CRM production database already contains the verified initial import.
+Runtime startup now performs **read-only readiness checks**; it does not create
+portfolio tables, add constraints, run seed imports, or recreate deleted content
+in production. Missing schema/import markers cause an explicit startup failure.
+For a genuinely new production database, plan its initial data import separately;
+do not silently seed or overwrite a populated production database.
+
+Functions/triggers are also required for relationships and history. They are
+already installed in the existing CRM database; do not assume Publish creates
+unsupported database objects in a new production database automatically.
 
 The old JSON files are **one-time migration inputs/backups only**. They remain in
 the repository to bootstrap a database on a first deployment; they are not a

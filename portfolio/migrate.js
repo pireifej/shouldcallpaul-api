@@ -122,4 +122,23 @@ async function migratePortfolio(pool) {
   });
 }
 
-module.exports = { migratePortfolio, createSchema, importLegacy, installConstraintsAndHistory, IMPORT_NAME };
+// Runtime must never create the managed production schema. Publish owns that
+// schema; its source of truth is the development database prepared by the CLI.
+async function verifyPortfolioReady(pool) {
+  const tables = [...Object.values(categories).map(config => config.table),
+    'portfolio_migrations', 'portfolio_change_history', 'crm_organizations',
+    'crm_events', 'crm_organization_contacts', 'crm_workshop_sessions',
+    'resume_workshop_sessions', 'speaker_menu', 'speaker_categories', 'speaker_topics'];
+  const result = await pool.query(`SELECT ${tables.map(table =>
+    `to_regclass('public.${table}') IS NOT NULL AS "${table}"`).join(', ')}`);
+  if (tables.some(table => !result.rows[0][table])) {
+    throw new Error('Portfolio schema is not ready. Prepare the development schema and review the Publish migration; do not recreate production tables at startup.');
+  }
+  const marker = await pool.query('SELECT imported_counts FROM public.portfolio_migrations WHERE name = $1', [IMPORT_NAME]);
+  if (!marker.rows.length) {
+    throw new Error('Portfolio data import is not complete. Stop and review database initialization before publishing; runtime will not overwrite or re-import content.');
+  }
+  return { alreadyImported: true, counts: marker.rows[0].imported_counts };
+}
+
+module.exports = { migratePortfolio, verifyPortfolioReady, createSchema, importLegacy, installConstraintsAndHistory, IMPORT_NAME };

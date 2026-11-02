@@ -7,3 +7,4 @@
 - [Prayer Walk temporary access](prayer-walk-access.md) — Audio is free for signed-in users while IAP is pending; extended prayer generation stays Pro-only.
 - [Free posting baseline](free-posting-policy.md) — User confirmed one request per day stays in place even while IAP is unfinished.
 - [Resume speech display fields](resume-speech-display.md) — The separate GUI displays detail keys; reuse existing speech fields and put extra event context in the description.
+- [Publishing database targets](publishing-database-targets.md) — A Neon-named secret does not prove the CRM database is outside managed Publish; verify schema targets before recommending publishing.

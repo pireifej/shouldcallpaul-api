@@ -62,6 +62,7 @@ Preferred communication style: Simple, everyday language.
 - **Partial updates**: Both PUT and PATCH update only fields included in the request. An omitted field is unchanged; an explicit `null` clears a nullable field. Unrecognized legacy `cost_basis` text is preserved during unrelated updates.
 - **Resume reference**: Nullable `resume_entry_id` is a many-to-one FK to this project's database-backed résumé workshop entries. Keep public résumé entries separate from private CRM engagements; no automatic matching by title, combined tally, history copying, or publication on Complete.
 - **Workshop relationships**: Organizations, optional events, sessions, contacts, direct workshop activity FKs, and automatic before/after change history. All statuses, including Complete, allow corrections. Status is no longer an editing lock. New résumé entries are drafts until explicitly published. See `docs/portfolio-database-api.md` for all management endpoints and migration guarantees.
+- **Publishing safety**: Prepare portfolio schema on development `DATABASE_URL` using `node scripts/prepare-portfolio-development.js` (also in post-merge setup). Publish uses the dev schema as its reference; never approve removal of portfolio tables or overwrite production data with dev data. Portfolio runtime startup is read-only verification, not production DDL/import.
 
 ### Image Uploads
 - **Profile Pictures**: Users can upload profile pictures (JPG, PNG, WEBP) to Cloudinary.

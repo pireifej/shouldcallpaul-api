@@ -1785,7 +1785,7 @@ console.log('⏰ Push token cleanup scheduled at 4:00 AM UTC (tokens older than 
 
 // Start server only after schemas required by request-facing routes are ready.
 const portfolioMigrationReady = crmSchemaMigrationReady
-  .then(() => require('./portfolio/migrate').migratePortfolio(auditPool))
+  .then(() => require('./portfolio/migrate').verifyPortfolioReady(auditPool))
   .then(result => console.log('✅ Database-backed portfolio ready:', JSON.stringify(result)));
 
 Promise.all([globalNotesMigrationReady, websiteRequestLimitMigrationReady, crmSchemaMigrationReady, portfolioMigrationReady]).then(() => server.listen(PORT, '0.0.0.0', () => {
