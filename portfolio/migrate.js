@@ -11,6 +11,8 @@ const base = path.join(__dirname, '..');
 async function createWorkshopAdditions(db) {
   await db.query(fs.readFileSync(path.join(base, 'migrations/workshop-resume-links.sql'), 'utf8'));
   await db.query(fs.readFileSync(path.join(base, 'migrations/workshop-resources.sql'), 'utf8'));
+  await db.query(fs.readFileSync(path.join(base, 'migrations/workshop-engagement-dates.sql'), 'utf8'));
+  await require('./workshop-dates')(db).backfill(db);
 }
 
 async function createSchema(db) {

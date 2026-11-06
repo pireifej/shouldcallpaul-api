@@ -51,6 +51,7 @@ test('relational portfolio migration and authenticated APIs (isolated PostgreSQL
     INSERT INTO crm_activity_logs (entity_type,entity_id,contact_id,log_text)
       VALUES ('workshop',1,1,'Original email history'),('workshop',999,NULL,'Preserved orphan history');
     INSERT INTO crm_workshop_contacts(workshop_id,contact_id) VALUES (1,1)`);
+    await client.query("UPDATE crm_workshops SET historical_date = '2026-10-07 00:00:00' WHERE id = 1");
     let queryQueue = Promise.resolve();
     let statementNumber = 0;
     const pool = {
@@ -392,6 +393,7 @@ test('relational portfolio migration and authenticated APIs (isolated PostgreSQL
       await api('/api/speaker-menu', 'PATCH', { subtitle: menu.subtitle });
     });
     await require('./helpers/workshop-resource-checks')(t, { pool, api, request, migratePortfolio });
+    await require('./helpers/workshop-date-checks')({ t, pool, api, request, migratePortfolio });
     await t.test('testimonial imports are atomic, repeatable, preserve IDs/dates and keep distinct events', async () => {
       const before = (await pool.query('SELECT * FROM public.resume_testimonials ORDER BY id')).rows;
       const original = before.find(row => row.name === 'Kathleen McGurrin');

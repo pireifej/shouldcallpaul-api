@@ -11,3 +11,4 @@
 - [Workshop link compatibility](workshop-link-compatibility.md) — Preserve old-client unlink behavior without erasing additional links or requiring a production backfill.
 - [Testimonial editorial policy](testimonial-editorial-policy.md) — Keep quotes verbatim, names abbreviated, date precision intact, and separate-event testimonials distinct.
 - [Workshop resource ownership](workshop-resource-ownership.md) — Private working-material shortcuts are shared across an engagement’s linked public presentations, not published with them.
+- [Workshop date compatibility](workshop-date-compatibility.md) — Legacy single-date edits must preserve independently added dates, including dates temporarily selected by an older client.

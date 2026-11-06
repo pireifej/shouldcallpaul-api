@@ -45,7 +45,7 @@ class FakeWorkshopPool {
 
   async query(sql, params = []) {
     this.queries.push({ sql, params });
-    if (/to_regclass\('public\.crm_workshop_(resume_links|resources)'\)/.test(sql)) {
+    if (/to_regclass\('public\.crm_workshop_(resume_links|resources|engagement_dates)'\)/.test(sql)) {
       return { rows: [{ relation: null }] }; // pre-Publish compatibility
     }
     if (sql.includes('SELECT id FROM public.resume_workshops')) {

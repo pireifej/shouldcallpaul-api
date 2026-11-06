@@ -1,3 +1,8 @@
+# Workshop engagement dates
+
+For private multi-date CRM scheduling and legacy `historical_date` compatibility,
+see [workshop-engagement-dates-api.md](workshop-engagement-dates-api.md).
+
 # Database-backed résumé and workshop management
 
 ## Ownership and migration

@@ -12,3 +12,4 @@ attached_assets/
 !migrations/portfolio-relations.sql
 !migrations/workshop-resume-links.sql
 !migrations/workshop-resources.sql
+!migrations/workshop-engagement-dates.sql

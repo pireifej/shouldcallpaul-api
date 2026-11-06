@@ -3,6 +3,8 @@ const express = require('express');
 const { validateResumeEntryReference } = require('../resumeWorkshopCatalog');
 const { readFeed, readSpeakerMenu } = require('../portfolio/store');
 const { resumeIdsSql, linkSchema } = require('../portfolio/workshop-links');
+const makeWorkshopDates = require('../portfolio/workshop-dates');
+const { legacyDate, fail: dateError } = makeWorkshopDates;
 
 // Read current database content; website edits must reach AI prep without a restart.
 function stripHtml(str) {
@@ -100,6 +102,8 @@ module.exports = function crmRoutes(ctx) {
   const { auditPool: pool, authenticate, openai } = ctx;
   router.use(require('./workshop-resume-links')(ctx));
   router.use(require('./workshop-resources')(ctx));
+  const dates = makeWorkshopDates(pool);
+  router.use(require('./workshop-engagement-dates')(ctx, dates));
   const linksReady = linkSchema(pool);
   const linkColumns = async alias => await linksReady() ? resumeIdsSql(alias)
     : `ARRAY(SELECT ${alias}.resume_entry_id WHERE ${alias}.resume_entry_id IS NOT NULL) AS resume_entry_ids`;
@@ -130,6 +134,13 @@ module.exports = function crmRoutes(ctx) {
 
   const prepareWorkshopWrite = async (input, current = {}) => {
     const body = { ...input };
+    if (hasOwn(body, 'engagement_dates')) {
+      return { error: 'engagement_dates is read-only; use /api/workshops/:id/engagement-dates' };
+    }
+    if (hasOwn(body, 'historical_date') && body.historical_date !== undefined) {
+      try { body.historical_date = legacyDate(body.historical_date); }
+      catch (e) { return { error: e.message }; }
+    }
     if (hasOwn(body, 'resume_entry_ids')) {
       return { error: 'resume_entry_ids is read-only; add or remove links through /api/workshops/:id/resume-entries' };
     }
@@ -577,8 +588,16 @@ module.exports = function crmRoutes(ctx) {
   // ─────────────────────────────────────────────────────────────
 
   // GET /api/workshops?status=
-  router.get('/api/workshops', authenticate, async (req, res) => {
+  const workshopDateRoute = handler => async (req, res) => {
     try {
+      const data = await dates.run(req.params.id, async (db, enabled) => {
+        const result = await handler(req, db);
+        return dates.decorate(db, result, enabled, req.method !== 'GET');
+      });
+      ok(res, data);
+    } catch (e) { err(res, e.message, e.status || (e.code === '23505' ? 409 : 500)); }
+  };
+  router.get('/api/workshops', authenticate, workshopDateRoute(async (req, pool) => {
       const status = req.query.status ? normalizeWorkshopStatus(req.query.status) : undefined;
       let query = `
         SELECT w.*, ${await linkColumns('w')}, c.name AS contact_name, c.email AS contact_email
@@ -598,37 +617,33 @@ module.exports = function crmRoutes(ctx) {
       }
       query += ` ORDER BY w.updated_at DESC`;
       const result = await pool.query(query, params);
-      ok(res, result.rows.map(serializeWorkshop));
-    } catch (e) { err(res, e.message); }
-  });
+      return result.rows.map(serializeWorkshop);
+  }));
 
   // GET /api/workshops/:id
-  router.get('/api/workshops/:id', authenticate, async (req, res) => {
-    try {
+  router.get('/api/workshops/:id', authenticate, workshopDateRoute(async (req, pool) => {
       const result = await pool.query(`
         SELECT w.*, ${await linkColumns('w')}, c.name AS contact_name, c.email AS contact_email
         FROM crm_workshops w
         LEFT JOIN crm_contacts c ON c.id = w.contact_id
         WHERE w.id = $1`, [req.params.id]);
-      if (!result.rows.length) return err(res, 'Workshop not found', 404);
-      ok(res, serializeWorkshop(result.rows[0]));
-    } catch (e) { err(res, e.message); }
-  });
+      if (!result.rows.length) throw dateError('Workshop not found', 404);
+      return serializeWorkshop(result.rows[0]);
+  }));
 
   // POST /api/workshops
-  router.post('/api/workshops', authenticate, async (req, res) => {
-    try {
+  router.post('/api/workshops', authenticate, workshopDateRoute(async (req, pool) => {
       const prepared = await prepareWorkshopWrite(req.body);
-      if (prepared.error) return err(res, prepared.error, 400);
+      if (prepared.error) throw dateError(prepared.error);
       const {
         organization_name, contact_id, status, workshop_title, historical_date,
         venue_name, venue_address, fee_amount, fee_type, cost_basis, notes, resume_entry_id,
         organization_id, event_id
       } = prepared.body;
-      if (!organization_name) return err(res, 'organization_name is required', 400);
+      if (!organization_name) throw dateError('organization_name is required');
       const normalizedStatus = status === undefined ? 'Active' : normalizeWorkshopStatus(status);
       if (!WORKSHOP_STATUSES.includes(normalizedStatus)) {
-        return err(res, workshopStatusError, 400);
+        throw dateError(workshopStatusError);
       }
       const result = await pool.query(
         `INSERT INTO crm_workshops
@@ -642,21 +657,19 @@ module.exports = function crmRoutes(ctx) {
           cost_basis, notes, resume_entry_id ?? null, organization_id ?? null, event_id ?? null
         ]
       );
-      ok(res, serializeWorkshop(result.rows[0]));
-    } catch (e) { err(res, e.message); }
-  });
+      return serializeWorkshop(result.rows[0]);
+  }));
 
   // PATCH /api/workshops/:id/status — change only database-managed workshops
-  router.patch('/api/workshops/:id/status', authenticate, async (req, res) => {
-    try {
+  router.patch('/api/workshops/:id/status', authenticate, workshopDateRoute(async (req, pool) => {
       const { status } = req.body || {};
       const normalizedStatus = normalizeWorkshopStatus(status);
       if (!WORKSHOP_STATUSES.includes(normalizedStatus)) {
-        return err(res, workshopStatusError, 400);
+        throw dateError(workshopStatusError);
       }
 
-      const workshop = await findEditableWorkshop(req.params.id, res);
-      if (!workshop) return;
+      const workshop = await pool.query('SELECT id, status, fee_amount, fee_type, cost_basis FROM crm_workshops WHERE id = $1', [req.params.id]);
+      if (!workshop.rows.length) throw dateError('Workshop not found', 404);
 
       const result = await pool.query(
         `UPDATE crm_workshops
@@ -665,20 +678,18 @@ module.exports = function crmRoutes(ctx) {
          RETURNING *, ${await linkColumns('crm_workshops')}`,
         [normalizedStatus, req.params.id]
       );
-      if (!result.rows.length) return err(res, 'Workshop is no longer editable', 409);
-      ok(res, serializeWorkshop(result.rows[0]));
-    } catch (e) { err(res, e.message); }
-  });
+      if (!result.rows.length) throw dateError('Workshop is no longer editable', 409);
+      return serializeWorkshop(result.rows[0]);
+  }));
 
   // PUT /api/workshops/:id
-  router.put('/api/workshops/:id', authenticate, async (req, res) => {
-    try {
+  const updateWorkshop = workshopDateRoute(async (req, pool) => {
       const { id } = req.params;
-      const allowResumeLinkOnly = Object.keys(req.body || {}).length === 1 && hasOwn(req.body, 'resume_entry_id');
-      const workshop = await findEditableWorkshop(id, res, { allowResumeLinkOnly });
-      if (!workshop) return;
+      const found = await pool.query('SELECT id, status, fee_amount, fee_type, cost_basis FROM crm_workshops WHERE id = $1', [id]);
+      if (!found.rows.length) throw dateError('Workshop not found', 404);
+      const workshop = found.rows[0];
       const prepared = await prepareWorkshopWrite(req.body, workshop);
-      if (prepared.error) return err(res, prepared.error, 400);
+      if (prepared.error) throw dateError(prepared.error);
       const body = prepared.body;
       const fields = [
         'organization_name','contact_id','status','workshop_title','historical_date',
@@ -687,55 +698,23 @@ module.exports = function crmRoutes(ctx) {
       if (body.status !== undefined) {
         body.status = normalizeWorkshopStatus(body.status);
         if (!WORKSHOP_STATUSES.includes(body.status)) {
-          return err(res, workshopStatusError, 400);
+          throw dateError(workshopStatusError);
         }
       }
       const updates = []; const params = [];
       for (const f of fields) {
         if (body[f] !== undefined) { params.push(body[f]); updates.push(`${f} = $${params.length}`); }
       }
-      if (!updates.length) return err(res, 'No fields to update', 400);
+      if (!updates.length) throw dateError('No fields to update');
       params.push(id);
       const result = await pool.query(
         `UPDATE crm_workshops SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *, ${await linkColumns('crm_workshops')}`, params
       );
-      if (!result.rows.length) return err(res, 'Workshop not found', 404);
-      ok(res, serializeWorkshop(result.rows[0]));
-    } catch (e) { err(res, e.message); }
+      if (!result.rows.length) throw dateError('Workshop not found', 404);
+      return serializeWorkshop(result.rows[0]);
   });
-
-  router.patch('/api/workshops/:id', authenticate, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const allowResumeLinkOnly = Object.keys(req.body || {}).length === 1 && hasOwn(req.body, 'resume_entry_id');
-      const workshop = await findEditableWorkshop(id, res, { allowResumeLinkOnly });
-      if (!workshop) return;
-      const prepared = await prepareWorkshopWrite(req.body, workshop);
-      if (prepared.error) return err(res, prepared.error, 400);
-      const body = prepared.body;
-      const fields = [
-        'organization_name','contact_id','status','workshop_title','historical_date',
-        'venue_name','venue_address','fee_amount','fee_type','cost_basis','notes','resume_entry_id','organization_id','event_id'
-      ];
-      if (body.status !== undefined) {
-        body.status = normalizeWorkshopStatus(body.status);
-        if (!WORKSHOP_STATUSES.includes(body.status)) {
-          return err(res, workshopStatusError, 400);
-        }
-      }
-      const updates = []; const params = [];
-      for (const f of fields) {
-        if (body[f] !== undefined) { params.push(body[f]); updates.push(`${f} = $${params.length}`); }
-      }
-      if (!updates.length) return err(res, 'No fields to update', 400);
-      params.push(id);
-      const result = await pool.query(
-        `UPDATE crm_workshops SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${params.length} RETURNING *, ${await linkColumns('crm_workshops')}`, params
-      );
-      if (!result.rows.length) return err(res, 'Workshop not found', 404);
-      ok(res, serializeWorkshop(result.rows[0]));
-    } catch (e) { err(res, e.message); }
-  });
+  router.put('/api/workshops/:id', authenticate, updateWorkshop);
+  router.patch('/api/workshops/:id', authenticate, updateWorkshop);
 
   // DELETE /api/workshops/:id
   router.delete('/api/workshops/:id', authenticate, async (req, res) => {
