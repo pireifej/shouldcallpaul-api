@@ -11,3 +11,18 @@ id = "gMin_BEiQPYT71Fuptrzm"
 uri = "file://attached_assets/generated_images/a_sleek_modern_digital_2c6e.png"
 type = "image"
 title = "Therapy Connect — AI-generated image"
+logical_id = "b22ddf4c-d9e8-473c-a20c-14e7e6890ef6"
+
+[[outputs]]
+id = "IuVMeON-eunjoAGChJMFQ"
+uri = "file://attached_assets/generated_images/brookdale_jobs_ai_google_docs_workshop.jpg"
+type = "image"
+title = "Brookdale JOBS workshop illustration"
+description = "Minimal AI-generated illustration of digital skills and opportunity. A symbolic placeholder, not a photograph of the event."
+logical_id = "93516505-d50a-442c-ad4a-8498d32e282c"
+content_hash = "sha256:138a4931e7e51df559192b6686a73d5c665e977b1bb3f4985e3604e4fd385a77"
+size = 45014
+mtime_ms = 1794689277806
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:374ad21d-de0e-4eb0-bc56-086fbfe02aa9/93516505-d50a-442c-ad4a-8498d32e282c/114ecc90-3fb1-4712-a304-c9eba0757ba7"
+storage_version_token = "1794689300708782"
+content_type = "image/jpeg"
