@@ -29,6 +29,11 @@ Keep the separate improv material within Find Your Voice / Improv, rather than
 advertising it as a third offering in this group. This does not combine unrelated
 specialties such as storytelling, elevator speeches, or de-escalation.
 
+Active Listening & Communication Skills belongs under general Public Speaking,
+not a separate offering. The older Find Your Voice events in Red Bank, Matawan,
+and the alumni program belong under Find Your Voice / Improv, despite the
+general-speaking phrasing in some historical descriptions.
+
 The full Young Speakers Academy and Youth Leadership Program share one offering.
 A single youth guest presentation is not evidence of delivering the full program.
 The five AI Decoded sessions represent one full-series offering, not five

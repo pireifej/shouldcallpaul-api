@@ -6,7 +6,7 @@ After the editorial pass below, the user clarified that general public speaking
 and Find Your Voice / Improv are distinct offerings, full youth programs share
 one offering, and all five AI Decoded sessions establish one series offering.
 
-The live catalog now contains **16 offerings**, supported by **34 linked
+The live catalog now contains **16 offerings**, supported by **35 linked
 completed workshop records**:
 
 - General public speaking groups the two Master the Art of Public Speaking
@@ -22,11 +22,11 @@ completed workshop records**:
 - The older Career Day delivery links to the career-day offering. Its original
   description remains unchanged and makes no new claim about AI content.
 
-Only **Active Listening & Communication Skills** remains unlinked. A separate
-clarification is also needed on whether the already-linked Find Your Voice
-events in Red Bank, Matawan, and the alumni program should remain with improv
-or belong with general public speaking. Existing selections for those records
-were left untouched pending the answer.
+The user confirmed the final decisions: **Active Listening & Communication
+Skills** belongs under Public Speaking, and the older Find Your Voice events in
+Red Bank, Matawan, and the alumni program remain under Find Your Voice / Improv.
+The listening delivery is now linked, and the Public Speaking description
+explicitly includes active listening. **No workshop records remain unlinked.**
 
 Live assertions verified unchanged historical records and public workshop feed,
 all approved links, preserved unselected links, preserved unrelated topics and
