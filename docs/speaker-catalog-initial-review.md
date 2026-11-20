@@ -1,5 +1,53 @@
 # Initial delivered-catalog reconciliation review
 
+## Live editorial follow-up, November 20, 2026
+
+The original six-offering preview below is retained as the initial rollout
+record, not the current public catalog count.
+
+The user authorized resolving clear historical links and adding missing
+delivered offerings. Changes were applied through the published management
+APIs, without a code deployment or schema change.
+
+The public catalog now contains **15 unique offerings** supported by **21
+linked completed workshop records**. Added client-neutral offerings:
+
+- De-escalation & Diplomacy Under Pressure, linked to the Monmouth delivery.
+- Embracing the Future, Honoring Our Humanity, linked to the completed keynote.
+- Practical AI and Google Docs, linked to the Brookdale delivery.
+
+Connected clear historical evidence for AI for Beginners, How Businesses Can
+Effectively Use AI, Find Your Voice, Teen Talk, Young Speakers Academy, Week of
+Respect, and Career Day Tech & AI Showcases. The remembered exact title for
+Career Day at Indian Hill also resolved its earlier identically titled delivery.
+
+Live API assertions verified that all historical workshop content, the public
+workshop feed, existing topic copy, and existing hide/archive/publication
+overrides stayed unchanged. All selected topics appeared once in the public
+catalog. No CRM data or PrayOverUs data was edited.
+
+**14 records remain for grouping decisions**, rather than silently assuming
+related material represents the same offering:
+
+- Effective Public Speaking Skills.
+- Active Listening & Communication Skills.
+- The five AI Decoded sessions.
+- The two Big Brothers Big Sisters workshops.
+- The two Master the Art of Public Speaking workshops.
+- Youth Leadership Program, Coordinator.
+- Youth Leadership Program, Guest.
+- Career Day, the older record with no specific title.
+
+Questions cover whether the public-speaking variants share an offering,
+whether the full youth programs should share an offering, and whether the
+delivered AI Decoded material should appear as a series, individual sessions,
+or both. The Expo's separate speaking and listening subjects, the one-session
+youth guest presentation, and the older career-day record also need a grouping
+decision. Conference presentations remain outside the workshop-only evidence
+model; no conference history was moved or duplicated.
+
+## Original pre-publication review
+
 This is a **read-only preview of the current production data**, not a claim
 that production cleanup has already run. It will be applied transactionally
 after the user publishes the additive schema and new code.
