@@ -164,11 +164,11 @@ test('relational portfolio migration and authenticated APIs (isolated PostgreSQL
           assert.deepEqual(response.body, original);
         }
       }
-      assert.deepEqual((await request('/speaker_data/speaker_menu.json')).body,
-        JSON.parse(fs.readFileSync(path.join(__dirname, '../speaker_data/speaker_menu.json'))));
+      await require('../portfolio/store').transaction(pool, db => require('../portfolio/speaker-catalog').initialize(db));
+      const expectedMenu = await require('../portfolio/store').readSpeakerMenu(pool);
+      assert.deepEqual((await request('/speaker_data/speaker_menu.json')).body, expectedMenu);
       for (const url of ['/speaker/speaker_menu', '/speaker/speaker_menu.json']) {
-        assert.deepEqual((await request(url)).body,
-          JSON.parse(fs.readFileSync(path.join(__dirname, '../speaker_data/speaker_menu.json'))));
+        assert.deepEqual((await request(url)).body, expectedMenu);
       }
       assert.equal((await request('/resume/no-such-category')).status, 404);
       assert.equal((await request('/api/resume/toString')).status, 404);
@@ -378,22 +378,27 @@ test('relational portfolio migration and authenticated APIs (isolated PostgreSQL
       });
       await api('/api/speaker-menu/topics', 'POST', {
         id: 'new-topic', category_id: 'new-category', content: { title: 'New Topic', description: 'Description', type: 'workshop' },
-        published: true
+        published: true, public_copy_confirmed:true
+      });
+      const delivery = await api('/api/resume/workshops','POST',{
+        entry:{label:'New Topic'},published:true,completion_status:'complete',catalog:{topic_ids:['new-topic']}
       });
       let feed = (await request('/speaker_data/speaker_menu.json')).body;
       assert.equal(feed.subtitle, 'Updated database subtitle');
       assert.equal(feed.categories[0].items[0].title, 'New Topic');
-      await api('/api/speaker-menu/topics/new-topic', 'PATCH', { content: { title: 'Edited Topic' } });
+      await api('/api/speaker-menu/topics/new-topic', 'PATCH', { content: { title: 'Edited Topic' },public_copy_confirmed:true });
       feed = (await request('/speaker_data/speaker_menu.json')).body;
       assert.equal(feed.categories[0].items[0].description, 'Description');
       assert.equal(feed.categories[0].items[0].title, 'Edited Topic');
       assert.equal((await request('/api/speaker-menu/categories/new-category', 'DELETE')).status, 409);
+      await api(`/api/resume/workshops/${delivery.id}`,'DELETE');
       await api('/api/speaker-menu/topics/new-topic', 'DELETE');
       await api('/api/speaker-menu/categories/new-category', 'DELETE');
       await api('/api/speaker-menu', 'PATCH', { subtitle: menu.subtitle });
     });
     await require('./helpers/workshop-resource-checks')(t, { pool, api, request, migratePortfolio });
     await require('./helpers/workshop-date-checks')({ t, pool, api, request, migratePortfolio });
+    await require('./helpers/speaker-catalog-checks')({ t, pool, api, request });
     await t.test('testimonial imports are atomic, repeatable, preserve IDs/dates and keep distinct events', async () => {
       const before = (await pool.query('SELECT * FROM public.resume_testimonials ORDER BY id')).rows;
       const original = before.find(row => row.name === 'Kathleen McGurrin');

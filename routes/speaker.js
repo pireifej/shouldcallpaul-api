@@ -12,11 +12,11 @@ module.exports = function speakerRoutes(ctx) {
       if (req.params.filename.replace(/\.json$/, '') !== 'speaker_menu') {
         return res.status(404).json({ error: 'Speaker data file not found' });
       }
-      res.json(await readSpeakerMenu(auditPool));
+      res.set('Cache-Control','no-store').json(await readSpeakerMenu(auditPool));
 
     } catch (error) {
       console.error('Error serving speaker file:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(error.status || 500).json({ error: error.status ? error.message : 'Internal server error' });
     }
   });
 

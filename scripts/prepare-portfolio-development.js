@@ -14,6 +14,7 @@ async function main() {
   });
   try {
     const result = await migratePortfolio(pool);
+    await require('../portfolio/store').transaction(pool, db => require('../portfolio/speaker-catalog').initialize(db));
     console.log('Development portfolio prepared:', JSON.stringify(result));
   } finally {
     await pool.end();

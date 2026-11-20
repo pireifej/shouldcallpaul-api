@@ -1,3 +1,10 @@
+# Automatically maintained public workshop catalog
+
+See [automatic-speaker-catalog-api.md](automatic-speaker-catalog-api.md) for the
+delivered-only eligibility rules, completion metadata, workshop/topic selection,
+inline topic creation, overrides, and frontend integration requirements. These
+rules supersede the former independent publication-only speaker menu behavior.
+
 # Workshop engagement dates
 
 For private multi-date CRM scheduling and legacy `historical_date` compatibility,

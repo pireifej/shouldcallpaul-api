@@ -2,6 +2,7 @@
 const express = require('express');
 const { categories, validateEntry } = require('../portfolio/catalog');
 const { transaction, adminRecord, readFeed, saveEntry, readSpeakerMenu } = require('../portfolio/store');
+const catalog = require('../portfolio/speaker-catalog');
 
 const own = (obj, key) => Object.hasOwn(obj, key);
 const fail = (message, status = 400) => Object.assign(new Error(message), { status });
@@ -50,7 +51,7 @@ module.exports = function portfolioRoutes({ auditPool: pool, authenticate }) {
         ? 'Record is referenced by another record, or its unique ID/name already exists'
         : status === 400 ? 'Invalid field value or reference' : 'Database operation failed';
       if (status === 500) console.error('Portfolio API:', e.message);
-      res.status(status).json({ success: false, error: message });
+      res.status(status).json({ success: false, error: message, ...(e.details ? {details:e.details} : {}) });
     }
   };
   const requireCategory = value => {
@@ -84,7 +85,8 @@ module.exports = function portfolioRoutes({ auditPool: pool, authenticate }) {
     const category = req.params.category;
     const config = requireCategory(category);
     validateFields(req.body, {
-      entry: 'object', published: 'boolean', sort_order: 'order', organization_id: 'id'
+      entry: 'object', published: 'boolean', sort_order: 'order', organization_id: 'id',
+      ...(category === 'workshops' ? {completion_status:'text',catalog:'object'} : {})
     }, { required: updating ? [] : ['entry'], partial: updating });
     if (own(req.body, 'published') && req.body.published === null) throw fail('published cannot be null');
     if (own(req.body, 'sort_order') && req.body.sort_order === null) throw fail('sort_order cannot be null');
@@ -100,6 +102,7 @@ module.exports = function portfolioRoutes({ auditPool: pool, authenticate }) {
     }
     if (!Object.keys(req.body).length) throw fail('No fields to update');
     const result = await transaction(pool, async db => {
+      if (category === 'workshops') { await catalog.requireReady(db); await catalog.lock(db); }
       let current = null;
       if (updating) {
         const found = await db.query(`SELECT * FROM public.${config.table} WHERE id = $1 FOR UPDATE`, [req.params.id]);
@@ -275,7 +278,16 @@ module.exports = function portfolioRoutes({ auditPool: pool, authenticate }) {
       WHERE resource_type = $1 AND resource_id = $2 ORDER BY id DESC`, [resource_type, resource_id])).rows);
   }));
 
-  router.get('/speaker_data/speaker_menu.json', route(async (req, res) => res.json(await readSpeakerMenu(pool))));
+  router.get('/speaker_data/speaker_menu.json', route(async (req, res) => res.set('Cache-Control','no-store').json(await readSpeakerMenu(pool))));
+  router.get('/api/speaker-menu/catalog-suggestions', authenticate, route(async (req,res) => {
+    await catalog.requireReady(pool);
+    if (typeof req.query.title !== 'string' || req.query.title.length > 1000) throw fail('A title of at most 1000 characters is required');
+    ok(res,await catalog.match(pool,req.query.title));
+  }));
+  router.get('/api/speaker-menu/catalog-review', authenticate, route(async (req,res) => {
+    await catalog.requireReady(pool);
+    ok(res,await catalog.review(pool));
+  }));
   router.get('/api/speaker-menu', authenticate, route(async (req, res) => {
     const menu = await pool.query('SELECT title, subtitle FROM public.speaker_menu WHERE id = 1');
     const groups = await pool.query('SELECT * FROM public.speaker_categories ORDER BY sort_order, id');
@@ -296,7 +308,8 @@ module.exports = function portfolioRoutes({ auditPool: pool, authenticate }) {
     const table = `speaker_${kind}`;
     const path = `/api/speaker-menu/${kind}`;
     const allowed = { id: 'text', content: 'object', published: 'boolean', sort_order: 'order',
-      ...(kind === 'topics' ? { category_id: 'text' } : {}) };
+      ...(kind === 'topics' ? { category_id: 'text', catalog_hidden:'boolean', archived:'boolean',
+        public_copy_confirmed:'boolean', aliases:'array' } : {}) };
     const write = updating => route(async (req, res) => {
       validateFields(req.body, allowed, {
         required: ['id', 'content', 'published', 'sort_order', ...(kind === 'topics' ? ['category_id'] : [])],
@@ -307,6 +320,8 @@ module.exports = function portfolioRoutes({ auditPool: pool, authenticate }) {
       }
       if (updating && own(req.body, 'id') && req.body.id !== req.params.id) throw fail('IDs are permanent');
       const result = await transaction(pool, async db => {
+        await catalog.requireReady(db);
+        await catalog.lock(db);
         let current;
         if (updating) {
           current = (await db.query(`SELECT * FROM public.${table} WHERE id = $1 FOR UPDATE`, [req.params.id])).rows[0];
@@ -318,17 +333,43 @@ module.exports = function portfolioRoutes({ auditPool: pool, authenticate }) {
         if (content.id !== undefined && content.id !== id) throw fail('content.id must match the permanent ID');
         if (kind === 'categories' && own(content, 'items')) throw fail('Manage category items through the topics API');
         content.id = id;
+        if (kind === 'topics') {
+          if (req.body.content || !updating) {
+            catalog.publicContent({ ...Object.fromEntries(['title','description','type','parts']
+              .filter(key => own(content,key)).map(key => [key,content[key]])),
+              category_id:req.body.category_id ?? current?.category_id,
+              // Dedicated legacy offering-editor saves already supply public
+              // copy, unlike a new topic created from event-history text.
+              public_copy_confirmed:req.body.public_copy_confirmed ?? true });
+          }
+          if (req.body.aliases !== undefined && (!Array.isArray(req.body.aliases) ||
+            req.body.aliases.length > 50 || req.body.aliases.some(a => typeof a !== 'string' || !catalog.normalize(a) || a.length > 1000))) {
+            throw fail('aliases must contain at most 50 nonempty titles');
+          }
+          const duplicate = await db.query('SELECT id FROM public.speaker_topics WHERE catalog_title_key=$1 AND id<>$2',
+            [catalog.normalize(content.title),id]);
+          if (duplicate.rows.length) throw fail('Offering title already exists; use its stable ID',409);
+        }
         const input = {
           id, content: JSON.stringify(content), sort_order: req.body.sort_order ?? current?.sort_order ?? 0,
           published: req.body.published ?? current?.published ?? false,
-          ...(kind === 'topics' ? { category_id: req.body.category_id ?? current?.category_id } : {})
+          ...(kind === 'topics' ? { category_id: req.body.category_id ?? current?.category_id,
+            catalog_hidden:req.body.catalog_hidden ?? current?.catalog_hidden ?? false,
+            archived:req.body.archived ?? current?.archived ?? false,
+            catalog_title_key:catalog.normalize(content.title) } : {})
         };
         const keys = Object.keys(input);
         const params = Object.values(input);
-        if (updating) return (await db.query(`UPDATE public.${table} SET
-          ${keys.slice(1).map((k, i) => `${k} = $${i + 2}`).join(', ')} WHERE id = $1 RETURNING *`, params)).rows[0];
-        return (await db.query(`INSERT INTO public.${table} (${keys.join(', ')})
+        const saved = updating ? (await db.query(`UPDATE public.${table} SET
+          ${keys.slice(1).map((k, i) => `${k} = $${i + 2}`).join(', ')} WHERE id = $1 RETURNING *`, params)).rows[0]
+          : (await db.query(`INSERT INTO public.${table} (${keys.join(', ')})
           VALUES (${params.map((_, i) => `$${i + 1}`).join(', ')}) RETURNING *`, params)).rows[0];
+        if (kind === 'topics') {
+          if (current) await catalog.alias(db,current.content.title,id);
+          for (const title of [content.title,...(req.body.aliases || [])]) await catalog.alias(db,title,id);
+          await catalog.reconcileAll(db);
+        }
+        return saved;
       });
       ok(res, result);
     });

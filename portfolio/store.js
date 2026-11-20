@@ -35,7 +35,11 @@ async function adminRecord(db, category, row) {
   return {
     id: row.id, published: row.published, sort_order: row.sort_order,
     organization_id: row.organization_id, created_at: row.created_at, updated_at: row.updated_at,
-    entry: await recordFromRow(db, category, row)
+    entry: await recordFromRow(db, category, row),
+    ...(category === 'workshops' && row.completion_status !== undefined ? {
+      completion_status: row.completion_status,
+      catalog: await require('./speaker-catalog').metadata(db,row)
+    } : {})
   };
 }
 
@@ -47,6 +51,15 @@ async function readFeed(db, category) {
 }
 
 async function saveEntry(db, category, input, current = null, { imported = false } = {}) {
+  const catalog = category === 'workshops' ? require('./speaker-catalog') : null;
+  const catalogReady = catalog && await catalog.ready(db);
+  if (catalogReady) await catalog.lock(db);
+  if (catalog && !catalogReady && (input.catalog !== undefined || input.completion_status !== undefined)) {
+    await catalog.requireReady(db);
+  }
+  if (input.completion_status !== undefined && (!catalog || !catalog.states.includes(input.completion_status))) {
+    throw Object.assign(new Error('completion_status must be draft, scheduled, complete, or cancelled'), {status:400});
+  }
   const config = categories[category];
   const id = current?.id || input.entry?.id || randomUUID();
   const prior = current ? await recordFromRow(db, category, current) : {};
@@ -85,18 +98,32 @@ async function saveEntry(db, category, input, current = null, { imported = false
         JSON.stringify(session)]);
     }
   }
+  if (catalogReady) {
+    const status = input.completion_status ?? current?.completion_status ?? (imported ? 'complete' : 'draft');
+    result = await db.query('UPDATE public.resume_workshops SET completion_status=$2 WHERE id=$1 RETURNING *',[id,status]);
+    await catalog.reconcileWorkshop(db,result.rows[0],input.catalog);
+    // A remembered decision can safely resolve other identical historical labels.
+    if (input.catalog !== undefined) await catalog.reconcileAll(db);
+  }
   return adminRecord(db, category, result.rows[0]);
 }
 
-async function readSpeakerMenu(db) {
+async function readSpeakerMenu(db, { legacy = false } = {}) {
+  if (!legacy) await require('./speaker-catalog').requireReady(db);
   const settings = await db.query('SELECT title, subtitle FROM public.speaker_menu WHERE id = 1');
   if (!settings.rows.length) throw new Error('Speaker menu has not been imported');
   const groups = await db.query('SELECT * FROM public.speaker_categories WHERE published ORDER BY sort_order, id');
   const categories = [];
   for (const group of groups.rows) {
-    const topics = await db.query(`SELECT content FROM public.speaker_topics
-      WHERE category_id = $1 AND published ORDER BY sort_order, id`, [group.id]);
-    categories.push({ ...group.content, items: topics.rows.map(t => t.content) });
+    const topics = await db.query(`SELECT content FROM public.speaker_topics t
+      WHERE category_id = $1 AND published ${legacy ? '' : `AND NOT catalog_hidden AND NOT archived
+      AND EXISTS (SELECT 1 FROM public.speaker_workshop_topics l
+        JOIN public.resume_workshops w ON w.id=l.resume_entry_id
+        WHERE l.topic_id=t.id AND w.published AND w.completion_status='complete')`}
+      ORDER BY sort_order, id`, [group.id]);
+    const items = topics.rows.map(({content}) => legacy ? content : Object.fromEntries(
+      ['id','type','title','description','parts'].filter(key => Object.hasOwn(content,key)).map(key => [key,content[key]])));
+    if (legacy || items.length) categories.push({ ...group.content, items });
   }
   return { ...settings.rows[0], categories };
 }

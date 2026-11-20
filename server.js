@@ -1786,7 +1786,16 @@ console.log('⏰ Push token cleanup scheduled at 4:00 AM UTC (tokens older than 
 // Start server only after schemas required by request-facing routes are ready.
 const portfolioMigrationReady = crmSchemaMigrationReady
   .then(() => require('./portfolio/migrate').verifyPortfolioReady(auditPool))
-  .then(result => console.log('✅ Database-backed portfolio ready:', JSON.stringify(result)));
+  .then(async result => {
+    console.log('✅ Database-backed portfolio ready:', JSON.stringify(result));
+    const catalog = require('./portfolio/speaker-catalog');
+    if (await catalog.ready(auditPool)) {
+      // One-time content DML only, after Publish has installed the schema.
+      // Normal GET requests never reconcile or mutate catalog content.
+      await require('./portfolio/store').transaction(auditPool, db => catalog.initialize(db));
+      console.log('✅ Delivered-workshop catalog initialized');
+    } else console.log('Speaker catalog is pending its additive Publish migration');
+  });
 
 Promise.all([globalNotesMigrationReady, websiteRequestLimitMigrationReady, crmSchemaMigrationReady, portfolioMigrationReady]).then(() => server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);

@@ -13,6 +13,7 @@ async function createWorkshopAdditions(db) {
   await db.query(fs.readFileSync(path.join(base, 'migrations/workshop-resources.sql'), 'utf8'));
   await db.query(fs.readFileSync(path.join(base, 'migrations/workshop-engagement-dates.sql'), 'utf8'));
   await require('./workshop-dates')(db).backfill(db);
+  await db.query(fs.readFileSync(path.join(base, 'migrations/speaker-catalog.sql'), 'utf8'));
 }
 
 async function createSchema(db) {
@@ -83,7 +84,7 @@ async function importLegacy(db) {
         [topic.id, category.id, order, JSON.stringify(topic)]);
     }
   }
-  assert.deepEqual(await readSpeakerMenu(db), menu, 'Speaker menu import must be lossless');
+  assert.deepEqual(await readSpeakerMenu(db, { legacy: true }), menu, 'Speaker menu import must be lossless');
   counts.speaker_categories = menu.categories.length;
   counts.speaker_topics = menu.categories.reduce((sum, c) => sum + c.items.length, 0);
   const orphans = await db.query(`SELECT count(*)::integer AS count FROM public.crm_activity_logs
