@@ -1,5 +1,38 @@
 # Initial delivered-catalog reconciliation review
 
+## User-confirmed grouping follow-up
+
+After the editorial pass below, the user clarified that general public speaking
+and Find Your Voice / Improv are distinct offerings, full youth programs share
+one offering, and all five AI Decoded sessions establish one series offering.
+
+The live catalog now contains **16 offerings**, supported by **34 linked
+completed workshop records**:
+
+- General public speaking groups the two Master the Art of Public Speaking
+  deliveries, the two Big Brothers Big Sisters workshops, and Effective Public
+  Speaking Skills under the existing permanent general-speaking topic.
+- Find Your Voice / Improv includes the separate Think on Your Feet delivery.
+  Its former standalone topic remains stored with its permanent ID and original
+  copy, but is archived rather than advertised as a duplicate offering.
+- The single Youth Leadership guest presentation links to the impromptu-speaking
+  offering, not to the full youth program.
+- Both full youth programs link to the shared youth program offering.
+- All five AI Decoded session records link to the single series offering.
+- The older Career Day delivery links to the career-day offering. Its original
+  description remains unchanged and makes no new claim about AI content.
+
+Only **Active Listening & Communication Skills** remains unlinked. A separate
+clarification is also needed on whether the already-linked Find Your Voice
+events in Red Bank, Matawan, and the alumni program should remain with improv
+or belong with general public speaking. Existing selections for those records
+were left untouched pending the answer.
+
+Live assertions verified unchanged historical records and public workshop feed,
+all approved links, preserved unselected links, preserved unrelated topics and
+manual overrides, no deleted topic records, and a single combined improv offering.
+These were content-only API changes, so no republish is required.
+
 ## Live editorial follow-up, November 20, 2026
 
 The original six-offering preview below is retained as the initial rollout
