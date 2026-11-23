@@ -55,6 +55,7 @@ test('RevenueCat active entitlement is cached and confirmed identity is saved', 
     projectId: 'project',
     entitlementId: 'pro-entitlement',
     entitlementKey: 'Pray Over Us Pro',
+    identitySecret: 'subscription-test-secret',
     connectorsFactory: () => ({
       async proxy() {
         providerCalls++;
@@ -65,13 +66,14 @@ test('RevenueCat active entitlement is cached and confirmed identity is saved', 
     })
   });
 
+  const {revenuecatAppUserId} = await service.getAccountIdentity({userId:42});
   const first = await service.getProStatus({
     userId: 42,
-    revenuecatAppUserId: '$RCAnonymousID:subscriber'
+    revenuecatAppUserId
   });
   const second = await service.getProStatus({
     userId: 42,
-    revenuecatAppUserId: '$RCAnonymousID:subscriber'
+    revenuecatAppUserId
   });
 
   assert.equal(first.isPro, true);
@@ -95,14 +97,14 @@ test('inactive RevenueCat identity is not saved', async () => {
     },
     projectId: 'project',
     entitlementId: 'pro-entitlement',
+    identitySecret: 'subscription-test-secret',
     connectorsFactory: () => ({
       proxy: async () => jsonResponse(200, { items: [] })
     })
   });
 
   const status = await service.getProStatus({
-    userId: 42,
-    revenuecatAppUserId: '$RCAnonymousID:free'
+    userId: 42
   });
 
   assert.equal(status.isPro, false);
@@ -119,6 +121,7 @@ test('a supplied RevenueCat identity cannot replace an existing mapping', async 
     },
     projectId: 'project',
     entitlementId: 'pro-entitlement',
+    identitySecret: 'subscription-test-secret',
     connectorsFactory: () => ({
       async proxy() {
         providerCalls++;
@@ -332,7 +335,7 @@ test('extended generation reports a retryable failure instead of a short fallbac
   });
 });
 
-test('today’s Daily Bread content and audio are free while archive features enforce the Pro guard', async () => {
+test('full Daily Bread content, audio, and archives enforce the Pro guard', async () => {
   const deny = (req, res) => res.status(403).json(PRO_REQUIRED_RESPONSE);
   const dailyRouter = devotionalRoutes({
     pool: {
@@ -364,8 +367,8 @@ test('today’s Daily Bread content and audio are free while archive features en
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ userId: 42 })
       });
-      assert.equal(response.status, 200, endpoint);
-      assert.equal((await response.json()).error, 0, endpoint);
+      assert.equal(response.status, 403, endpoint);
+      assert.equal((await response.json()).error, 'PRO_REQUIRED', endpoint);
     }
 
     const audioResponse = await fetch(`${baseUrl}/getDailyBreadAudio`, {
@@ -373,8 +376,8 @@ test('today’s Daily Bread content and audio are free while archive features en
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ userId: 42, date: '2026-09-16', checkOnly: true })
     });
-    assert.equal(audioResponse.status, 200);
-    assert.equal((await audioResponse.json()).success, true);
+    assert.equal(audioResponse.status, 403);
+    assert.equal((await audioResponse.json()).error, 'PRO_REQUIRED');
 
     for (const endpoint of [
       '/getDailyDevotionalById',
@@ -404,7 +407,7 @@ test('today’s Daily Bread content and audio are free while archive features en
   });
 });
 
-test('Prayer Walk audio is available without Pro on both routes but still requires app and user authentication', async () => {
+test('Prayer Walk audio requires Pro as well as app and user authentication on both routes', async () => {
   const originalSecret = process.env.SESSION_SECRET;
   process.env.SESSION_SECRET = 'prayer-walk-test-session-secret';
   try {
@@ -414,6 +417,7 @@ test('Prayer Walk audio is available without Pro on both routes but still requir
         ? next()
         : res.status(401).json({ error: 'APP_AUTH_REQUIRED' }),
       requireUserSession,
+      requirePro: (req,res,next)=>next(),
       prayerAudioCache: new Map([['1', audio]]),
       serveAudioBuffer: (req, res, buffer) => res.type('audio/mpeg').send(buffer)
     });

@@ -93,7 +93,7 @@ module.exports = function devotionalRoutes(ctx) {
     return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   }
 
-router.post('/getDailyBreadAudio', authenticate, requireUserSession, async (req, res) => {
+router.post('/getDailyBreadAudio', authenticate, requireUserSession, requirePro, async (req, res) => {
   try {
     const { date, title, content, bibleVerse, verseReference, prayer, checkOnly, lang = 'en' } = req.body;
 
@@ -345,8 +345,8 @@ async function handleMobileDailyDevotional(req, res) {
   }
 }
 
-router.post('/getDailyDevotional', authenticate, requireUserSession, handleMobileDailyDevotional);
-router.post('/api/daily-bread', authenticate, requireUserSession, handleMobileDailyDevotional);
+router.post('/getDailyDevotional', authenticate, requireUserSession, requirePro, handleMobileDailyDevotional);
+router.post('/api/daily-bread', authenticate, requireUserSession, requirePro, handleMobileDailyDevotional);
 
 // POST /getDailyDevotionalById — fetch a previously saved Daily Bread article
 router.post('/getDailyDevotionalById', authenticate, requireUserSession, requirePro, async (req, res) => {
@@ -477,7 +477,7 @@ router.post('/getDailyDevotionalArchive', authenticate, requireUserSession, requ
 router.post('/generateDevotional', async (req, res) => {
   try {
     const key = req.body.key || req.headers['x-admin-key'];
-    if (key !== process.env.ADMIN_BROADCAST_KEY) {
+    if (!process.env.ADMIN_BROADCAST_KEY || !key || key !== process.env.ADMIN_BROADCAST_KEY) {
       return res.status(403).json({ error: 1, result: 'Unauthorized' });
     }
     const targetDate = req.body.date ? new Date(req.body.date) : new Date();

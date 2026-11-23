@@ -1,13 +1,17 @@
 'use strict';
 
 const { ReplitConnectors } = require('@replit/connectors-sdk');
+const { createHmac } = require('node:crypto');
 
 const PRO_REQUIRED_RESPONSE = Object.freeze({
   error: 'PRO_REQUIRED',
   message: 'An active Pray Over Us Pro subscription is required.'
 });
 
-function extractSubscriptionIdentity(req) {
+function extractSubscriptionIdentity(req, { includeClientIdentity = false } = {}) {
+  // Content/posting authorization never depends on a client-selected ID.
+  // Only the explicit status handshake accepts one as a consistency check.
+  if (!includeClientIdentity) return { userId: req.userId };
   const input = req.body || req.query || {};
   return {
     userId: req.userId,
@@ -25,6 +29,7 @@ class RevenueCatProService {
     projectId = process.env.REVENUECAT_PROJECT_ID,
     entitlementId = process.env.REVENUECAT_PRO_ENTITLEMENT_ID,
     entitlementKey = process.env.REVENUECAT_PRO_ENTITLEMENT_KEY || 'Pray Over Us Pro',
+    identitySecret = () => process.env.SESSION_SECRET,
     activeTtlMs = 5 * 60 * 1000,
     inactiveTtlMs = 60 * 1000,
     maxCacheEntries = 1000,
@@ -37,6 +42,7 @@ class RevenueCatProService {
     this.projectId = projectId;
     this.entitlementId = entitlementId;
     this.entitlementKey = entitlementKey;
+    this.identitySecret = identitySecret;
     this.activeTtlMs = activeTtlMs;
     this.inactiveTtlMs = inactiveTtlMs;
     this.maxCacheEntries = maxCacheEntries;
@@ -49,7 +55,7 @@ class RevenueCatProService {
     this.lookupWaiters = [];
   }
 
-  async getProStatus({ userId, revenuecatAppUserId }) {
+  async getAccountIdentity({ userId }) {
     const numericUserId = Number(userId);
     if (!Number.isSafeInteger(numericUserId) || numericUserId <= 0) {
       const error = new Error('userId must be a positive integer');
@@ -57,7 +63,6 @@ class RevenueCatProService {
       throw error;
     }
 
-    const suppliedAppUserId = this.normalizeAppUserId(revenuecatAppUserId);
     const userResult = await this.pool.query(
       `SELECT revenuecat_app_user_id
        FROM public."user"
@@ -70,26 +75,50 @@ class RevenueCatProService {
       throw error;
     }
 
-    const storedAppUserId = this.normalizeAppUserId(userResult.rows[0].revenuecat_app_user_id);
-    if (storedAppUserId && suppliedAppUserId && suppliedAppUserId !== storedAppUserId) {
-      const error = new Error('This user is already linked to a different RevenueCat identity');
-      error.statusCode = 409;
+    const secret = typeof this.identitySecret === 'function' ? this.identitySecret() : this.identitySecret;
+    if (!secret) {
+      const error = new Error('Account subscription identity is not configured');
+      error.statusCode = 503;
       throw error;
     }
-    const appUserId = suppliedAppUserId || storedAppUserId;
-    if (!appUserId) {
+    // Domain-separated, opaque identity derived only from the verified account.
+    // Never derive this from an email, a client identifier, or editable attributes.
+    const appUserId = 'pou_v1_' + createHmac('sha256', secret)
+      .update(`pray-over-us:revenuecat:account:${numericUserId}`).digest('base64url');
+    return {
+      userId: numericUserId,
+      revenuecatAppUserId: appUserId,
+      storedAppUserId: this.normalizeAppUserId(userResult.rows[0].revenuecat_app_user_id)
+    };
+  }
+
+  async getProStatus({ userId, revenuecatAppUserId, refresh = false }) {
+    const suppliedAppUserId = this.normalizeAppUserId(revenuecatAppUserId);
+    const identity = await this.getAccountIdentity({ userId });
+    const { userId: numericUserId, revenuecatAppUserId: appUserId, storedAppUserId } = identity;
+    if (suppliedAppUserId && suppliedAppUserId !== appUserId && suppliedAppUserId !== storedAppUserId) {
+      const error = new Error('RevenueCat identity does not belong to the signed-in account');
+      error.statusCode = storedAppUserId ? 409 : 403;
+      error.code = 'SUBSCRIPTION_IDENTITY_MISMATCH';
+      throw error;
+    }
+
+    // An old anonymous mapping is not ownership proof. Require RevenueCat's
+    // authenticated alias response to bind it to this server-derived account.
+    // Keep the old mapping intact, even on failure; never silently replace it.
+    if (storedAppUserId && storedAppUserId !== appUserId &&
+        !await this.hasLegacyAccountBinding(appUserId, storedAppUserId)) {
       return {
-        isPro: false,
-        entitlement: this.entitlementKey,
-        revenuecatAppUserId: null,
-        source: 'no_revenuecat_identity'
+        isPro: false, entitlement: this.entitlementKey,
+        revenuecatAppUserId: appUserId, identityVerificationRequired: true,
+        source: 'account_binding_required'
       };
     }
 
     const cached = this.cache.get(appUserId);
-    if (cached && cached.expiresAt > this.now()) {
-      if (cached.isPro && suppliedAppUserId && !storedAppUserId) {
-        await this.linkConfirmedIdentity(numericUserId, suppliedAppUserId);
+    if (!refresh && cached && cached.expiresAt > this.now()) {
+      if (cached.isPro && !storedAppUserId) {
+        await this.linkConfirmedIdentity(numericUserId, appUserId);
       }
       return {
         isPro: cached.isPro,
@@ -101,10 +130,10 @@ class RevenueCatProService {
 
     const isPro = await this.getFreshEntitlementStatus(appUserId);
 
-    // Only persist a client-supplied anonymous RevenueCat identity after the
-    // provider confirms it owns active Pro access.
-    if (isPro && suppliedAppUserId && suppliedAppUserId !== storedAppUserId) {
-      await this.linkConfirmedIdentity(numericUserId, suppliedAppUserId);
+    // First links require BOTH the session-derived account binding and an
+    // authenticated RevenueCat entitlement for that exact account customer.
+    if (isPro && !storedAppUserId) {
+      await this.linkConfirmedIdentity(numericUserId, appUserId);
     }
 
     return {
@@ -113,6 +142,29 @@ class RevenueCatProService {
       revenuecatAppUserId: appUserId,
       source: 'revenuecat'
     };
+  }
+
+  async hasLegacyAccountBinding(appUserId, storedAppUserId) {
+    if (!this.projectId) throw Object.assign(new Error('RevenueCat project configuration is missing'), {statusCode:503});
+    return this.withLookupSlot(async () => {
+      const connectors = this.connectorsFactory();
+      let cursor = '';
+      for (let page = 0; page < 5; page++) {
+        const suffix = cursor ? `&starting_after=${encodeURIComponent(cursor)}` : '';
+        const response = await connectors.proxy('revenuecat',
+          `/v2/projects/${encodeURIComponent(this.projectId)}/customers/${encodeURIComponent(appUserId)}/aliases?limit=100${suffix}`,
+          {method:'GET'});
+        if (response.status === 404) return false;
+        if (!response.ok) throw Object.assign(new Error('RevenueCat account binding verification is unavailable'), {statusCode:503});
+        const data = await response.json();
+        if (!Array.isArray(data.items)) throw Object.assign(new Error('Invalid RevenueCat account binding response'), {statusCode:503});
+        if (data.items.some(alias => alias.id === storedAppUserId)) return true;
+        if (!data.next_page) return false;
+        cursor = data.items.at(-1)?.id;
+        if (!cursor) break;
+      }
+      throw Object.assign(new Error('RevenueCat account binding could not be fully verified'), {statusCode:503});
+    });
   }
 
   async getFreshEntitlementStatus(appUserId) {
@@ -132,6 +184,11 @@ class RevenueCatProService {
     await this.acquireLookupSlot();
     try {
       return await callback();
+    } catch (error) {
+      if (error.statusCode) throw error;
+      // Do not return connector internals or mistake transport/schema errors
+      // for an inactive subscriber (or for a daily quota rejection).
+      throw Object.assign(new Error('RevenueCat verification is temporarily unavailable'), {statusCode:503});
     } finally {
       this.releaseLookupSlot();
     }
@@ -235,7 +292,10 @@ class RevenueCatProService {
     }
 
     const data = await response.json();
-    return (data.items || []).some((item) =>
+    if (!Array.isArray(data.items)) {
+      throw Object.assign(new Error('Invalid RevenueCat entitlement response'), {statusCode:503});
+    }
+    return data.items.some((item) =>
       item.entitlement_id === this.entitlementId ||
       item.id === this.entitlementId ||
       item.lookup_key === this.entitlementKey
@@ -245,6 +305,7 @@ class RevenueCatProService {
 
 function createRequirePro(proService) {
   return async function requirePro(req, res, next) {
+    res.set('Cache-Control', 'private, no-store');
     try {
       const status = await proService.getProStatus(extractSubscriptionIdentity(req));
       if (!status.isPro) return res.status(403).json(PRO_REQUIRED_RESPONSE);

@@ -17,13 +17,15 @@ function fixture(options = {}) {
   let clock = new Date('2026-10-22T15:00:00Z');
   let tail = Promise.resolve();
   let initialChecks = 0;
+  let generationCalls = 0;
+  let persistenceFailures = options.persistenceFailures || 0;
   let releaseInitialChecks;
   const initialBarrier = new Promise(resolve => { releaseInitialChecks = resolve; });
 
-  async function query(sql, params, inTransaction = false) {
+  async function query(sql, params, inTransaction = false, pending = records) {
     if (/SELECT request_id\s+FROM public.request/.test(sql)) {
       events.push(inTransaction ? 'locked-check' : 'initial-check');
-      const rows = records.filter(row => row.user_id === params[0] &&
+      const rows = records.filter(row => row.user_id === params[0] && row.fk_prayer_id &&
         getPostingCalendarDate(new Date(row.timestamp)) === params[1]);
       if (options.concurrent && !inTransaction) {
         if (++initialChecks === 2) releaseInitialChecks();
@@ -35,18 +37,25 @@ function fixture(options = {}) {
       assert.match(sql, /\$12::timestamp/);
       assert.doesNotMatch(sql, /NOW\(\)/);
       const row = {
-        request_id: records.length + 1, user_id: params[0],
+        request_id: records.length + pending.length + 1, user_id: params[0],
         active: params[5], timestamp: params[11],
         request_source: params[9], website_request_date: params[10]
       };
-      records.push(row);
+      pending.push(row);
       return { rows: [row] };
     }
     if (sql.includes('SELECT can_post')) return { rows: [{ can_post: true }] };
     if (sql.includes('SELECT "user".real_name')) {
       return { rows: [{ real_name: 'Test Member', picture: null }] };
     }
-    if (sql.includes('INSERT INTO public.prayers')) return { rows: [{ prayer_id: 123 }] };
+    if (sql.includes('INSERT INTO public.prayers')) {
+      if (persistenceFailures-- > 0) throw new Error('Synthetic prayer insert failure');
+      return { rows: [{ prayer_id: 123 }] };
+    }
+    if (sql.includes('UPDATE public.request SET fk_prayer_id')) {
+      pending.find(row => row.request_id === params[1]).fk_prayer_id = params[0];
+      return {rows:[],rowCount:1};
+    }
     if (sql.includes('SELECT COUNT(*)')) return { rows: [{ count: '1' }] };
     if (sql.trim().startsWith('UPDATE')) return { rows: [], rowCount: 1 };
     throw new Error(`Unexpected fixture query: ${sql}`);
@@ -56,6 +65,7 @@ function fixture(options = {}) {
     query,
     async connect() {
       let unlock;
+      const pending = [];
       return {
         async query(sql, params) {
           if (sql === 'BEGIN') { events.push('BEGIN'); return { rows: [] }; }
@@ -70,10 +80,12 @@ function fixture(options = {}) {
           }
           if (sql === 'COMMIT' || sql === 'ROLLBACK') {
             events.push(sql);
-            unlock();
+            if (sql === 'COMMIT') records.push(...pending);
+            pending.length = 0;
+            unlock?.();
             return { rows: [] };
           }
-          return query(sql, params, true);
+          return query(sql, params, true, pending);
         },
         release() { events.push('release'); }
       };
@@ -93,11 +105,20 @@ function fixture(options = {}) {
       writeFileSync: file => files.add(file),
       unlink: (file, done) => { files.delete(file); done(null); }
     },
-    proSubscriptionService: { getProStatus: async () => {
+    proSubscriptionService: { getProStatus: async identity => {
+      assert.deepEqual(identity,{userId:42},'Posting must derive authorization solely from the signed session');
       if (options.providerError) throw Object.assign(new Error('Unavailable'), { statusCode: 503 });
       return { isPro: options.isPro || false };
     } },
-    generatePrayer: async () => ({ processedPrayer: 'A test prayer.' }),
+    generatePrayer: async () => {
+      generationCalls++;
+      if (generationCalls <= (options.generationFailures || 0)) {
+        if (options.failureMode === 'throw') throw new Error('Synthetic provider failure');
+        if (options.failureMode === 'empty') return {processedPrayer:''};
+        return {error:'Synthetic provider failure'};
+      }
+      return { processedPrayer: 'A test prayer.' };
+    },
     translateText: async text => text,
     awardBadge: async () => {},
     prayerAudioCache: new Map()
@@ -138,7 +159,7 @@ for (const [endpoint, client] of [
   test(`${endpoint}: first Eastern-day post succeeds, cross-client second post is denied`, async () => {
     const f = fixture();
     // The production regression: yesterday evening, but today's UTC date.
-    f.records.push({ request_id: 100, user_id: 42, timestamp: '2026-10-22T00:10:50Z', active: 3 });
+    f.records.push({ request_id: 100, user_id: 42, timestamp: '2026-10-22T00:10:50Z', active: 3, fk_prayer_id:123 });
     await withServer(f, async post => {
       const first = await post(endpoint, client, { tz: 'Pacific/Kiritimati' });
       assert.equal(first.status, 200);
@@ -197,7 +218,10 @@ test('verified Pro users can post repeatedly without quota lookup or user locks'
       assert.equal((await response.json()).success, true);
     }
     assert.equal(f.records.length, 2);
-    assert.deepEqual(f.events, []);
+    assert(!f.events.includes('lock'));
+    assert(!f.events.includes('initial-check'));
+    assert(!f.events.includes('locked-check'));
+    assert.equal(f.events.filter(e => e === 'COMMIT').length, 2);
   });
 });
 
@@ -209,5 +233,71 @@ test('subscription verification errors do not become DAILY_LIMIT_REACHED', async
     assert.equal((await response.json()).error, 'PRO_STATUS_UNAVAILABLE');
     assert.equal(f.records.length, 0);
     assert.equal(f.files.size, 0);
+  });
+});
+
+for (const failureMode of ['error','throw','empty']) {
+  test(`generation ${failureMode} does not spend quota; same-key retry succeeds, then next post is denied`, async () => {
+    const f = fixture({generationFailures:1,failureMode});
+    await withServer(f,async post => {
+      const failed = await post('/createRequestAndPrayer','mobile',{idempotencyKey:'retryable-post'});
+      assert.equal(failed.status,503);
+      assert.equal((await failed.json()).error,'PRAYER_GENERATION_UNAVAILABLE');
+      assert.equal(f.records.length,0);
+      assert.equal(f.events.filter(e=>e==='BEGIN').length,0);
+      assert.equal(f.files.size,0);
+      const retry = await post('/createRequestAndPrayer','mobile',{idempotencyKey:'retryable-post'});
+      assert.equal(retry.status,200);
+      assert.equal((await retry.json()).success,true);
+      assert.equal(f.records.length,1);
+      const next = await post('/api/prayers/post');
+      assert.equal(next.status,403);
+      assert.deepEqual(await next.json(),DAILY_LIMIT_RESPONSE);
+    });
+  });
+}
+
+test('prayer persistence failure rolls back the request and permits a successful retry',async()=>{
+  const f=fixture({persistenceFailures:1});
+  await withServer(f,async post=>{
+    assert.equal((await post('/api/prayers/post')).status,500);
+    assert.equal(f.records.length,0);
+    assert(f.events.includes('ROLLBACK'));
+    const retry=await post('/api/prayers/post');
+    assert.equal(retry.status,200);
+    assert.equal((await retry.json()).success,true);
+    assert.equal(f.records.length,1);
+  });
+});
+
+test('an old incomplete request row does not consume the successful-post allowance',async()=>{
+  const f=fixture();
+  f.records.push({request_id:100,user_id:42,timestamp:'2026-10-22T12:00:00Z',fk_prayer_id:null});
+  await withServer(f,async post=>{
+    const response=await post('/api/prayers/post');
+    assert.equal(response.status,200);
+    assert.equal((await response.json()).success,true);
+  });
+});
+
+test('concurrent generation failure cannot spend the allowance of a successful concurrent post',async()=>{
+  const f=fixture({concurrent:true,generationFailures:1});
+  await withServer(f,async post=>{
+    const responses=await Promise.all([post('/api/prayers/post'),post('/createRequestAndPrayer')]);
+    assert.deepEqual(responses.map(r=>r.status).sort(),[200,503]);
+    assert.equal(f.records.length,1);
+    assert.equal((await post('/api/prayers/post')).status,403);
+    assert.equal(f.files.size,0);
+  });
+});
+
+test('old clients can still make their free post; an unrelated client RevenueCat ID or Pro flag cannot unlock another',async()=>{
+  const f=fixture();
+  await withServer(f,async post=>{
+    const legacyFields={revenuecatAppUserId:'old-unbound-client-customer',isPro:true};
+    const first=await post('/api/prayers/post','mobile',legacyFields);
+    assert.equal(first.status,200);assert.equal((await first.json()).success,true);
+    const second=await post('/api/prayers/post','mobile',legacyFields);
+    assert.equal(second.status,403);assert.deepEqual(await second.json(),DAILY_LIMIT_RESPONSE);
   });
 });

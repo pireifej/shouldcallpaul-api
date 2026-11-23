@@ -1,10 +1,15 @@
 ---
 name: Daily Bread access policy
-description: Defines which Daily Bread features remain free while in-app purchases are pending.
+description: Defines Daily Bread's free preview and Pro reading/audio boundaries.
 ---
 
-Today’s full Daily Bread devotional content and its audio must remain available to every signed-in user without requiring an active Pro entitlement. Premium extras such as historical archives and read/reward actions remain subscription-gated.
+Free users may see the Daily Bread preview. Full devotional readings, all audio
+(including archive audio), archives, and read/reward actions require Pro.
 
-**Why:** The devotional is core daily content and must continue to populate and display while the mobile in-app purchase flow is not yet in place.
+**Why:** The user explicitly ended the earlier full-content/audio exception when
+requesting subscription-audit fixes. Pending IAP integration is not permission
+to restore that exception.
 
-**How to apply:** Do not add a RevenueCat entitlement check to the current-day devotional content or audio APIs. Continue requiring normal API authentication and signed user identity, and keep archives and reward actions behind RevenueCat.
+**How to apply:** Preserve the free preview without full text or audio links.
+Check verified user identity and the RevenueCat entitlement before returning
+full readings or accessing any audio cache, on legacy and current routes alike.

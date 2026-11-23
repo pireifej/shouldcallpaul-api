@@ -43,6 +43,10 @@ Preserve the existing body fields, including `userId`, `requestText`, `requestTi
 - The locked pre-insert check recomputes the day after acquiring the user lock.
   The inserted timestamp and website day use that same instant, even if waiting
   crossed midnight. The initial check cannot reserve an allowance.
+- Only successful request/prayer pairs consume the allowance. Generation happens
+  before posting writes, and request + prayer + link commit in one transaction.
+  A provider failure or rolled-back write can be retried without spending quota.
+  Historical incomplete rows without a prayer link do not count.
 
 ## Limit response
 

@@ -4,6 +4,8 @@ const express = require('express');
 module.exports = function adminRoutes(ctx) {
   const router = express.Router();
   const { pool, auditPool, authenticate, openai, sendGmailSingle, createGmailTransporter, sendPushNotification, runProdBackup, BACKUP_DIR, fs, path, log, generateDailyDevotional } = ctx;
+  const requireUserSession = ctx.requireUserSession || ((req,res) => res.status(503).json({error:'USER_SESSION_UNAVAILABLE'}));
+  const requirePro = ctx.requirePro || ((req,res) => res.status(503).json({error:'PRO_STATUS_UNAVAILABLE'}));
 
 router.post('/getRequestCount', authenticate, async (req, res) => {
   try {
@@ -23,7 +25,7 @@ router.post('/getRequestCount', authenticate, async (req, res) => {
 });
 
 // POST /getAllRequests - Get all requests
-router.post('/getAllRequests', authenticate, async (req, res) => {
+router.post('/getAllRequests', authenticate, requireUserSession, requirePro, async (req, res) => {
   try {
     log(req);
     const params = req.body;
@@ -89,9 +91,6 @@ router.post('/getChatCompletion', authenticate, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-// POST /getDailyBreadAudio - Generate (or serve cached) TTS audio for a Daily Bread devotional
-// No authentication required. Supports Range requests for ExoPlayer streaming.
 
 router.post('/sendBroadcastEmail', authenticate, async (req, res) => {
   log(req);

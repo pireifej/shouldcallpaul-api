@@ -36,6 +36,7 @@ async function checkFreeTierDailyLimit(pool, userId, isPro, now = new Date()) {
     `SELECT request_id
      FROM public.request
      WHERE user_id = $1
+       AND fk_prayer_id IS NOT NULL
        AND timestamp >= (($2::date::timestamp AT TIME ZONE '${POSTING_TIME_ZONE}') AT TIME ZONE 'UTC')
        AND timestamp < ((($2::date + 1)::timestamp AT TIME ZONE '${POSTING_TIME_ZONE}') AT TIME ZONE 'UTC')
      LIMIT 1`,

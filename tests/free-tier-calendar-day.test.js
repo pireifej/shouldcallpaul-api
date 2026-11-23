@@ -53,7 +53,7 @@ test('calendar SQL handles real timestamp columns, session timezones and DST', {
     // Session-local fixture only: never insert or update application requests.
     await client.query(`CREATE TEMP TABLE posting_calendar_test (
       request_id INTEGER, user_id INTEGER, timestamp TIMESTAMP WITHOUT TIME ZONE,
-      active SMALLINT, request_source TEXT
+      active SMALLINT, request_source TEXT, fk_prayer_id INTEGER DEFAULT 123
     ) ON COMMIT DROP`);
     let quotaSql;
     const isolatedPool = { query: (sql, params) => {
@@ -120,6 +120,14 @@ test('calendar SQL handles real timestamp columns, session timezones and DST', {
           assert.equal(result.limited, expected);
         }
       }
+    });
+
+    await t.test('incomplete rows without a generated-prayer link do not consume allowance',async()=>{
+      await client.query('TRUNCATE pg_temp.posting_calendar_test');
+      await client.query(`INSERT INTO pg_temp.posting_calendar_test
+        VALUES (1,42,'2026-10-22 15:00:00',1,'mobile',NULL)`);
+      const result=await checkFreeTierDailyLimit(isolatedPool,42,false,new Date('2026-10-22T16:00:00Z'));
+      assert.equal(result.limited,false);
     });
   } finally {
     await client.query('ROLLBACK');

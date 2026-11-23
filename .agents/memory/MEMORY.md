@@ -2,9 +2,9 @@
 - [Prayer notification digest design](prayer-notification-digest.md) — per-prayer emails to request owners were replaced with a once-daily digest queue; admin keeps per-event tracking email
 - [Interview-prep content separation](interview-prep-content-separation.md) — personal prep notes and AI-generated prep must remain independently writable and readable.
 - [RevenueCat Pro identity policy](revenuecat-pro-identity.md) — RevenueCat stays authoritative; only confirmed active identities may be linked, uniquely and without silent replacement.
-- [Daily Bread access policy](daily-bread-access.md) — Today’s devotional content and audio remain available to all signed-in users; archives and reward actions remain Pro-gated.
+- [Daily Bread access policy](daily-bread-access.md) — Free users get the preview only; full readings, all audio, archives, and reward actions require Pro.
 - [Signed user-session policy](signed-user-sessions.md) — user-owned and Pro routes trust signed session identity, while provider logins require cryptographically verified identities.
-- [Prayer Walk temporary access](prayer-walk-access.md) — Audio is free for signed-in users while IAP is pending; extended prayer generation stays Pro-only.
+- [Prayer Walk access](prayer-walk-access.md) — Prayer Walk audio requires Pro; the earlier temporary free exception was explicitly ended.
 - [Free posting baseline](free-posting-policy.md) — User confirmed one request per day stays in place even while IAP is unfinished.
 - [Resume speech display fields](resume-speech-display.md) — The separate GUI displays detail keys; reuse existing speech fields and put extra event context in the description.
 - [Publishing database targets](publishing-database-targets.md) — A Neon-named secret does not prove the CRM database is outside managed Publish; verify schema targets before recommending publishing.

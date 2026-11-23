@@ -11,6 +11,7 @@ const {
   PRO_REQUIRED_RESPONSE,
   extractSubscriptionIdentity
 } = require('../revenueCatProService');
+const { persistCompletedPost } = require('../postingPersistence');
 
 const SAFE_SAFETY_REWRITE =
   'Lord, please bring peace, wisdom, and compassionate support to everyone involved. Guide them toward healing and the right help. Amen.';
@@ -56,7 +57,7 @@ module.exports = function prayersRoutes(ctx) {
     message: 'User session verification is unavailable.'
   }));
 
-router.get('/api/requests', authenticate, async (req, res) => {
+router.get('/api/requests', authenticate, requireUserSession, requirePro, async (req, res) => {
   try {
     // Query the public.request table for all records
     const result = await pool.query('SELECT * FROM public.request ORDER BY timestamp DESC');
@@ -1173,15 +1174,19 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
     console.log(`Received idempotency key: ${idempotencyKey}`);
 
     const newRequestCheck = path.join(__dirname, idempotencyKey + ".txt");
+    let ownsIdempotencyFile = false;
+    let idempotencyCleanup;
     cleanupIdempotencyFile = () => {
-      if (!fs.existsSync(newRequestCheck)) return;
-      fs.unlink(newRequestCheck, (err) => {
-        if (err) {
-          console.error(`Error deleting idempotency file for key ${idempotencyKey}:`, err);
-        } else {
-          console.log(`Successfully deleted file for key ${idempotencyKey}.`);
-        }
+      if (idempotencyCleanup) return idempotencyCleanup;
+      if (!ownsIdempotencyFile) return Promise.resolve();
+      ownsIdempotencyFile = false;
+      idempotencyCleanup = new Promise(resolve => {
+        fs.unlink(newRequestCheck, (err) => {
+          if (err && err.code !== 'ENOENT') console.error('Idempotency cleanup failed:', err.code);
+          resolve();
+        });
       });
+      return idempotencyCleanup;
     };
 
     // Check if the file already exists
@@ -1196,6 +1201,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
     try {
         const fileContent = JSON.stringify(params, null, 2);
         fs.writeFileSync(newRequestCheck, idempotencyKey);
+        ownsIdempotencyFile = true;
         console.log(`Successfully created file for key ${idempotencyKey}.`);
     } catch (err) {
         console.error(`Error writing file for key ${idempotencyKey}:`, err);
@@ -1257,7 +1263,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
       postingNow()
     );
     if (freeTierLimit.limited) {
-      cleanupIdempotencyFile();
+      await cleanupIdempotencyFile();
       return sendFreeTierDailyLimitResponse(res);
     }
 
@@ -1282,7 +1288,33 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
         });
     }
 
-    // Step 1: Insert the request into the database (simplified approach)
+    // Generate before any posting mutation, without holding a database lock.
+    const userResult = await pool.query(
+      'SELECT "user".real_name, "user".picture FROM public."user" WHERE user_id = $1',
+      [params.userId]
+    );
+    if (!userResult.rows.length) {
+      cleanupIdempotencyFile();
+      return res.status(404).json({error:'USER_NOT_FOUND'});
+    }
+    const realName = userResult.rows[0].real_name;
+    const userPicture = userResult.rows[0].picture;
+    let prayerGenResult;
+    try {
+      prayerGenResult = await generatePrayer(params.requestText, realName, params.lang || 'en', params.requestTitle || '');
+      if (prayerGenResult?.error || !prayerGenResult?.processedPrayer?.trim()) {
+        throw new Error('Prayer generation did not produce a prayer');
+      }
+    } catch {
+      await cleanupIdempotencyFile();
+      return res.status(503).json({
+        error:'PRAYER_GENERATION_UNAVAILABLE',
+        message:'Prayer generation is temporarily unavailable. Your daily allowance has not been used.',
+        retryable:true
+      });
+    }
+    const newPrayer = prayerGenResult.processedPrayer;
+
     const lang = ['en', 'es'].includes(params.lang) ? params.lang : 'en';
 
     const insertQuery = `
@@ -1321,77 +1353,15 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
       postingNow().toISOString() // $12 - explicit UTC; column is timestamp without time zone
     ];
 
-    let insertResult;
-    let dailyLimitClient = null;
-    let dailyLimitTransactionStarted = false;
-
-    // A plain SELECT-then-INSERT can be bypassed by two simultaneous requests.
-    // Serialize free-tier inserts with a transaction-scoped user lock.
-    if (!proStatus.isPro) {
-      dailyLimitClient = await pool.connect();
-      try {
-        await dailyLimitClient.query('BEGIN');
-        dailyLimitTransactionStarted = true;
-        await dailyLimitClient.query(
-          'SELECT pg_advisory_xact_lock($1::bigint)',
-          [Number(params.userId)]
-        );
-
-        // Recompute after waiting for the lock: midnight may have passed.
-        // Use this same instant for the bucket and INSERT. PostgreSQL NOW()
-        // would instead use the earlier transaction-start time, and casting it
-        // to timestamp would also depend on the database session timezone.
-        const insertTime = postingNow();
-        const lockedFreeTierLimit = await checkFreeTierDailyLimit(
-          dailyLimitClient,
-          params.userId,
-          false,
-          insertTime
-        );
-        if (lockedFreeTierLimit.limited) {
-          await dailyLimitClient.query('ROLLBACK');
-          dailyLimitTransactionStarted = false;
-          dailyLimitClient.release();
-          dailyLimitClient = null;
-          cleanupIdempotencyFile();
-          return sendFreeTierDailyLimitResponse(res);
-        }
-        queryParams[10] = requestSource === WEBSITE_REQUEST_SOURCE
-          ? lockedFreeTierLimit.requestDate : null;
-        queryParams[11] = insertTime.toISOString();
-      } catch (limitCheckError) {
-        if (dailyLimitTransactionStarted) {
-          await dailyLimitClient.query('ROLLBACK').catch(() => {});
-          dailyLimitTransactionStarted = false;
-        }
-        dailyLimitClient.release();
-        dailyLimitClient = null;
-        throw limitCheckError;
-      }
+    const persisted = await persistCompletedPost({
+      pool, userId:params.userId, isPro:proStatus.isPro, requestSource,
+      postingNow, insertQuery, queryParams, prayerText:newPrayer, lang
+    });
+    if (persisted.limited) {
+      await cleanupIdempotencyFile();
+      return sendFreeTierDailyLimitResponse(res);
     }
-
-    const insertClient = dailyLimitClient || pool;
-    try {
-      insertResult = await insertClient.query(insertQuery, queryParams);
-      if (dailyLimitClient) {
-        await dailyLimitClient.query('COMMIT');
-        dailyLimitTransactionStarted = false;
-        dailyLimitClient.release();
-        dailyLimitClient = null;
-      }
-    } catch (insertError) {
-      if (dailyLimitClient) {
-        if (dailyLimitTransactionStarted) {
-          await dailyLimitClient.query('ROLLBACK').catch(() => {});
-          dailyLimitTransactionStarted = false;
-        }
-        dailyLimitClient.release();
-        dailyLimitClient = null;
-      }
-
-      throw insertError;
-    }
-    const requestId = insertResult.rows[0].request_id;
+    const {requestId, prayerId} = persisted;
     
     // Save uploaded image file to Cloudinary if present
     if (req.file && req.file.buffer) {
@@ -1413,7 +1383,7 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
         // Reset picture to NULL on upload failure so clients don't get broken placeholder URL
         pictureUrl = null;
         const updatePictureQuery = `UPDATE public.request SET picture = NULL WHERE request_id = $1`;
-        await pool.query(updatePictureQuery, [requestId]);
+        await pool.query(updatePictureQuery, [requestId]).catch(() => {});
         // Continue without image - don't fail the whole request, but log the error
         console.warn(`⚠️ Prayer request ${requestId} created without image due to storage error`);
       }
@@ -1422,65 +1392,16 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
     // Award faith points: 5 if request has a picture, 3 if no picture
     const hasImage = pictureUrl && pictureUrl !== null && pictureUrl !== 'PENDING_IMAGE_UPLOAD';
     const faithPointsToAward = hasImage ? 5 : 3;
-    await pool.query('UPDATE public."user" SET faith_points = faith_points + $1 WHERE user_id = $2', [faithPointsToAward, params.userId]);
-
-    // Step 2: Get user details for prayer generation
-    const userQuery = `
-      SELECT "user".real_name, "user".picture 
-      FROM public."user" 
-      WHERE "user".user_id = $1
-    `;
-    const userResult = await pool.query(userQuery, [params.userId]);
-    
-    if (userResult.rows.length === 0) {
-      res.json({ error: "User not found" });
-      return;
+    try {
+      await pool.query('UPDATE public."user" SET faith_points = faith_points + $1 WHERE user_id = $2',
+        [faithPointsToAward, params.userId]);
+    } catch (error) {
+      console.warn('Post saved; faith-points update failed:', error.message);
     }
 
-    const realName = userResult.rows[0].real_name;
-    const userPicture = userResult.rows[0].picture;
-
-    // Step 3: Generate prayer using shared function
     try {
-      const prayerGenResult = await generatePrayer(params.requestText, realName, params.lang || 'en', params.requestTitle || '');
-      
-      if (prayerGenResult.error) {
-        res.json({ error: prayerGenResult.error });
-        return;
-      }
-
-      const newPrayer = prayerGenResult.processedPrayer;
-
-      // Step 4: Insert the generated prayer
-      const prayerInsertQuery = `
-        INSERT INTO public.prayers (prayer_title, prayer_text, prayer_text_me, tags, active, prayer_file_name, prayer_en, prayer_es) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-        RETURNING prayer_id
-      `;
-
-      const dbInsertResult = await pool.query(prayerInsertQuery, [
-        'openAI-generated',
-        newPrayer,
-        newPrayer,
-        'openAI',
-        1,          // active field is smallint, use 1 instead of true
-        'openAI',
-        lang === 'en' ? newPrayer : null,  // prayer_en
-        lang === 'es' ? newPrayer : null   // prayer_es
-      ]);
-
-      const prayerId = dbInsertResult.rows[0].prayer_id;
-
-      // Step 5: Update the request with the prayer ID
-      const updateQuery = `
-        UPDATE public.request 
-        SET fk_prayer_id = $1, active = 1 
-        WHERE request_id = $2
-      `;
-
-      await pool.query(updateQuery, [prayerId, requestId]);
-
       // Step 6: Return success response
+      await cleanupIdempotencyFile();
       res.json({
         success: true,
         requestId: requestId,
@@ -1646,19 +1567,22 @@ async function handleCreateRequestAndPrayer(req, res, multerError, requestSource
 
       cleanupIdempotencyFile();
 
-    } catch (chatError) {
-      console.error('OpenAI chat completion error:', chatError);
-      res.json({ error: "Failed to generate prayer" });
+    } catch (followupError) {
+      // The post is committed. Follow-up failures must not send a second error.
+      console.error('Post saved; follow-up processing failed:', followupError.message);
       return;
     }
 
   } catch (error) {
     console.error('Database error:', error);
-    cleanupIdempotencyFile();
+    await cleanupIdempotencyFile();
     const statusCode = error.statusCode || 500;
     res.status(statusCode).json({
-      error: statusCode === 503 ? 'PRO_STATUS_UNAVAILABLE' : 'Internal server error'
+      error: error.code === 'SUBSCRIPTION_IDENTITY_MISMATCH' ? error.code :
+        statusCode === 503 ? 'PRO_STATUS_UNAVAILABLE' : 'Internal server error'
     });
+  } finally {
+    await cleanupIdempotencyFile();
   }
 }
 
@@ -1779,9 +1703,8 @@ async function handlePrayerAudio(req, res) {
   }
 }
 
-// Temporary free access while mobile IAP is pending; signed sessions remain required.
-router.post('/getPrayerAudio', authenticate, requireUserSession, handlePrayerAudio);
-router.post('/api/prayer-walk/stream', authenticate, requireUserSession, handlePrayerAudio);
+router.post('/getPrayerAudio', authenticate, requireUserSession, requirePro, handlePrayerAudio);
+router.post('/api/prayer-walk/stream', authenticate, requireUserSession, requirePro, handlePrayerAudio);
 
 // POST /getDetailedPrayerByRequestId - Get or generate a longer detailed prayer for a request
 
@@ -1882,6 +1805,7 @@ Rules:
 
 // POST /getPrayer - Get best available prayer for a request (extended if cached, else standard)
 router.post('/getPrayer', authenticate, requireUserSession, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
   try {
     const { requestId, lang = 'en' } = req.body;
     if (!requestId) return res.json({ error: 1, prayerText: null, result: "Required param 'requestId' missing" });
