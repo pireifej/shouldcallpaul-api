@@ -5,6 +5,7 @@
 - [Daily Bread access policy](daily-bread-access.md) — Free users get the preview only; full readings, all audio, archives, and reward actions require Pro.
 - [Signed user-session policy](signed-user-sessions.md) — user-owned and Pro routes trust signed session identity, while provider logins require cryptographically verified identities.
 - [Prayer Walk access](prayer-walk-access.md) — Prayer Walk audio requires Pro; the earlier temporary free exception was explicitly ended.
+- [Public audio delivery](public-audio-delivery.md) — Keep Cloudinary URLs public and audio generation independent of mobile GUI playback visibility.
 - [Free posting baseline](free-posting-policy.md) — User confirmed one request per day stays in place even while IAP is unfinished.
 - [Resume speech display fields](resume-speech-display.md) — The separate GUI displays detail keys; reuse existing speech fields and put extra event context in the description.
 - [Publishing database targets](publishing-database-targets.md) — A Neon-named secret does not prove the CRM database is outside managed Publish; verify schema targets before recommending publishing.
