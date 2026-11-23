@@ -12,6 +12,7 @@ const {
   extractSubscriptionIdentity
 } = require('../revenueCatProService');
 const { persistCompletedPost } = require('../postingPersistence');
+const { createInterimContentAccess } = require('../interimContentAccess');
 
 const SAFE_SAFETY_REWRITE =
   'Lord, please bring peace, wisdom, and compassionate support to everyone involved. Guide them toward healing and the right help. Amen.';
@@ -56,6 +57,9 @@ module.exports = function prayersRoutes(ctx) {
     error: 'USER_SESSION_UNAVAILABLE',
     message: 'User session verification is unavailable.'
   }));
+  const requireContentAccess = createInterimContentAccess(requirePro, {
+    enabled: ctx.contentPaywallEnabled
+  });
 
 router.get('/api/requests', authenticate, requireUserSession, requirePro, async (req, res) => {
   try {
@@ -1703,8 +1707,8 @@ async function handlePrayerAudio(req, res) {
   }
 }
 
-router.post('/getPrayerAudio', authenticate, requireUserSession, requirePro, handlePrayerAudio);
-router.post('/api/prayer-walk/stream', authenticate, requireUserSession, requirePro, handlePrayerAudio);
+router.post('/getPrayerAudio', authenticate, requireUserSession, requireContentAccess, handlePrayerAudio);
+router.post('/api/prayer-walk/stream', authenticate, requireUserSession, requireContentAccess, handlePrayerAudio);
 
 // POST /getDetailedPrayerByRequestId - Get or generate a longer detailed prayer for a request
 

@@ -338,6 +338,7 @@ test('extended generation reports a retryable failure instead of a short fallbac
 test('full Daily Bread content, audio, and archives enforce the Pro guard', async () => {
   const deny = (req, res) => res.status(403).json(PRO_REQUIRED_RESPONSE);
   const dailyRouter = devotionalRoutes({
+    contentPaywallEnabled: true,
     pool: {
       query: async () => ({
         rows: [{
@@ -413,6 +414,7 @@ test('Prayer Walk audio requires Pro as well as app and user authentication on b
   try {
     const audio = Buffer.from('cached-mp3-test-data');
     const router = prayerRouter({
+      contentPaywallEnabled: true,
       authenticate: (req, res, next) => req.get('authorization') === 'Basic test'
         ? next()
         : res.status(401).json({ error: 'APP_AUTH_REQUIRED' }),

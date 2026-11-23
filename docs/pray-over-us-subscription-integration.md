@@ -108,9 +108,27 @@ not a daily-limit error.
 
 ## Feature boundaries
 
-All Pro routes below check app authorization, verified user session, and the
-same `Pray Over Us Pro` entitlement **before** reading premium data or any
-memory, disk, or provider audio cache.
+### Interim access while IAP is unfinished
+
+Daily Bread and Prayer Walk are temporarily available to all signed-in users.
+`PRAY_OVER_US_CONTENT_PAYWALL_ENABLED` defaults to `false` when absent. No
+environment setting was changed for this update. Both routers read the switch
+when initialized; client request fields cannot override it.
+
+When purchases/restores and the mobile paywall are ready, explicitly set
+`PRAY_OVER_US_CONTENT_PAYWALL_ENABLED=true` in the intended server environment
+and restart/redeploy through the approved release process. This is a manual
+rollout decision, not a date-based or automatic switch. Invalid values fail
+startup rather than silently bypassing the intended policy.
+
+Both modes retain application authentication and verified user sessions on the
+POST reading/audio/archive/reward routes. Interim access does not grant Pro or
+alter the one-successful-free-post/day quota, RevenueCat identity security, or
+extended-prayer restrictions. It skips RevenueCat checks for these temporarily
+open features, so their availability does not depend on subscription verification.
+
+When the switch is `true`, these routes also check the same `Pray Over Us Pro`
+entitlement before reading content or any memory, disk, or provider audio cache.
 
 | Endpoint | Access |
 | --- | --- |
@@ -120,20 +138,22 @@ memory, disk, or provider audio cache.
 | `POST /api/prayers/generate`, `POST /testGeneratePrayer` with `extended: true` or `"true"` | Pro |
 | Those generation endpoints with extended omitted/false | Free standard generation |
 | `POST /getPrayer` | Standard prayer for free users; cached extended prayer only after Pro verification |
-| `POST /getPrayerAudio`, `POST /api/prayer-walk/stream` | Pro Prayer Walk audio |
+| `POST /getPrayerAudio`, `POST /api/prayer-walk/stream` | Signed-in now; Pro when switch is true |
 | `GET /getDailyDevotional` | Existing public English preview only |
-| `POST /getDailyDevotional`, `POST /api/daily-bread` | Pro full reading |
-| `POST /getDailyDevotionalById`, `POST /getDailyDevotionalArchive` | Pro archives |
-| `POST /getDailyBreadAudio` | Pro for all dates, including archived, cached and `checkOnly` requests |
-| `POST /readDailyBread` | Pro reward/read action |
+| `POST /getDailyDevotional`, `POST /api/daily-bread` | Signed-in full reading now; Pro when switch is true |
+| `POST /getDailyDevotionalById`, `POST /getDailyDevotionalArchive` | Signed-in archives now; Pro when switch is true |
+| `POST /getDailyBreadAudio` | Signed-in for all dates/caches/`checkOnly` now; Pro when switch is true |
+| `POST /readDailyBread` | Signed-in read/reward now; Pro when switch is true |
 
-Full-reading POSTs do **not** return a free preview on failure. The mobile app
-must use the GET preview endpoint for free accounts. Its `result` contains title,
+Full-reading POSTs do **not** return a free preview on failure. While interim
+access is open, the mobile app should allow signed-in free users to call the
+POSTs without a Pro purchase screen. Once the switch is true, free accounts use
+the GET preview endpoint. Its `result` contains title,
 verse, reference, theme, image and `locked: true`, but no `article_body`, full
 prayer, or audio URL.
 
 Use the authenticated POST audio routes, including for archive playback. Missing
-sessions return 401 `USER_SESSION_REQUIRED`; inactive entitlements return:
+sessions return 401 `USER_SESSION_REQUIRED`; when a route requires Pro, inactive entitlements return:
 
 ```json
 {
@@ -147,11 +167,12 @@ The response is HTTP 403. Authorization-protected responses are marked
 Administrative manual devotional generation retains its separate admin-key
 authorization and now fails closed if that key is unconfigured.
 
-API authorization cannot retract files already downloaded or previously disclosed
-public Cloudinary URLs. No CDN assets were moved, deleted, or reconfigured in this
-change. Clear premium app caches on logout, account change, and entitlement loss.
-If previously shared CDN URLs must also be invalidated, that requires a separately
-approved storage/access change, not merely a backend route gate.
+Cloudinary URLs intentionally remain public, per the owner's decision. Hiding
+playback in the mobile GUI does not prevent listening through a known direct
+URL; this is accepted, not a rollout blocker. No CDN assets were moved, deleted,
+privatized, or reconfigured. Audio generation, saving, and scheduled preparation
+are unchanged and independent of this switch. Clear account-specific app state
+on logout/account change; apply GUI restrictions at the eventual paid rollout.
 
 ## Successful-post quota
 
@@ -243,9 +264,12 @@ Use dedicated sandbox/test accounts only:
    succeed. The success must close the composer without a red rate-limit error.
    The next attempt must receive exactly 403 `DAILY_LIMIT_REACHED`. Send concurrent
    attempts and verify only one post exists. Repeat around Eastern midnight/DST.
-7. Verify free Daily Bread uses the GET preview, not full-reading POSTs. Check
-   full reading, today/archive audio, warm audio caches, archive reads, extended
-   prayers, and both raw request routes are locked for free users and work for Pro.
+7. With the switch absent/false, verify signed-in free accounts can use full
+   Daily Bread, today/archive audio, warm caches, archives/read rewards, and both
+   Prayer Walk aliases without a paywall. Missing/expired sessions still fail.
+   Extended prayers and both raw request routes remain Pro-only in either mode.
+   In an isolated test environment with the switch true, verify free accounts get
+   the GET preview only and 403 on all full-content/audio routes, while Pro works.
 8. Verify expired/missing sessions prompt app sign-in, provider failures show a
    retryable service error, and neither is mislabeled as a daily quota failure.
 
@@ -258,7 +282,7 @@ because its startup also runs migrations against configured databases.
 
 ## Verification results and changed files
 
-Final `npm test`: **179 passed, 0 failed, 0 skipped**.
+Prior subscription-audit fix baseline: **179 passed, 0 failed, 0 skipped**.
 `node --check` passed for all seven changed runtime files; `git diff --check`
 passed. Live mobile/store purchases and production routes were not exercised.
 
@@ -290,5 +314,19 @@ Regression files:
 - `tests/pro-subscription.test.js`: existing subscription/session/generation
   regressions updated for account-bound identities and the restored Pro gates.
 
-Also updated `docs/prayoverus-website-request-limit.md` and project access-policy
-notes so the former temporary free exceptions are not accidentally reintroduced.
+The subsequent interim-access update adds `interimContentAccess.js`, uses it in
+the devotional and prayer routers, and tests both switch modes in
+`tests/pro-feature-boundaries.test.js`. Existing enforced-Pro tests explicitly
+select paid mode. No database migration, data edit, or Cloudinary change is needed.
+
+Interim-update verification:
+
+- Initial full `npm test`: 190 passed, one failure from the disposable
+  PostgreSQL `initdb` startup timeout, no skips.
+- That PostgreSQL regression passed when rerun independently.
+- After adding provider-lookup and client-switch-spoofing assertions, the
+  feature-boundary/subscription suites passed all 45 tests.
+- Syntax checks for the three changed runtime files and `git diff --check` passed.
+- The normal server remains stopped to avoid its startup database migrations.
+  Preview capture therefore returned connection refused; no mobile/visual or
+  deployed behavior was verified.

@@ -1,15 +1,17 @@
 ---
 name: Daily Bread access policy
-description: Defines Daily Bread's free preview and Pro reading/audio boundaries.
+description: Daily Bread stays available to signed-in users until the IAP rollout is ready.
 ---
 
-Free users may see the Daily Bread preview. Full devotional readings, all audio
-(including archive audio), archives, and read/reward actions require Pro.
+Temporarily allow signed-in users full Daily Bread readings, audio including
+archives, archive browsing, and read/reward actions. Keep the public preview.
+Require Pro for the full features only after IAP is fully implemented and the
+owner approves enabling the paid boundary.
 
-**Why:** The user explicitly ended the earlier full-content/audio exception when
-requesting subscription-audit fixes. Pending IAP integration is not permission
-to restore that exception.
+**Why:** The user explicitly clarified that audit security fixes must not block
+existing Daily Bread access while subscriptions are unfinished. This supersedes
+the earlier request to immediately restore all Pro gates.
 
-**How to apply:** Preserve the free preview without full text or audio links.
-Check verified user identity and the RevenueCat entitlement before returning
-full readings or accessing any audio cache, on legacy and current routes alike.
+**How to apply:** Keep verified sessions in both access modes. Treat the paid
+boundary as an explicit release decision, not an automatic date change. Do not
+grant Pro or weaken posting/extended-content checks to enable interim access.
