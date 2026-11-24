@@ -27,6 +27,7 @@ app.set('trust proxy', true);
 
 // Middleware
 app.use(cors()); // Enable CORS for mobile and web apps
+app.use('/api/holiday-greetings', require('./holiday/privateTransport').privateHolidayTransport());
 app.use(express.json({ limit: '50mb' })); // Parse JSON request bodies
 app.use(express.text({ limit: '50mb' })); // Parse text request bodies
 
@@ -50,6 +51,9 @@ const SKIP_LOG_PATHS = new Set(['/api/requests', '/getAllBlogArticles', '/getFai
 
 // Comprehensive request/response logging middleware
 app.use((req, res, next) => {
+  // Private contacts, drafts and OAuth exchanges must never enter the legacy
+  // payload/response audit logger (including its database log records).
+  if (/^\/api\/holiday-greetings(?:\/|$)/i.test(req.path)) return next();
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
   const callerIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
@@ -1157,6 +1161,7 @@ const ctx = {
 };
 
 // Mount all route files
+app.use(require('./routes/holidayGreetings')(ctx));
 app.use(miscRoutes(ctx));
 app.use(authRoutes(ctx));
 app.use(usersRoutes(ctx));

@@ -14,3 +14,4 @@
 - [Workshop resource ownership](workshop-resource-ownership.md) — Private working-material shortcuts are shared across an engagement’s linked public presentations, not published with them.
 - [Workshop date compatibility](workshop-date-compatibility.md) — Legacy single-date edits must preserve independently added dates, including dates temporarily selected by an older client.
 - [Delivered workshop catalog](delivered-workshop-catalog.md) — Offerings require public completed-delivery evidence; keep copy client-neutral and uncertain matches for review.
+- [Private Holiday Greetings](holiday-greetings-policy.md) — Separate owner-only contacts/drafts; native Messages handoff never proves sending, and all recipient selection is explicit.

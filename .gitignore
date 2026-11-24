@@ -14,3 +14,4 @@ attached_assets/
 !migrations/workshop-resources.sql
 !migrations/workshop-engagement-dates.sql
 !migrations/speaker-catalog.sql
+!migrations/holiday-greetings.sql

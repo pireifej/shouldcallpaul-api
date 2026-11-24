@@ -26,3 +26,31 @@ mtime_ms = 1794689277806
 storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:374ad21d-de0e-4eb0-bc56-086fbfe02aa9/93516505-d50a-442c-ad4a-8498d32e282c/114ecc90-3fb1-4712-a304-c9eba0757ba7"
 storage_version_token = "1794689300708782"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "8nlchZPGGfQW1camGG46y"
+uri = "file://docs/holiday-greetings-api.md"
+type = "text"
+title = "Holiday Greetings API and setup guide"
+description = "Exact endpoints, examples, owner sessions, CSRF, Google Cloud setup, migration safety and verification results."
+logical_id = "93b7192f-6e0b-4a87-afde-77ae26dd20a1"
+content_hash = "sha256:2bc0dd73a9d77fdcd04a26b17416462f743996d49aebb9406a74fc60c304a46b"
+size = 19991
+mtime_ms = 1795530833326
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:374ad21d-de0e-4eb0-bc56-086fbfe02aa9/93b7192f-6e0b-4a87-afde-77ae26dd20a1/31e97313-1e30-4bb4-a07e-1bd55fff69e5"
+storage_version_token = "1795530846681013"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "htn54jJI3mXUWgM7mk0Zy"
+uri = "file://docs/holiday-greetings-frontend-handoff.md"
+type = "text"
+title = "Who Call Paul frontend handoff"
+description = "Copy-and-paste instructions for the separate frontend proxy, private greeting drafts and Android Messages handoff."
+logical_id = "302fa23c-3373-433e-ba48-b332d84b5b8e"
+content_hash = "sha256:24231347acdc1badc2a9a4122d0ca598f5658852defd56eb01086e6e6b5e5cf7"
+size = 3190
+mtime_ms = 1795530661926
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:374ad21d-de0e-4eb0-bc56-086fbfe02aa9/302fa23c-3373-433e-ba48-b332d84b5b8e/749ba314-6431-454e-a346-cf2c9ec947e5"
+storage_version_token = "1795530847405759"
+content_type = "text/markdown"
