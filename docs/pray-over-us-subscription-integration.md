@@ -108,6 +108,11 @@ not a daily-limit error.
 
 ## Feature boundaries
 
+The authenticated policy-discovery endpoint and viewed-member history contract
+are documented in [the mobile compatibility handoff](pray-over-us-mobile-compatibility-handoff.md).
+Use `GET /api/subscriptions/access-policy` for GUI access policy independently
+of RevenueCat subscription verification.
+
 ### Interim access while IAP is unfinished
 
 Daily Bread and Prayer Walk are temporarily available to all signed-in users.

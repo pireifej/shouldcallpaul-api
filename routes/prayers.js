@@ -1859,14 +1859,23 @@ router.post('/getPrayer', authenticate, requireUserSession, async (req, res) => 
   }
 });
 
-// POST /getPrayedFor - Get all requests that a user has prayed for (works for any userId)
+// POST /getPrayedFor - Session identifies viewer; optional targetUserId selects member.
 router.post('/getPrayedFor', authenticate, requireUserSession, async (req, res) => {
   try {
-    log(req);
+    res.set('Cache-Control', 'private, no-store');
     const params = req.body;
-
-    if (!params.userId) {
-      return res.json({ error: 1, result: "Required param 'userId' missing" });
+    let targetUserId = req.userId;
+    if (Object.hasOwn(params, 'targetUserId')) {
+      const target = params.targetUserId;
+      const validType = typeof target === 'number' ||
+        (typeof target === 'string' && /^\d+$/.test(target));
+      if (!validType || !Number.isSafeInteger(Number(target)) || Number(target) <= 0) {
+        return res.status(400).json({
+          error: 'INVALID_TARGET_USER_ID',
+          message: 'targetUserId must be a positive safe integer.'
+        });
+      }
+      targetUserId = Number(target);
     }
 
     const lang = ['en', 'es'].includes(params.lang) ? params.lang : 'en';
@@ -1895,7 +1904,7 @@ router.post('/getPrayedFor', authenticate, requireUserSession, async (req, res) 
       ORDER BY r.timestamp DESC
     `;
 
-    const result = await pool.query(query, [params.userId, lang]);
+    const result = await pool.query(query, [targetUserId, lang]);
     res.json(result.rows);
 
   } catch (error) {

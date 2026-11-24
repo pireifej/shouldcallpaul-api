@@ -7,6 +7,7 @@ const multer=require('multer');
 const prayers=require('../routes/prayers');
 const devotional=require('../routes/devotional');
 const admin=require('../routes/admin');
+const subscriptions=require('../routes/subscriptions');
 const {createRequirePro}=require('../revenueCatProService');
 const {requireUserSession,issueUserSessionToken}=require('../userSession');
 const {createInterimContentAccess}=require('../interimContentAccess');
@@ -60,6 +61,7 @@ async function withApp(run, contentPaywallEnabled = true) {
     awardBadge:async()=>null
   };
   const app=express();app.use(express.json());app.use(prayers(ctx));app.use(devotional(ctx));app.use(admin(ctx));
+  app.use(subscriptions(ctx));
   const server=app.listen(0);await new Promise(r=>server.once('listening',r));
   const call=(method,url,body,user=42,appAuth=true)=>fetch(`http://127.0.0.1:${server.address().port}${url}`,{
     method,headers:{'content-type':'application/json',...(appAuth?{authorization:'Basic test'}:{}),
@@ -70,6 +72,34 @@ async function withApp(run, contentPaywallEnabled = true) {
     await new Promise(r=>server.close(r));
     if(previous===undefined)delete process.env.SESSION_SECRET;else process.env.SESSION_SECRET=previous;
   }
+}
+
+for(const enabled of [false,true]) {
+  test(`authenticated access policy matches actual content gates, paywall=${enabled}, without provider or database lookup`,async()=>{
+    await withApp(async(call,queries,subscriptionChecks)=>{
+      const url='/api/subscriptions/access-policy';
+      assert.equal((await call('GET',url,{},42,false)).status,401);
+      assert.equal((await call('GET',url,{},null)).status,401);
+      const beforeQueries=queries(),beforeSubscriptions=subscriptionChecks();
+      for(const user of [42,43]) {
+        const response=await call('GET',url,{},user);
+        assert.equal(response.status,200);
+        assert.equal(response.headers.get('cache-control'),'private, no-store');
+        assert.deepEqual(await response.json(),{
+          contentPaywallEnabled:enabled,
+          dailyBread:{requiresPro:enabled},
+          prayerWalk:{requiresPro:enabled},
+          extendedPrayer:{requiresPro:true}
+        });
+      }
+      assert.equal(queries(),beforeQueries);
+      assert.equal(subscriptionChecks(),beforeSubscriptions);
+      for(const url of ['/getDailyDevotional','/getPrayerAudio']) {
+        const response=await call('POST',url,{requestId:1,text:'Synthetic text'},42);
+        assert.equal(response.status,enabled?403:200);
+      }
+    },enabled);
+  });
 }
 
 const interimFeatures=features.filter(([,url])=>[

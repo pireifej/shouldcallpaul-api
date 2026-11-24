@@ -2,10 +2,18 @@
 
 const express = require('express');
 const { extractSubscriptionIdentity } = require('../revenueCatProService');
+const { getContentAccessPolicy } = require('../interimContentAccess');
 
 module.exports = function subscriptionRoutes(ctx) {
   const router = express.Router();
   const { authenticate, requireUserSession, proSubscriptionService } = ctx;
+  const contentAccessPolicy = getContentAccessPolicy({ enabled: ctx.contentPaywallEnabled });
+
+  // Deployment policy only: independent of provider availability and user Pro status.
+  router.get('/api/subscriptions/access-policy', authenticate, requireUserSession, (req, res) => {
+    res.set('Cache-Control', 'private, no-store');
+    res.json(contentAccessPolicy);
+  });
 
   // The mobile SDK must configure/logIn with this account-scoped customer ID.
   // This read does not create a customer, link an account, or grant access.
