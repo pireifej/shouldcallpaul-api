@@ -54,3 +54,17 @@ mtime_ms = 1795530661926
 storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:374ad21d-de0e-4eb0-bc56-086fbfe02aa9/302fa23c-3373-433e-ba48-b332d84b5b8e/749ba314-6431-454e-a346-cf2c9ec947e5"
 storage_version_token = "1795530847405759"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "GHhuEVXaP54TIoGnFIQKT"
+uri = "file://docs/pray-over-us-predeployment-compatibility.md"
+type = "text"
+title = "Pray Over Us pre-deployment compatibility report"
+description = "Verified behavior, reproducible older-client and purchase-identity blockers, 230 passing tests, and the required mobile device checklist. No deployment performed."
+logical_id = "926dd9c6-021f-435b-8be3-6de63c70c998"
+content_hash = "sha256:674a8f41c1b9c136554f6f1b254e1c1ab2d72c4255e52da8150d7f5ad922b403"
+size = 9783
+mtime_ms = 1795531844757
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:374ad21d-de0e-4eb0-bc56-086fbfe02aa9/926dd9c6-021f-435b-8be3-6de63c70c998/c4c83f5e-1387-4ca4-bbf1-98b3c692b5c7"
+storage_version_token = "1795531853878322"
+content_type = "text/markdown"
