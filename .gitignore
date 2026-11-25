@@ -15,3 +15,4 @@ attached_assets/
 !migrations/workshop-engagement-dates.sql
 !migrations/speaker-catalog.sql
 !migrations/holiday-greetings.sql
+!migrations/holiday-greetings-email.sql

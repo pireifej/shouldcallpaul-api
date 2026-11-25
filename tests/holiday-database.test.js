@@ -35,6 +35,7 @@ test('Holiday Greetings real database and API security, persistence, concurrency
       started = true;
       pool = new Pool({ host: dir, port: 15433, user: 'postgres', database: 'postgres', max: 5 });
       await pool.query(fs.readFileSync(path.join(__dirname, '../migrations/holiday-greetings.sql'), 'utf8'));
+      await pool.query(fs.readFileSync(path.join(__dirname, '../migrations/holiday-greetings-email.sql'), 'utf8'));
       // Schema is re-runnable and never drops existing records.
       await pool.query(fs.readFileSync(path.join(__dirname, '../migrations/holiday-greetings.sql'), 'utf8'));
       const store = new HolidayStore(pool, config);

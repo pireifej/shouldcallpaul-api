@@ -2,15 +2,18 @@
 
 ## Status and boundaries
 
-Implemented in this backend; not deployed. The additive migration was applied
-to the **managed development database only**. Production data/configuration,
-Google consent, and the separate frontend are untouched. Runtime defaults to
-disabled (`HOLIDAY_SETUP_REQUIRED`) until explicitly configured.
+The base SMS feature and its six tables were published, but setup remains
+disabled (`HOLIDAY_SETUP_REQUIRED`). The contact-setup/Gmail extension is
+implemented in source, not published. See
+`docs/holiday-greetings-email-handoff.md` for the updated API, additive migration,
+scope changes, safe sending states, and remaining setup. No production data,
+configuration, Google consent or separate frontend was changed for the extension.
 
 This feature uses the existing CRM `auditPool`; it does not read or modify
 Pray Over Us accounts/prayers, CRM contacts/workshops, or public portfolio feeds.
-All feature tables start with `hg_`. No cloud SMS, Gmail, background sender,
-contact writes, AI, or group-message functionality exists.
+All feature tables start with `hg_`. Individual explicitly reviewed Gmail sends
+are supported by the extension. No cloud SMS, background sender, contact writes,
+AI, or group-message functionality exists.
 
 ## 1. Configuration and Google setup
 
@@ -44,7 +47,9 @@ Google Cloud:
 2. Configure Google Auth Platform branding, support contact, and audience/consent
    screen. For an External Testing app, add the permitted owner as a test user.
 3. Request only `openid`, `email`,
-   `https://www.googleapis.com/auth/contacts.readonly`.
+   `https://www.googleapis.com/auth/contacts.readonly`, and
+   `https://www.googleapis.com/auth/gmail.send`. Existing Contacts-only
+   connections must reconnect before sending email; SMS remains compatible.
 4. Create an OAuth **Web application** client. Register the exact redirect URI
    above. Register the frontend origin where Google asks for an authorized
    JavaScript origin; no client-side Google secret is used.
@@ -220,10 +225,12 @@ filtered page with a nextPageToken is **not** the end of search. Traverse all
 pages for complete search results. No Google address-book snapshot is copied to
 CRM. See Google's API quotas; retry quota failures rather than repeatedly paging.
 
-### Preferences: full replacement with version
+### Preferences: versioned sparse updates
 
 First save uses `version: 0`; updates supply the last returned version.
-Omitted preference fields reset to the defaults shown here (PUT replacement):
+Omitted fields now preserve saved preferences. Defaults apply to first creation.
+The extension also accepts `selected`, `preferredMethod`, and
+`preferredEmailAddress`; see the email handoff for examples:
 ```json
 {
   "resourceName": "people/example-contact",
@@ -379,6 +386,8 @@ Errors are JSON `{ "error": "<CODE>" }`, without private data/provider diagnosti
 `migrations/holiday-greetings.sql` adds six hg_ tables and one index, with no
 changes to existing records/tables. It contains no imported contacts or seed data.
 Runtime performs **no schema creation**. No new dependency was installed.
+The email extension adds `migrations/holiday-greetings-email.sql`, containing
+one send-attempt table and one partial unique index without rewriting old data.
 
 Development preparation:
 `node scripts/prepare-holiday-development.js`

@@ -1,8 +1,10 @@
 # Copy-and-paste handoff for Who Call Paul
 
-The private Holiday Greetings backend is implemented but **not deployed or
-Google-connected**. Its six additive tables were prepared in managed development
-only. Nothing was changed in production or in Pray Over Us subscription behavior.
+The private Holiday Greetings base routes and six tables are deployed but not
+configured or Google-connected. The new contact-setup/Gmail extension is
+implemented but **not deployed**. Start with
+`docs/holiday-greetings-email-handoff.md` for the updated API and send safety
+requirements. Nothing was changed in production or Pray Over Us behavior.
 
 Please integrate the frontend against `docs/holiday-greetings-api.md` from the
 backend project. Do not send messages or publish without approval.
@@ -41,8 +43,9 @@ Key contracts:
     429 quota retry, and 503 setup/provider/schema availability distinctly.
 
 Google setup and backend config are still required. This uses owner-only
-application OAuth with openid/email/contacts.readonly, not Gmail or contact-write
-access. External Testing refresh consent can expire in seven days.
+application OAuth with openid/email/contacts.readonly and Gmail **send-only**
+access, never inbox-reading or contact-write access. Existing connections must
+re-consent for email. External Testing refresh consent can expire in seven days.
 
 Please report what is actually connected/tested versus mocked. Native Messages
 handoff, existing-conversation matching, SIM selection and return-to-queue still

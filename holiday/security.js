@@ -2,7 +2,8 @@
 const crypto = require('node:crypto');
 
 const PREFIX = '/api/holiday-greetings';
-const SCOPES = ['openid', 'email', 'https://www.googleapis.com/auth/contacts.readonly'];
+const GMAIL_SEND_SCOPE = 'https://www.googleapis.com/auth/gmail.send';
+const SCOPES = ['openid', 'email', 'https://www.googleapis.com/auth/contacts.readonly', GMAIL_SEND_SCOPE];
 const COOKIE = '__Host-hg-session';
 
 function fail(code, status = 400) {
@@ -86,5 +87,5 @@ function template(value, fields) {
   if (/[{}]/.test(withoutFields)) throw fail('INVALID_TEMPLATE');
   return value.replace(/\{([^{}]*)\}/g, (_, field) => fields[field] || '');
 }
-module.exports = { PREFIX, COOKIE, SCOPES, fail, hash, random, equal, configFromEnv,
+module.exports = { PREFIX, COOKIE, SCOPES, GMAIL_SEND_SCOPE, fail, hash, random, equal, configFromEnv,
   validateConfig, seal, unseal, csrf, cookieToken, contactId, text, template };

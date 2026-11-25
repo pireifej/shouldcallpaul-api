@@ -1,6 +1,7 @@
 'use strict';
 const crypto = require('node:crypto');
-const { fail, SCOPES, equal, contactId } = require('./security');
+const { fail, SCOPES, GMAIL_SEND_SCOPE, equal, contactId } = require('./security');
+const { mimeMessage } = require('./email');
 
 class HolidayGoogle {
   constructor(config, { fetcher = fetch, now = () => Date.now() } = {}) {
@@ -46,14 +47,19 @@ class HolidayGoogle {
     }
     const granted = new Set((result.scope || '').split(' '));
     if (granted.has('https://www.googleapis.com/auth/userinfo.email')) granted.add('email');
-    if (result.scope && !SCOPES.every(s => granted.has(s))) {
+    // Legacy Contacts-only connections must keep supporting SMS after upgrade.
+    if (result.scope && !SCOPES.filter(s => s !== GMAIL_SEND_SCOPE).every(s => granted.has(s))) {
       throw fail('GOOGLE_SCOPE_REQUIRED', 403);
     }
     return result;
   }
-  exchange(code, verifier) {
-    return this.token({ code, code_verifier: verifier,
+  async exchange(code, verifier) {
+    const tokens = await this.token({ code, code_verifier: verifier,
       redirect_uri: this.config.redirectUri, grant_type: 'authorization_code' });
+    if (!String(tokens.scope || '').split(' ').includes(GMAIL_SEND_SCOPE)) {
+      throw fail('GOOGLE_GMAIL_CONSENT_REQUIRED', 409);
+    }
+    return tokens;
   }
   refresh(refreshToken) { return this.token({ refresh_token: refreshToken, grant_type: 'refresh_token' }); }
   async verifyIdToken(token, nonce) {
@@ -103,29 +109,54 @@ class HolidayGoogle {
       value: phone.value || '', label: phone.formattedType || phone.type || '',
       canonicalNumber: /^\+[1-9]\d{6,14}$/.test(phone.canonicalForm || '') ? phone.canonicalForm : null
     }));
+    const emails = (person.emailAddresses || []).map(address => ({
+      value: address.value || '', label: address.formattedType || address.type || ''
+    }));
     return {
       resourceName: contactId(person.resourceName),
       displayName: person.names?.[0]?.displayName || '',
       givenName: person.names?.[0]?.givenName || '',
-      phoneNumbers: phones, hasPhoneNumbers: phones.length > 0
+      phoneNumbers: phones, hasPhoneNumbers: phones.length > 0,
+      emailAddresses: emails, hasEmailAddresses: emails.length > 0
     };
   }
   async list(accessToken, { pageToken, pageSize = 50, search = '' } = {}) {
     const url = new URL('https://people.googleapis.com/v1/people/me/connections');
-    url.searchParams.set('personFields', 'names,phoneNumbers');
+    url.searchParams.set('personFields', 'names,phoneNumbers,emailAddresses');
     url.searchParams.set('pageSize', String(pageSize));
     if (pageToken) url.searchParams.set('pageToken', pageToken);
     const result = await this.json(url, { headers: { Authorization: `Bearer ${accessToken}` } });
     const contacts = (result.connections || []).map(p => this.normalize(p));
     const q = search.toLocaleLowerCase();
     return {
-      contacts: contacts.filter(c => !q || `${c.displayName} ${c.phoneNumbers.map(p => p.value).join(' ')}`.toLocaleLowerCase().includes(q)),
+      contacts: contacts.filter(c => !q || `${c.displayName} ${c.phoneNumbers.map(p => p.value).join(' ')} ${c.emailAddresses.map(e => e.value).join(' ')}`.toLocaleLowerCase().includes(q)),
       nextPageToken: result.nextPageToken || null, searchAppliesTo: 'page'
     };
   }
   async get(accessToken, resourceName) {
-    const url = `https://people.googleapis.com/v1/${contactId(resourceName)}?personFields=names,phoneNumbers`;
+    const url = `https://people.googleapis.com/v1/${contactId(resourceName)}?personFields=names,phoneNumbers,emailAddresses`;
     return this.normalize(await this.json(url, { headers: { Authorization: `Bearer ${accessToken}` } }));
+  }
+  async sendEmail(accessToken, { to, subject, message }) {
+    const raw = mimeMessage({ from: this.config.ownerEmail, to, subject, message });
+    // No retry here. A timeout or unreadable response can mean Gmail accepted it.
+    let response;
+    try {
+      response = await this.fetcher('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+        method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ raw }), signal: AbortSignal.timeout(15000)
+      });
+    } catch { throw fail('EMAIL_OUTCOME_UNKNOWN', 409); }
+    if (!response.ok) {
+      if (response.status >= 500) throw fail('EMAIL_OUTCOME_UNKNOWN', 409);
+      // A definitive Gmail rejection is safe to distinguish from unknown acceptance.
+      throw fail('EMAIL_REJECTED', 409);
+    }
+    try {
+      const data = await response.json();
+      if (typeof data.id !== 'string' || !data.id) throw new Error();
+      return { messageId: data.id };
+    } catch { throw fail('EMAIL_OUTCOME_UNKNOWN', 409); }
   }
 }
 module.exports = { HolidayGoogle };

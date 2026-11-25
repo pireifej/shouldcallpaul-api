@@ -13,6 +13,7 @@ async function main() {
   try {
     await client.query('BEGIN');
     await client.query(fs.readFileSync(path.join(__dirname, '../migrations/holiday-greetings.sql'), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, '../migrations/holiday-greetings-email.sql'), 'utf8'));
     await client.query('COMMIT');
     console.log('Development Holiday Greetings schema prepared; no production migration was run.');
   } catch {

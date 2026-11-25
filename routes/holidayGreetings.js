@@ -4,6 +4,7 @@ const { PREFIX, COOKIE, fail, equal, configFromEnv, csrf, cookieToken } = requir
 const { HolidayStore } = require('../holiday/store');
 const { HolidayGoogle } = require('../holiday/google');
 const { Greetings, version } = require('../holiday/greetings');
+const { EmailSending, publicAttempt } = require('../holiday/emailSending');
 
 module.exports = function holidayGreetingsRoutes(ctx) {
   const router = express.Router();
@@ -13,6 +14,7 @@ module.exports = function holidayGreetingsRoutes(ctx) {
   const store = config ? (ctx.holidayStore || new HolidayStore(ctx.auditPool, config)) : null;
   const google = config ? (ctx.holidayGoogle || new HolidayGoogle(config)) : null;
   const greetings = config ? new Greetings(store, google) : null;
+  const emailSending = config ? new EmailSending(store, google) : null;
   const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
   const setCookie = (res, token) => res.cookie(COOKIE, token, {
     secure: true, httpOnly: true, sameSite: 'lax', path: '/', maxAge: 14 * 86400000
@@ -63,6 +65,7 @@ module.exports = function holidayGreetingsRoutes(ctx) {
     if (!current) { token = await store.createSession(); setCookie(res, token); }
     const own = current?.owner_sub ? await store.owner(current.owner_sub) : null;
     res.json({ authenticated: Boolean(own), googleConnected: Boolean(own?.connected),
+      gmailSendAuthorized: own ? await store.emailAuthorized(current.owner_sub) : false,
       csrfToken: csrf(token, config), expiresAt: current?.expires_at || null });
   }));
   router.get(p('/oauth/google/start'), session, requireCsrf, wrap(async (req, res) => {
@@ -118,6 +121,17 @@ module.exports = function holidayGreetingsRoutes(ctx) {
   }));
   router.patch(p('/batches/:batchId/drafts/:draftId'), owner, requireCsrf, wrap(async (req, res) => {
     res.json(await greetings.patchDraft(req.ownerSub, uuid(req.params.batchId), uuid(req.params.draftId), req.body));
+  }));
+  router.post(p('/batches/:batchId/drafts/:draftId/send-email'), owner, requireCsrf, wrap(async (req, res) => {
+    const result = await emailSending.send(req.ownerSub, uuid(req.params.batchId),
+      uuid(req.params.draftId), req.body, req);
+    res.status(result.attempt.state === 'accepted' ? 200 : result.attempt.state === 'sending' ? 202 : 409).json(result);
+  }));
+  router.get(p('/batches/:batchId/drafts/:draftId/email-attempts/:attemptId'), owner, wrap(async (req, res) => {
+    const attempt = await store.emailAttempt(req.ownerSub, uuid(req.params.attemptId));
+    if (!attempt || attempt.batch_id !== uuid(req.params.batchId) ||
+        attempt.draft_id !== uuid(req.params.draftId)) throw fail('SEND_ATTEMPT_NOT_FOUND', 404);
+    res.json({ attempt: publicAttempt(attempt) });
   }));
   for (const [path, action] of [['opened', 'opened'], ['mark-sent', 'sent']]) {
     router.post(p(`/batches/:batchId/drafts/:draftId/${path}`), owner, requireCsrf, wrap(async (req, res) => {
