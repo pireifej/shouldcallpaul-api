@@ -21,3 +21,14 @@ its entitlement on first linking. Anonymous legacy mappings are not independentl
 an account-ownership proof, and inconsistent guards allow premium bypasses.
 
 **How to apply:** Reuse the shared entitlement service and Pro middleware for new premium routes. Treat provider failures explicitly, keep caches short and bounded, and preserve standard/free content when a premium check fails without leaking premium content.
+
+Deployments must not reset or transfer existing purchase mappings, including
+automatic duplicate cleanup. Preserve conflicting records and report the
+conflict rather than silently clearing account links.
+
+**Why:** The owner explicitly prohibited purchase mapping resets and transfers
+while accepting temporary older-client disruption. Those are separate risks.
+
+**How to apply:** Review startup data mutations as well as the Publish schema
+diff; a structurally additive migration does not prove application startup is
+non-destructive.

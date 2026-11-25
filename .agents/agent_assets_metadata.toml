@@ -68,3 +68,17 @@ mtime_ms = 1795531844757
 storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:374ad21d-de0e-4eb0-bc56-086fbfe02aa9/926dd9c6-021f-435b-8be3-6de63c70c998/c4c83f5e-1387-4ca4-bbf1-98b3c692b5c7"
 storage_version_token = "1795531853878322"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "1KC-ydVVk1n3QVXbLqRzA"
+uri = "file://docs/pray-over-us-final-publish-review.md"
+type = "text"
+title = "Final backend pre-publish review"
+description = "Exact pending schema scope, aggregate production safety checks, other-project effects, accepted mobile disruption, and the remaining startup mapping-reset safeguard."
+logical_id = "eaba8e67-792e-4101-93cc-4a4832acab20"
+content_hash = "sha256:c8853c940944b226bebf6399523dad13a6ea276ed6e9e66588821ec891ea0f4b"
+size = 6250
+mtime_ms = 1795614504155
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:374ad21d-de0e-4eb0-bc56-086fbfe02aa9/eaba8e67-792e-4101-93cc-4a4832acab20/c279aaae-1be5-44a5-8003-c70a1d553ff2"
+storage_version_token = "1795614529898773"
+content_type = "text/markdown"
