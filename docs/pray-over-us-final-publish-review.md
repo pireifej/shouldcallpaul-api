@@ -61,6 +61,29 @@ startup schema initialization is unchanged.
 No startup path was executed during this review. No conflict was repaired,
 mapping cleared, customer merged or purchase transferred.
 
+### Follow-up verification of both configured pools
+
+Both connection targets available in this workspace were checked independently
+using read-only PostgreSQL transactions. Only aggregate counts were returned:
+
+| Configured pool | Duplicate mapping groups | Affected mapping rows |
+| --- | ---: | ---: |
+| `DATABASE_URL` | 0 | 0 |
+| `NEON_DATABASE_URL` | 0 | 0 |
+| Managed production read replica | 0 | 0 |
+
+The managed production check was performed separately because the runtime-managed
+`DATABASE_URL` can differ between development and the published environment.
+These checks retrieved no customer identifiers or prayer content and made no
+data/schema changes. No duplicate-mapping startup blocker was found at the time
+of these checks. If conflicts appear later in either startup pool, startup will
+stop without resetting any mapping, affecting the entire shared API process.
+
+The complete suite was rerun successfully: **235 passed, zero failed, zero
+skipped**. Syntax checks for both the server and extracted initializer and the
+diff whitespace check passed. The production content-paywall setting remains
+absent (effective **false**); the session secret was not changed or displayed.
+
 ## Other projects and shared authentication
 
 - Shared Basic authentication still supports both existing application
