@@ -16,6 +16,7 @@ const multer = require('multer');
 const { sendPushNotification } = require('./pushNotifications');
 const { uploadImage, uploadImageFromUrl, uploadAudio } = require('./cloudinaryService');
 const { sanitizeParams } = require('./requestSanitizer');
+const { ensureWebsiteRequestLimitSchema } = require('./websiteRequestLimitSchema');
 const { createClient: createPexelsClient } = require('pexels');
 require('dotenv').config();
 
@@ -1208,56 +1209,6 @@ const globalNotesMigrationReady = auditPool.query(globalNotesMigrationSQL).then(
 
 // Request source metadata remains for reporting. The old website-only unique
 // index is removed because active Pro subscribers may submit without a limit.
-async function ensureWebsiteRequestLimitSchema(name, dbPool) {
-  await dbPool.query(
-    `ALTER TABLE public."user"
-     ADD COLUMN IF NOT EXISTS revenuecat_app_user_id TEXT`
-  );
-  const duplicateMappings = await dbPool.query(
-    `SELECT COUNT(*)::int AS duplicate_count
-     FROM (
-       SELECT revenuecat_app_user_id
-       FROM public."user"
-       WHERE revenuecat_app_user_id IS NOT NULL
-       GROUP BY revenuecat_app_user_id
-       HAVING COUNT(*) > 1
-     ) duplicates`
-  );
-  if (duplicateMappings.rows[0].duplicate_count > 0) {
-    // Ownership is ambiguous after a duplicate mapping. Clear every affected
-    // link so the legitimate subscriber can re-confirm it through RevenueCat.
-    await dbPool.query(
-      `WITH duplicate_ids AS (
-         SELECT revenuecat_app_user_id
-         FROM public."user"
-         WHERE revenuecat_app_user_id IS NOT NULL
-         GROUP BY revenuecat_app_user_id
-         HAVING COUNT(*) > 1
-       )
-       UPDATE public."user" AS u
-       SET revenuecat_app_user_id = NULL
-       FROM duplicate_ids
-       WHERE u.revenuecat_app_user_id = duplicate_ids.revenuecat_app_user_id`
-    );
-    console.warn(`⚠️ Cleared all ambiguous duplicate RevenueCat mappings (${name}) before enforcing uniqueness`);
-  }
-  await dbPool.query(
-    `CREATE UNIQUE INDEX IF NOT EXISTS user_revenuecat_app_user_id_unique_idx
-     ON public."user" (revenuecat_app_user_id)
-     WHERE revenuecat_app_user_id IS NOT NULL`
-  );
-  await dbPool.query(
-    `ALTER TABLE public.request
-     ADD COLUMN IF NOT EXISTS request_source VARCHAR(20) NOT NULL DEFAULT 'mobile'`
-  );
-  await dbPool.query(
-    `ALTER TABLE public.request
-     ADD COLUMN IF NOT EXISTS website_request_date DATE`
-  );
-  await dbPool.query('DROP INDEX IF EXISTS public.request_website_daily_unique_idx');
-  console.log(`✅ Required website request-limit schema (${name}) ready`);
-}
-
 const websiteRequestLimitMigrationReady = Promise.all([
   ensureWebsiteRequestLimitSchema('dev', pool),
   ensureWebsiteRequestLimitSchema('prod', auditPool)
