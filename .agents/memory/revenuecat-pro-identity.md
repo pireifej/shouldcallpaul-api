@@ -43,3 +43,14 @@ backend ownership-verification requirement can both apply to the same account.
 **How to apply:** Coordinate any explicitly approved identity reconciliation
 with the mobile project. Do not recommend blind login/restore or a mapping reset
 as a complete fix; keep other accounts' ownership and history guards intact.
+
+Approval to implement a controlled reconciliation is not approval to execute it
+in production. The owner requires separate approval for a production
+authorization record, mapping change, RevenueCat alias/transfer, and publication.
+
+**Why:** The reviewed case involved expired sandbox history, not permission for
+a general customer migration or paid-access grant.
+
+**How to apply:** Deliver source/tests and the mobile handoff first. Keep
+production records and provider settings unchanged until the corresponding
+operation is explicitly approved and the current account evidence is rechecked.

@@ -22,6 +22,7 @@ async function withApp(callback, { stored = null, aliases = [], activeCanonical 
     entitlementId: 'synthetic-pro',
     pool: {
       async query(sql) {
+        if (sql.includes('FROM public.subscription_identity_reconciliations')) return { rows: [] };
         assert.match(sql, /SELECT revenuecat_app_user_id/);
         return { rows: [{ revenuecat_app_user_id: stored }] };
       }

@@ -96,3 +96,17 @@ mtime_ms = 1795624311792
 storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:374ad21d-de0e-4eb0-bc56-086fbfe02aa9/1845058a-1d97-49e5-8d6e-ab499dbdc07f/15fb0c78-0b6c-47cb-938d-6f0779269179"
 storage_version_token = "1795625858935497"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "VPQHpVKzuGHUCuJyxzZXY"
+uri = "file://docs/pray-over-us-identity-reconciliation.md"
+type = "text"
+title = "Mobile handoff: approved subscription identity reconciliation"
+description = "Source-only API contract, exact mobile history-guard exception, response/error examples, approval boundaries, test results, and required production pre-publish checks."
+logical_id = "ac7084a9-973a-4edc-a6db-ec1a2e339434"
+content_hash = "sha256:15e06038c418db233ff4dd621069de38d11ca6baf0dc5c06338b9aa031289453"
+size = 15722
+mtime_ms = 1795629289163
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:374ad21d-de0e-4eb0-bc56-086fbfe02aa9/ac7084a9-973a-4edc-a6db-ec1a2e339434/bf67ab9e-0e2b-44c3-8eb3-5c048c1ca1b1"
+storage_version_token = "1795629300966117"
+content_type = "text/markdown"

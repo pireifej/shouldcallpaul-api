@@ -99,9 +99,12 @@ Verified legacy mappings remain unchanged in the database. No bulk relinking,
 entitlement flags, or historical ownership guesses are introduced.
 
 If that alias proof is absent, status is HTTP 200 with `isPro: false` and
-`identityVerificationRequired: true`. Run SDK login/restore for the same signed-in
-account, then refresh. If the provider still cannot establish the relationship,
-keep Pro locked and investigate the binding; do not force-link the old customer.
+`identityVerificationRequired: true`. Stop and investigate ownership; do not
+blindly switch the SDK, restore, clear a mapping, or force-link the old customer.
+The mobile history guard must remain in place. A separately approved,
+expired-sandbox-only transition is described in
+[the identity reconciliation contract](pray-over-us-identity-reconciliation.md).
+It does not grant Pro, merge customers, or transfer purchases.
 An unrelated supplied ID returns 403 `SUBSCRIPTION_IDENTITY_MISMATCH`, or 409
 when an existing mapping would conflict. Provider unavailability returns 503,
 not a daily-limit error.
