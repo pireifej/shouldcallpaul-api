@@ -32,3 +32,14 @@ while accepting temporary older-client disruption. Those are separate risks.
 **How to apply:** Review startup data mutations as well as the Publish schema
 diff; a structurally additive migration does not prove application startup is
 non-destructive.
+
+The separate mobile app blocks RevenueCat SDK identity switches when the
+current SDK customer has purchase history, including expired sandbox history.
+Clearing or changing a backend mapping alone does not resolve that guard.
+
+**Why:** Device diagnostics confirmed that the local history guard and the
+backend ownership-verification requirement can both apply to the same account.
+
+**How to apply:** Coordinate any explicitly approved identity reconciliation
+with the mobile project. Do not recommend blind login/restore or a mapping reset
+as a complete fix; keep other accounts' ownership and history guards intact.
