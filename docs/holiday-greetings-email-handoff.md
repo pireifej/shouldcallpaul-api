@@ -71,6 +71,7 @@ matches name, phone or email. Pagination can review the entire address book.
     "resourceName": "people/example-contact",
     "displayName": "Example Friend",
     "givenName": "Example",
+    "photoUrl": null,
     "phoneNumbers": [{"value": "+12025550101", "canonicalNumber": "+12025550101", "label": "mobile"}],
     "hasPhoneNumbers": true,
     "emailAddresses": [{"value": "friend@example.invalid", "label": "home"}],

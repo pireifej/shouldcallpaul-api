@@ -202,6 +202,7 @@ Example:
     "resourceName": "people/example-contact",
     "displayName": "Example Contact",
     "givenName": "Example",
+    "photoUrl": null,
     "phoneNumbers": [{
       "value": "(202) 555-0101",
       "label": "mobile",
@@ -213,6 +214,15 @@ Example:
   "searchAppliesTo": "page"
 }
 ```
+
+Each contact also has `photoUrl: string | null`: the primary non-default HTTPS
+Google photo URL, falling back to the first usable non-default photo, or null.
+Google placeholders are never returned as real photos. Photo URLs can change;
+only `resourceName` identifies a contact. Photos use the existing
+`contacts.readonly` permission; no additional OAuth scopes are requested.
+The owner-only API and private/no-store headers are unchanged. No photo files
+or URLs are stored permanently, fetched by the backend, or served by a new public
+proxy. See `holiday-greetings-contact-photos-handoff.md` for secure display.
 
 The identifier is the resourceName within the verified owner's Google account.
 All phone choices are returned. No phone means `phoneNumbers: []`,

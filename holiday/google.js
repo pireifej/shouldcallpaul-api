@@ -3,6 +3,22 @@ const crypto = require('node:crypto');
 const { fail, SCOPES, GMAIL_SEND_SCOPE, equal, contactId } = require('./security');
 const { mimeMessage } = require('./email');
 
+// Provider URLs are optional, changeable display data, never contact identities.
+// Do not fetch, persist or log photos. Ignore placeholders and unsafe image URLs.
+function contactPhotoUrl(photos) {
+  let fallback = null;
+  for (const photo of Array.isArray(photos) ? photos : []) {
+    if (!photo || photo.default === true || typeof photo.url !== 'string') continue;
+    try {
+      const url = new URL(photo.url);
+      if (url.protocol !== 'https:' || url.username || url.password) continue;
+      if (photo.metadata?.primary === true) return photo.url;
+      if (fallback === null) fallback = photo.url;
+    } catch { /* Missing/malformed optional photos must not break contact loading. */ }
+  }
+  return fallback;
+}
+
 class HolidayGoogle {
   constructor(config, { fetcher = fetch, now = () => Date.now() } = {}) {
     this.config = config; this.fetcher = fetcher; this.now = now;
@@ -116,13 +132,14 @@ class HolidayGoogle {
       resourceName: contactId(person.resourceName),
       displayName: person.names?.[0]?.displayName || '',
       givenName: person.names?.[0]?.givenName || '',
+      photoUrl: contactPhotoUrl(person.photos),
       phoneNumbers: phones, hasPhoneNumbers: phones.length > 0,
       emailAddresses: emails, hasEmailAddresses: emails.length > 0
     };
   }
   async list(accessToken, { pageToken, pageSize = 50, search = '' } = {}) {
     const url = new URL('https://people.googleapis.com/v1/people/me/connections');
-    url.searchParams.set('personFields', 'names,phoneNumbers,emailAddresses');
+    url.searchParams.set('personFields', 'names,phoneNumbers,emailAddresses,photos');
     url.searchParams.set('pageSize', String(pageSize));
     if (pageToken) url.searchParams.set('pageToken', pageToken);
     const result = await this.json(url, { headers: { Authorization: `Bearer ${accessToken}` } });
@@ -134,7 +151,7 @@ class HolidayGoogle {
     };
   }
   async get(accessToken, resourceName) {
-    const url = `https://people.googleapis.com/v1/${contactId(resourceName)}?personFields=names,phoneNumbers,emailAddresses`;
+    const url = `https://people.googleapis.com/v1/${contactId(resourceName)}?personFields=names,phoneNumbers,emailAddresses,photos`;
     return this.normalize(await this.json(url, { headers: { Authorization: `Bearer ${accessToken}` } }));
   }
   async sendEmail(accessToken, { to, subject, message }) {
